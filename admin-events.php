@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php'; // Ensure this is at the top
+require_once 'config.php';
 
 $sql = "SELECT id, title, description, event_mode, start_datetime, end_datetime, venue FROM events ORDER BY start_datetime DESC";
 $result = $conn->query($sql);
@@ -8,7 +8,6 @@ if (!$result) {
     die("Query failed: " . $conn->error);
 }
 ?>
-
 
 <!DOCTYPE html>
 <html>
@@ -27,20 +26,24 @@ if (!$result) {
         .details-section .detail-item { margin-bottom: 15px; }
         .details-section .detail-item h3 { margin: 0; font-size: 1.2em; }
         .details-section .detail-item p { margin: 5px 0 0; color: #555; }
+        .expand-btn { cursor: pointer; float: right; }
+        .expand { flex-basis: 100% !important; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-<div class="sidebar">
+    <div class="sidebar">
         <div class="menu">
-            <a href="dashboard-admin.php" class="active"><i class="fas fa-home mr-3"></i>Home</a>
-            <a href="events-admin.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
-            <a href="users-admin.php"><i class="fas fa-users mr-3"></i>Users</a>
-            <a href="notif-admin.php"><i class="fas fa-bell mr-3"></i>Notification</a>
-            <a href="profile-admin.php"><i class="fas fa-user-circle mr-3"></i>Profile</a>
+            <a href="admin-dashboard.php"><i class="fas fa-home mr-3"></i>Home</a>
+            <a href="admin-events.php" class="active"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
+            <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
+            <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
+            <br><br><br><br><br><br><br><br><br><br><br><br><br>
+            <a href="admin-profile.php"><i class="fas fa-user-circle mr-3"></i>Profile</a>
         </div>
-        </div>
+    </div>
 
     <div class="content">
         <div class="content-header">
@@ -57,7 +60,6 @@ if (!$result) {
 
             <div class="content-area">
                 <div class="events-section">
-                    
                     <?php
                     if ($result->num_rows > 0) {
                         while ($row = $result->fetch_assoc()) {
@@ -76,6 +78,7 @@ if (!$result) {
                 </div>
 
                 <div class="details-section" id="details-section">
+                    <i class="fas fa-expand expand-btn" onclick="toggleExpand()"></i>
                     <h2>Details</h2>
                     <div class="detail-item">
                         <h3 id="detail-title"></h3>
@@ -117,11 +120,27 @@ function showDetails(eventData) {
 }
 
 function selectEvent(event) {
-        document.querySelectorAll('.event').forEach(div => {
-            div.classList.remove('selected');
-        });
-        
-        event.currentTarget.classList.add('selected');
+    document.querySelectorAll('.event').forEach(div => {
+        div.classList.remove('selected');
+    });
+
+    event.currentTarget.classList.add('selected');
+}
+
+function toggleExpand() {
+    let detailsSection = document.getElementById('details-section');
+    let eventsSection = document.querySelector('.events-section');
+    let expandIcon = document.querySelector('.expand-btn');
+
+    if (detailsSection.classList.contains('expand')) {
+        detailsSection.classList.remove('expand');
+        eventsSection.classList.remove('hidden');
+        expandIcon.classList.replace('fa-compress', 'fa-expand');
+    } else {
+        detailsSection.classList.add('expand');
+        eventsSection.classList.add('hidden');
+        expandIcon.classList.replace('fa-expand', 'fa-compress');
+    }
 }
 
 // Modify the PHP to add the onclick event
@@ -131,7 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         div.addEventListener('click', selectEvent);
     });
 });
-
 </script>
 
 </body>
