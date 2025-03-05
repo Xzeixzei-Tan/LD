@@ -36,12 +36,11 @@ if (!$result) {
 <div class="container">
     <div class="sidebar">
         <div class="menu">
-            <a href="admin-dashboard.php"><i class="fas fa-home mr-3"></i>Home</a>
-            <a href="admin-events.php" class="active"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
-            <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
-            <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
-            <br><br><br><br><br><br><br><br><br><br><br><br><br>
-            <a href="admin-profile.php"><i class="fas fa-user-circle mr-3"></i>Profile</a>
+            <a href="dashboard-admin.php" class="active"><i class="fas fa-home mr-3"></i>Home</a>
+            <a href="events-admin.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
+            <a href="users-admin.php"><i class="fas fa-users mr-3"></i>Users</a>
+            <a href="notif-admin.php"><i class="fas fa-bell mr-3"></i>Notification</a>
+            <a href="profile-admin.php"><i class="fas fa-user-circle mr-3"></i>Profile</a>
         </div>
     </div>
 
@@ -63,8 +62,8 @@ if (!$result) {
                     <?php
                     if ($result->num_rows > 0) {
                         while ($row = $result->fetch_assoc()) {
-                            echo '<div class="event">';
                             echo '<a class="events-btn" href="javascript:void(0);" onclick="showDetails(' . htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8') . ')">';
+                            echo '<div class="event">';
                             echo '<div class="event-content">';
                             echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
                             echo '<p>' . htmlspecialchars(substr($row["description"], 0, 100)) . '...</p>';
