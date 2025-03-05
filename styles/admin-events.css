@@ -101,7 +101,7 @@ hr {
     border: 1px solid #95A613;
 }
 
-.join-btn {
+.create-btn {
     float: right;
     padding: 11px;
     padding-left: 15px;
@@ -113,6 +113,7 @@ hr {
     text-decoration: none;
     background-color: #12753E;
     border-radius: 5px;
+    margin-top: -7%;
 }
 
 .content-area {
@@ -124,7 +125,7 @@ hr {
 .notifications-section {
     background-color: white;
     border-radius: 8px;
-    padding: 20px;
+    padding: 30px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     font-family: 'Wesley Demo', serif;
     flex: 1;
@@ -136,13 +137,26 @@ hr {
     transition: flex-basis 0.3s;
 }
 
-.details-section {
+.event.selected{
+    background: #19a155;
+}
+
+.event.selected h3{
+    color: white;
+}
+
+.event.selected p{
+    color: rgb(231, 231, 231);
+}
+
+#details-section {
     display: none;
     flex-basis: 30%;
     margin-left: 20px;
-    background-color: #f9f9f9;
-    padding: 20px;
+    background-color: white;
+    padding: 30px;
     border-radius: 8px;
+    border: 2px solid #12753E;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -152,6 +166,13 @@ hr {
 
 .details-section h2 {
     margin-top: 0;
+    font-family: Montserrat Extrabold;
+    font-weight: bold;
+    margin-bottom: 10%;
+}
+
+#detail-title{
+    font-family: Montserrat Extrabold;
 }
 
 .details-section .detail-item {
@@ -160,12 +181,16 @@ hr {
 
 .details-section .detail-item h3 {
     margin: 0;
-    font-size: 1.2em;
+    font-size: 1em;
+    font-family: Montserrat;
+    color: #014f23;
 }
 
 .details-section .detail-item p {
     margin: 5px 0 0;
-    color: #555;
+    color: #000000;
+    font-size: .8em;
+    font-family: Montserrat Medium
 }
 
 .events-section h2,
@@ -179,10 +204,9 @@ hr {
 
 .event,
 .notification {
-
-    background-color: #f9f9f9;
+    background-color: #d7f3e4;
     border-radius: 5px;
-    padding: 15px;
+    padding: 20px;
     margin-bottom: 15px;
     position: relative;
 }
@@ -194,20 +218,19 @@ hr {
 
 .notification.important {
     background-color: #f9f9f9;
-    ;
     color: white;
 }
 
 .event-content h3 {
-    font-size: 16px;
+    font-size: 18px;
     margin-bottom: 5px;
     font-family: Montserrat;
 }
 
 .event-content p {
     font-size: 13px;
-    color: inherit;
-    font-family: Montserrat;
+    color: #585858;
+    font-family: Montserrat Medium;
 }
 
 .notification p {
