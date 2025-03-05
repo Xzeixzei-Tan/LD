@@ -217,11 +217,11 @@
 </head>
 <body>
 
-    <img alt="DepEd Division Office building" class="background-image" height="1080" src="login-signup.jpg" width="1920"/>
+    <img alt="DepEd Division Office building" class="background-image" height="1080" src="styles/photos/login-signup.jpg" width="1920"/>
 
     <div class="content">
         <div class="content-header">
-            <img src="DO-LOGO.png" width="70px" height="70px">
+            <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
             <p>Learning and Development</p>
             <h1>EVENT MANAGEMENT SYSTEM</h1>
         </div><br><br><br>
