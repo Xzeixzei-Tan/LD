@@ -32,7 +32,6 @@ if (!$result) {
                 <a href="admin-events.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
                 <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
                 <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
-                <br><br><br><br><br><br><br><br><br><br><br><br><br>
                 <a href="admin-profile.php"><i class="fas fa-user-circle mr-3"></i>Profile</a>
             </div>
         </div>
