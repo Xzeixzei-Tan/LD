@@ -101,7 +101,7 @@
 
     <div class="content">
     	<div class="content-header">
-	    	<img src="DO-LOGO.png" width="70px" height="70px">
+	    	<img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
 	    	<p>Department of Education</p>
 	    	<h1>Division Office of General Trias City</h1>
     	</div><br><br><br><br><br>
