@@ -34,10 +34,10 @@ if (!$result) {
 <div class="container">
     <div class="sidebar">
         <div class="menu">
-            <a href="dashboard-admin.php" class="active"><i class="fas fa-home mr-3"></i>Home</a>
-            <a href="events-admin.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
-            <a href="users-admin.php"><i class="fas fa-users mr-3"></i>Users</a>
-            <a href="notif-admin.php"><i class="fas fa-bell mr-3"></i>Notification</a>
+            <a href="admin-dashboard.php"><i class="fas fa-home mr-3"></i>Home</a>
+            <a href="admin-events.php" class="active"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
+            <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
+            <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a>
             <a href="profile-admin.php"><i class="fas fa-user-circle mr-3"></i>Profile</a>
         </div>
     </div>
@@ -50,12 +50,13 @@ if (!$result) {
         </div><br><br><br>
 
         <div class="content-body">
-            <h1>Welcome, Admin!</h1>
+            <h1>Events</h1>
             <hr><br>
+
+            <a class="create-btn" href="admin-create-event.php">Create an Event!</a>
 
             <div class="content-area">
                 <div class="events-section">
-                    <h2>Events</h2>
                     
                     <?php
                     if ($result->num_rows > 0) {
@@ -114,6 +115,23 @@ function showDetails(eventData) {
     document.getElementById('details-section').style.display = 'block';
     document.querySelector('.events-section').classList.add('shrink');
 }
+
+function selectEvent(event) {
+        document.querySelectorAll('.event').forEach(div => {
+            div.classList.remove('selected');
+        });
+        
+        event.currentTarget.classList.add('selected');
+}
+
+// Modify the PHP to add the onclick event
+document.addEventListener('DOMContentLoaded', () => {
+    const eventDivs = document.querySelectorAll('.event');
+    eventDivs.forEach(div => {
+        div.addEventListener('click', selectEvent);
+    });
+});
+
 </script>
 
 </body>
