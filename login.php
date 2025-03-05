@@ -142,33 +142,24 @@ session_start();
             font-family: Montserrat;
             font-weight: bold;
         }
-<<<<<<< HEAD
-=======
 
         #status {
             color: #E33629;
             font-family: Montserrat; 
-        }        }
->>>>>>> 59085f0 (jess 03-04)
+        }        
     </style>
 </head>
 <body>
 
-    <img alt="DepEd Division Office building" class="background-image" height="1080" src="login-signup.jpg" width="1920"/>
+    <img alt="DepEd Division Office building" class="background-image" height="1080" src="styles/photos/login-signup.jpg" width="1920"/>
 
     <div class="content">
         <div class="content-header">
-            <img src="DO-LOGO.png" width="70px" height="70px">
+            <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
             <p>Learning and Development</p>
             <h1>EVENT MANAGEMENT SYSTEM</h1>
         </div><br><br><br>
-        
-<<<<<<< HEAD
-    <div class="container">
-            <div class="form-container">
-                <h1>LOGIN</h1>
-                <form method="POST" action="login_process.php"><br>
-=======
+
         <div class="container">
             <div class="form-container">
                 <h1>LOGIN</h1>
@@ -187,17 +178,14 @@ session_start();
                         }
                     ?>
 
->>>>>>> 59085f0 (jess 03-04)
                     <input type="text" id="email" name="email" placeholder="Enter email" required><br>
                     <input type="password" id="password" name="password" placeholder="Enter password" required><br>
 
                     <center>
                     <input class="btn" type="submit" value="Login">
-<<<<<<< HEAD
+
                     <p class="register-link">Don't have a account? <a style="color: #2B3A8F;" href="acctype.php">Create an account!</a></p></center><br>           
-=======
-                    <p class="register-link">Don't have an account? <a style="color: #2B3A8F;" href="acctype.php">Create an account!</a></p></center><br>           
->>>>>>> 59085f0 (jess 03-04)
+
             </form>
             </div>
         </div>
