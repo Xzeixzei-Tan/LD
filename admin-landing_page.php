@@ -113,7 +113,7 @@
 	    	<div class="cards">
                 <div class="card1">
                     <center>
-                        <a class="join-btn" href="dashboard-admin.php">Learning and Development</a>
+                        <a class="join-btn" href="admin-dashboard.php">Learning and Development</a>
                     </center>
                 </div>
             </div>
