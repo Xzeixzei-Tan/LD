@@ -1,10 +1,7 @@
-<<<<<<< HEAD
-=======
 <?php 
 session_start();
 ?>
 
->>>>>>> 59085f0 (jess 03-04)
 <!DOCTYPE html>
 <html lang="en">
 <head>

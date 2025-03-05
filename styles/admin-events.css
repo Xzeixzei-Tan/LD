@@ -39,6 +39,7 @@ hr {
 }
 
 .sidebar .menu a {
+    font-family: 'Tilt Warp';
     color: #ffffff;
     text-decoration: none;
     padding: 1rem;
@@ -91,9 +92,8 @@ hr {
 }
 
 .content-body h1 {
-    font-family: Montserrat;
+    font-family: Montserrat ExtraBold;
     font-size: 2rem;
-    font-weight: bolder;
     padding: 10px;
 }
 
@@ -117,100 +117,85 @@ hr {
 
 .content-area {
     display: flex;
-    gap: 15px;
-    background-color: #ffffff;
+    justify-content: space-between;
+}
+
+.events-section,
+.notifications-section {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-family: 'Wesley Demo', serif;
+    flex: 1;
+    min-width: 300px;
 }
 
 .events-section {
-    border-radius: 8px;
-    padding: 20px;
-    font-family: Wesley Demo;
-    flex: 3;
+    flex-basis: 100%;
+    transition: flex-basis 0.3s;
 }
 
 .details-section {
-    flex: 2;
-    background-color: white;
+    display: none;
+    flex-basis: 30%;
+    margin-left: 20px;
+    background-color: #f9f9f9;
+    padding: 20px;
     border-radius: 8px;
-    padding: 24px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    font-family: Montserrat;
-    font-weight: bolder;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.events-section h2 {
-    font-size: 22px;
-    margin-bottom: 20px;
-    color: #333;
-    font-family: Montserrat;
-    font-weight: bolder;
+.events-section.shrink {
+    flex-basis: 70%;
 }
 
 .details-section h2 {
-    font-size: 22px;
-    margin-bottom: 20px;
-    color: #333;
-    font-family: Montserrat;
-    font-weight: bolder;
+    margin-top: 0;
 }
 
-.details-section p {
-    font-size: 13px;
-    font-family: Montserrat;
-    font-weight: medium;
+.details-section .detail-item {
+    margin-bottom: 15px;
+}
+
+.details-section .detail-item h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.details-section .detail-item p {
+    margin: 5px 0 0;
+    color: #555;
+}
+
+.events-section h2,
+.notifications-section h2 {
+    font-size: 22px;
+    font-family: Montserrat ExtraBold;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
 }
 
 .event,
 .notification {
-    background-color: #f7f7f7;
+
+    background-color: #f9f9f9;
     border-radius: 5px;
     padding: 15px;
     margin-bottom: 15px;
     position: relative;
-    transition: background-color 0.3s, box-shadow 0.3s;
 }
 
-.event:hover {
-    background-color: #89AC46;
-    color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.event.featured {
+    background-color: #f9f9f9;
+    ;
 }
-
 
 .notification.important {
     background-color: #f9f9f9;
+    ;
     color: white;
-}
-
-.event h1 {
-    font-size: 16px;
-    margin-bottom: 5px;
-    font-family: Montserrat ExtraBold;
-}
-
-.event-target {
-    color: black;
-    font-size: 15px;
-}
-
-.event-date {
-    color: #CF7F00;
-    font-size: 18px;
-}
-
-.event-desc {
-    font-weight: lighter;
-    color: #999;
-    padding: 5px;
-}
-
-.events-section a {
-    text-decoration: none;
-    color: black;
-}
-
-.event-content {
-    padding: 8px;
 }
 
 .event-content h3 {
@@ -223,28 +208,14 @@ hr {
     font-size: 13px;
     color: inherit;
     font-family: Montserrat;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+}
+
+.notification p {
+    font-size: 14px;
+    font-family: Montserrat;
 }
 
 .events-btn {
     text-decoration: none;
     color: black;
-}
-
-.reg-text .reg-part {
-    font-size: 50px;
-    text-align: right;
-    margin-right: 18%;
-    margin-top: -15%;
-    color: #12753E;
-}
-
-.reg-text p {
-    color: black;
-    font-weight: bolder;
-    font-size: 18px;
-    font-family: Montserrat;
-
 }
