@@ -523,7 +523,7 @@
 
         <div class="content">
             <div class="content-header">
-                <img src="DO-LOGO.png" width="70px" height="70px">
+                <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
                 <p>Learning and Development</p>
                 <h1>EVENT MANAGEMENT SYSTEM</h1>
             </div><br><br><br><br><br>
