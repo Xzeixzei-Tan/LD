@@ -4,7 +4,7 @@ session_start();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['email'];
-    $password = $_POST['password'];
+    $entered_password = $_POST['password'];
 
     // Hardcoded credentials
     $valid_username = "lndAdmin";
@@ -17,26 +17,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     } else {
         //User credentials checking
-        $stmt = $conn->prepare("SELECT email, password FROM users WHERE email = ? AND password = ?");
-        $stmt->bind_param("ss", $username, $password);
+        $stmt = $conn->prepare("SELECT id, email, password FROM users WHERE email = ?");
+        $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows == 1) {
             $row = $result->fetch_assoc();
-            $_SESSION['user'] = $username;
-            $_SESSION['role'] = $row['password'];
 
-            header("Location: user-landing_page.php");
-            exit();
+            if (password_verify($entered_password, $row['password'])) {
+                $_SESSION['user'] = $row['email'];
+                $_SESSION['user_id'] = $row['id'];
+
+                header("Location: user-landing_page.php");
+                exit(); 
+            } else {
+                $_SESSION['status'] = 'Invalid Credentials';
+                header("Location: login.php");
+                exit();
+            }
+
         } else {
-        $_SESSION['status'] = "Invalid Credentials";
+        $_SESSION['status'] = "User not found";
         header("Location: login.php");
         exit;
         }
 
         $stmt->close();
+    }    
         $conn->close();
-    }
+
 }
 ?>

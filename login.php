@@ -184,7 +184,7 @@ session_start();
                     <center>
                     <input class="btn" type="submit" value="Login">
 
-                    <p class="register-link">Don't have a account? <a style="color: #2B3A8F;" href="acctype.php">Create an account!</a></p></center><br>           
+                    <p class="register-link">Don't have a account? <a style="color: #2B3A8F;" href="signup.php">Create an account!</a></p></center><br>           
 
             </form>
             </div>
