@@ -11,7 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $valid_password = "adminlnd1234";
 
 
-    if ($username === $valid_username && $password === $valid_password) {
+    if ($username === $valid_username && $entered_password === $valid_password) {
         $_SESSION['user'] = $username; // Store session
         header("Location: admin-landing_page.php"); // Redirect to landing page
         exit();
