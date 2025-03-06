@@ -129,7 +129,7 @@
     .school{
         width: 30%;
         border-radius: 5px;
-        background: #89AC46;
+        background: #19a155;
         color: white;
         padding: 15px;
         font-size: 18px;
@@ -140,8 +140,8 @@
     .division{
         width: 30%;
         border-radius: 5px;
-        background:rgb(222, 240, 190);
-        color:#89AC46;
+        background: #d7f3e4;
+        color: #19a155;
         padding: 15px;
         font-size: 18px;
         margin-bottom: 4%;
@@ -186,7 +186,8 @@
         border-collapse: collapse;
     }
     th {
-        background-color:rgb(178, 190, 249);
+        background-color: #374ab6;
+        color: white;
         text-align: left;
         padding: 15px;
         border: 1px solid #ddd;
