@@ -139,7 +139,7 @@
   </style>
  </head>
  <body>
-    <img alt="DepEd Division Office building" class="background-image" height="1080" src="index.jpg" width="1920"/>
+    <img alt="DepEd Division Office building" class="background-image" height="1080" src="styles/photos/index.jpg" width="1920"/>
         
         <div class="header">
             <div class="buttons">
@@ -163,4 +163,4 @@
                 <h5 style="margin-left: 100px;">DEPARTMENT OF EDUCATION</h5>
                 <h1 style="margin-right: 50px; margin-top: -4%;">DIVISION OF GENERAL TRIAS CITY</h1>
             </div>
-        <img alt="DepEd Division of General Trias logo" style="margin-right: 140px;" height="100" src="DO-LOGO.png" width="100"/>
+        <img alt="DepEd Division of General Trias logo" style="margin-right: 140px;" height="100" src="styles/photos/DO-LOGO.png" width="100"/>

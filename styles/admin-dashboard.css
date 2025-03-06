@@ -1,4 +1,5 @@
 * {
+    position: relative;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -11,15 +12,20 @@ html {
 }
 
 .sidebar {
-    position: fixed;
     width: 250px;
-    height: 100vh;
+    height: 100%;
     background-color: #2b3a8f;
-    color: #ffffff;
-    padding: 2rem 1rem;
+    color: white;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    transition: width 0.3s ease;
+    position: fixed;
+}
+
+.sidebar-content{
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
 }
 
 .sidebar .logo {
@@ -32,10 +38,11 @@ hr {
 }
 
 .sidebar .menu {
-    margin-top: 50%;
+    margin-top: 30%;
     display: flex;
     flex-direction: column;
     margin-bottom: 18rem;
+    margin-right: 5%;
 }
 
 .sidebar .menu a {
@@ -62,6 +69,30 @@ hr {
     margin-right: 0.5rem;
 }
 
+.user-profile {
+    padding: 15px;
+    border-top: 1px solid #eaf4ff;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    bottom: 0;
+    font-family: Tilt Warp;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #3498db;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.username {
+    font-weight: bold;
+}
 .content {
     flex: 1;
     background-color: #ffffff;
@@ -101,96 +132,42 @@ hr {
     border: 1px solid #95A613;
 }
 
-.create-btn {
+.join-btn {
     float: right;
     padding: 11px;
     padding-left: 15px;
     padding-right: 15px;
     font-family: Montserrat;
     font-weight: bold;
-    font-size: 13px;
+    font-size: 12px;
     color: white;
     text-decoration: none;
     background-color: #12753E;
     border-radius: 5px;
-    margin-top: -7%;
 }
 
 .content-area {
     display: flex;
-    justify-content: space-between;
+    padding: 0 30px 30px;
+    gap: 30px;
 }
 
 .events-section,
 .notifications-section {
     background-color: white;
     border-radius: 8px;
-    padding: 30px;
+    padding: 20px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     font-family: 'Wesley Demo', serif;
-    flex: 1;
-    min-width: 300px;
 }
 
 .events-section {
-    flex-basis: 100%;
-    transition: flex-basis 0.3s;
+    flex: 3;
+    position: relative;
 }
 
-.event.selected{
-    background: #19a155;
-}
-
-.event.selected h3{
-    color: white;
-}
-
-.event.selected p{
-    color: rgb(231, 231, 231);
-}
-
-#details-section {
-    display: none;
-    flex-basis: 30%;
-    margin-left: 20px;
-    background-color: white;
-    padding: 30px;
-    border-radius: 8px;
-    border: 2px solid #12753E;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.events-section.shrink {
-    flex-basis: 70%;
-}
-
-.details-section h2 {
-    margin-top: 0;
-    font-family: Montserrat Extrabold;
-    font-weight: bold;
-    margin-bottom: 10%;
-}
-
-#detail-title{
-    font-family: Montserrat Extrabold;
-}
-
-.details-section .detail-item {
-    margin-bottom: 15px;
-}
-
-.details-section .detail-item h3 {
-    margin: 0;
-    font-size: 1em;
-    font-family: Montserrat;
-    color: #014f23;
-}
-
-.details-section .detail-item p {
-    margin: 5px 0 0;
-    color: #000000;
-    font-size: .8em;
-    font-family: Montserrat Medium
+.notifications-section {
+    flex: 2;
 }
 
 .events-section h2,
@@ -199,38 +176,29 @@ hr {
     font-family: Montserrat ExtraBold;
     font-weight: bold;
     margin-bottom: 20px;
-    color: #333;
+    color: #2b3a8f;
 }
 
 .event,
 .notification {
-    background-color: #d7f3e4;
+    background-color: rgb(215, 222, 247);
     border-radius: 5px;
-    padding: 20px;
+    padding: 15px;
     margin-bottom: 15px;
     position: relative;
 }
 
-.event.featured {
-    background-color: #f9f9f9;
-    ;
-}
-
-.notification.important {
-    background-color: #f9f9f9;
-    color: white;
-}
-
 .event-content h3 {
-    font-size: 18px;
+    font-size: 16px;
     margin-bottom: 5px;
-    font-family: Montserrat;
+    font-family: Montserrat Extrabold;
 }
 
 .event-content p {
+    margin-bottom: 3%;
     font-size: 13px;
-    color: #585858;
-    font-family: Montserrat Medium;
+    color: #2b3a8f;
+    font-family: Montserrat;
 }
 
 .notification p {

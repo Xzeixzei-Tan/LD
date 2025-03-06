@@ -1,3 +1,16 @@
+<?php 
+require_once 'config.php';
+
+// Fetch affiliations
+$affiliationQuery = "SELECT id, name FROM affiliation";
+$affiliationResult = $conn->query($affiliationQuery);
+
+// Fetch positions with their corresponding classifications
+$positionQuery = "SELECT cp.id, cp.name, c.name AS classification_name 
+                  FROM class_position cp
+                  JOIN classification c ON cp.classification_id = c.id";
+$positionResult = $conn->query($positionQuery);
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -114,7 +127,7 @@
         }
 
         .form-container .btn {
-            width: 95%;
+            width: 50%;
             padding: 10px;
             background-color: #2B3A8F;
             color: #fff;
@@ -125,7 +138,7 @@
             font-family: Tilt Warp Regular;
             letter-spacing: 1px;
             box-shadow: 0 4px 0 #373F70;
-            margin-top: 7%;
+            margin-top: 2%;
         }
 
         .form-container .btn:hover {
@@ -159,7 +172,7 @@
             flex: 1;
             padding: 0 10px;
         }
-        
+
         .divider {
             width: 2px;
             background-color: #ddd;
@@ -174,6 +187,37 @@
             margin-top: 1%;
             margin-bottom: 5%;
             font-family: Tilt Warp; 
+        }
+
+        label[for=lastName], label[for="sex"]{
+            margin-left: -5%;
+        }
+
+        #lastName {
+            margin-left: -5%;
+            width: 150%;
+        }
+
+        #suffix {
+            margin-left: 40%;
+            width: 65%;
+        }
+
+        label[for=suffix] {
+            margin-left: 40%;
+        }
+
+        #sex{
+            margin-left: -5%;
+            width: 115%;
+        }
+
+        label[for="contact"]{
+            margin-left: 5%;
+        }
+
+        #contact{
+            margin-left: 5%;
         }
         
         select {
@@ -217,11 +261,11 @@
 </head>
 <body>
 
-    <img alt="DepEd Division Office building" class="background-image" height="1080" src="login-signup.jpg" width="1920"/>
+    <img alt="DepEd Division Office building" class="background-image" height="1080" src="styles/photos/login-signup.jpg" width="1920"/>
 
     <div class="content">
         <div class="content-header">
-            <img src="DO-LOGO.png" width="70px" height="70px">
+            <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
             <p>Learning and Development</p>
             <h1>EVENT MANAGEMENT SYSTEM</h1>
         </div><br><br><br>
@@ -229,59 +273,88 @@
     <div class="container">
             <div class="form-container">
                 <h1>SIGNUP</h1>
-                <form method="POST" action="signup_process.php"><br>
+                <form action="signup_process.php" method="POST"><br>
                 <div class="form-row">
-                <div class="form-col">
-                    <label for="firstName">First Name :</label>
-                    <input type="text" id="firstName" name="firstName" placeholder="Enter First Name">
-                    
-                    <label for="lastName">Last Name :</label>
-                    <input type="text" id="lastName" name="lastName" placeholder="Enter Last Name">
-                    
-                    <div class="form-row">
-                        <div class="form-col">
-                            <label for="sex">Sex :</label>
-                            <select id="sex" name="sex">
-                                <option value="female" selected>Female</option>
-                                <option value="male">Male</option>
-                                <option value="other">Other</option>
-                            </select>
+                    <div class="form-col">
+                        <label>First Name:</label>
+                        <input type="text" name="first_name" placeholder="Enter First Name" value="cess" required>
+
+                        <label>Middle Name:</label>
+                        <input type="text" name="middle_name" placeholder="Enter Middle Name" value="jauod">
+
+                        <div class="form-row">
+                            <div class="form-col">
+                                <label>Last Name:</label>
+                                <input type="text" name="last_name" placeholder="Enter Last Name" value="tan" required>
+                            </div>
+                            <div class="form-col">
+                                <label>Suffix:</label>
+                                <input type="text" name="suffix" placeholder="Enter Suffix (e.g. Jr., Sr.)">
+                            </div>
                         </div>
-                        <div class="form-col">
-                            <label for="contact">Contact Number :</label>
-                            <input type="tel" id="contact" name="contact" placeholder="Enter Contact Number">
+
+                        <div class="form-row">
+                            <div class="form-col">
+                                <label>Sex:</label>
+                                    <select name="sex" required>
+                                        <option>Select Sex</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                            </div>
+                            <div class="form-col">
+                                <label>Contact No:</label>
+                                <input type="text" name="contact_no" placeholder="Enter Contact No." minlength="11" maxlength="11" value="09123456789" required>
+                            </div>
                         </div>
                     </div>
-                    
-                    <label for="email">E-mail :</label>
-                    <input type="email" id="email" name="email" placeholder="Enter e-mail">
-                    
-                    <label for="password">Password :</label>
-                    <input type="password" id="password" name="password" placeholder="Enter password">
+
+                    <div class="divider"></div>
+
+                    <div class="form-col">
+                        <label>Email:</label>
+                        <input type="email" name="email" placeholder="Enter Email" value="cess@gmail.com" required>
+
+                        <label>Password:</label>
+                        <input type="password" name="password" placeholder="Enter Password" value="password" required>
+
+                        <!-- Affiliation Dropdown -->
+                        <label>Affiliation:</label>
+                        <select name="affiliation" required>
+                            <option value="">Select Affiliation</option>
+                            <?php while ($row = $affiliationResult->fetch_assoc()) : ?>
+                                <option value="<?= $row['id']; ?>"><?= $row['name']; ?></option>
+                            <?php endwhile; ?>
+                        </select>
+
+                        <!-- Position Dropdown -->
+                        <label>Position/Designation:</label>
+                        <select name="position" id="positionSelect" required>
+                            <option value="">Select Position</option>
+                            <?php while ($row = $positionResult->fetch_assoc()) : ?>
+                                <option value="<?= $row['id']; ?>" data-classification="<?= $row['classification_name']; ?>">
+                                    <?= $row['name']; ?> (<?= $row['classification_name']; ?>)
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
                 </div>
-                
-                <div class="divider"></div>
-                
-                <div class="form-col">
-                    <label for="school">School Assignment :</label>
-                    <input type="text" id="school" name="school" placeholder="Enter School Assignment">
-                    
-                    <label for="position">Position / Designation :</label>
-                    <input type="text" id="position" name="position" placeholder="Enter Position / Designation">
-                    
-                    <label for="classification">Classification :</label>
-                    <select id="classification" name="classification">
-                        <option value="teaching" selected>Teaching</option>
-                        <option value="non-teaching">Non - Teaching</option>
-                        <option value="teaching-related">Teaching Related</option>
-                    </select>
-                    
-                    <center>
-                    <input class="btn" type="submit" value="Signup">
-                    <p class="login-link">Already have an account? <a style="color: #2B3A8F;" href="login.php">Login!</a></p></center><br>           
-            </form>
+
+                <button class="btn" type="submit">Sign Up</button>
+                <p class="login-link">Already have an account? <a style="color: #2B3A8F;" href="login.php">Login!</a></p>
+
+                </form>
             </div>
-        </div>
+        <script>
+        document.getElementById('positionSelect').addEventListener('change', function() {
+            var selectedOption = this.options[this.selectedIndex];
+            document.getElementById('classificationDisplay').value = selectedOption.getAttribute('data-classification');
+        });
+        </script>
+        <?php 
+        $conn->close();
+        ?>
     </div>
 </body>
 </html>
