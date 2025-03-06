@@ -81,6 +81,14 @@
         width: 100%;
     }
 
+    #logout {
+        float: right;
+        border: 1px solid black;
+        height: 100%;
+        width: 100%;
+        font-color: black;
+    }
+
     .user-avatar {
         width: 40px;
         height: 40px;
@@ -245,6 +253,7 @@
         <div class="user-profile">
             <div class="user-avatar">JC</div>
             <div class="username">Jess Constante</div>
+            <i class="fa-solid fa-right-from-bracket" id="logout"></i>
         </div>
     </div>
 
