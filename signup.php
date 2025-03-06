@@ -1,3 +1,6 @@
+<?php 
+require_once 'config.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -159,7 +162,7 @@
             flex: 1;
             padding: 0 10px;
         }
-        
+
         .divider {
             width: 2px;
             background-color: #ddd;
@@ -174,6 +177,37 @@
             margin-top: 1%;
             margin-bottom: 5%;
             font-family: Tilt Warp; 
+        }
+
+        label[for=lastName], label[for="sex"]{
+            margin-left: -5%;
+        }
+
+        #lastName {
+            margin-left: -5%;
+            width: 150%;
+        }
+
+        #suffix {
+            margin-left: 40%;
+            width: 65%;
+        }
+
+        label[for=suffix] {
+            margin-left: 40%;
+        }
+
+        #sex{
+            margin-left: -5%;
+            width: 115%;
+        }
+
+        label[for="contact"]{
+            margin-left: 5%;
+        }
+
+        #contact{
+            margin-left: 5%;
         }
         
         select {
@@ -233,23 +267,35 @@
                 <div class="form-row">
                 <div class="form-col">
                     <label for="firstName">First Name :</label>
-                    <input type="text" id="firstName" name="firstName" placeholder="Enter First Name">
+                    <input type="text" id="firstName" name="first_name" placeholder="Enter First Name">
                     
-                    <label for="lastName">Last Name :</label>
-                    <input type="text" id="lastName" name="lastName" placeholder="Enter Last Name">
+                    <label for="middleName">Middle Name :</label>
+                    <input type="text" id="middleName" name="middle_name" placeholder="Enter Middle Name">
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label for="lastName">Last Name :</label>
+                            <input type="text" id="lastName" name="last_name" placeholder="Enter Last Name">
+                        </div>
+                        <div class="form-col"> 
+                            <label for="suffix">Suffix :</label>
+                            <input type="text" id="suffix" name="suffix" placeholder="Enter Suffix">
+                        </div>   
+                    </div>        
                     
                     <div class="form-row">
                         <div class="form-col">
                             <label for="sex">Sex :</label>
                             <select id="sex" name="sex">
-                                <option value="female" selected>Female</option>
+                                <option value="" disabled selected>Please Select</option>
+                                <option value="female">Female</option>
                                 <option value="male">Male</option>
                                 <option value="other">Other</option>
                             </select>
                         </div>
                         <div class="form-col">
                             <label for="contact">Contact Number :</label>
-                            <input type="tel" id="contact" name="contact" placeholder="Enter Contact Number">
+                            <input type="tel" id="contact" name="contact_no" placeholder="Enter Contact Number">
                         </div>
                     </div>
                     
@@ -263,11 +309,30 @@
                 <div class="divider"></div>
                 
                 <div class="form-col">
-                    <label for="school">School Assignment :</label>
-                    <input type="text" id="school" name="school" placeholder="Enter School Assignment">
+                    <label for="school">School / Office Assignment :</label>
+                    <select id="school" name="school">
+                        <option value="division-office" selected>Division Office</option>
+                        <option value="school">School</option>
+                    </select>
                     
                     <label for="position">Position / Designation :</label>
-                    <input type="text" id="position" name="position" placeholder="Enter Position / Designation">
+                    <select id="position" name="position">
+                        <option value="" disabled selected>Select your Position</option>
+                        <?php
+                        // Fetch positions from database
+                        $sql = "SELECT id, position FROM positions ORDER BY position ASC";
+                        $result = $conn->query($sql);
+
+                        if ($result->num_rows > 0) {
+                            // Output data of each row
+                            while($row = $result->fetch_assoc()) {
+                                echo "<option value='" . $row['id'] . "'>" . htmlspecialchars($row['position']) . "</option>";
+                            }
+                        } else {
+                            echo "<option>No positions found</option>";
+                        }
+                        ?>
+                    </select>
                     
                     <label for="classification">Classification :</label>
                     <select id="classification" name="classification">
@@ -282,6 +347,9 @@
             </form>
             </div>
         </div>
+        <?php 
+        $conn->close();
+        ?>
     </div>
 </body>
 </html>
