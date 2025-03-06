@@ -27,14 +27,21 @@ if (!$result) {
 	<div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
-            <div class="menu">
-                <a href="admin-dashboard.php" class="active"><i class="fas fa-home mr-3"></i>Home</a>
-                <a href="admin-events.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
-                <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
-                <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
-                <a href="admin-profile.php"><i class="fas fa-user-circle mr-3"></i>Profile</a>
+            <div class="sidebar-content">
+                <div class="menu">
+                    <a href="admin-dashboard.php" class="active"><i class="fas fa-home mr-3"></i>Home</a>
+                    <a href="admin-events.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
+                    <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
+                    <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
+                </div>
+            </div>
+                <div class="user-profile">
+                    <div class="user-avatar">JD</div>
+                    <div class="username">John Doe</div>
+                </div>
             </div>
         </div>
+
 
     <div class="content">
     	<div class="content-header">
@@ -54,7 +61,7 @@ if (!$result) {
                         <div class="event">
                             <div class="event-content">
                                 <h3><?php echo htmlspecialchars($event['title']); ?></h3>
-                                <p><?php echo htmlspecialchars($event['description']); ?></p>
+                                <p style="margin-bottom: 5%;"><?php echo htmlspecialchars($event['description']); ?></p>
                                 <p><strong>Event Mode:</strong> <?php echo htmlspecialchars($event['event_mode']); ?></p>
                                 <p><strong>Start Date:</strong> <?php echo htmlspecialchars($event['start_datetime']); ?></p>
                                 <p><strong>End Date:</strong> <?php echo htmlspecialchars($event['end_datetime']); ?></p>
