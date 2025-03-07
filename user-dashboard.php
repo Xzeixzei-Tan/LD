@@ -275,7 +275,7 @@
                         <div class="event-content">
 
                     <div class="event">
-                        <a class="events-btn" href="User-Event.html">
+                        <a class="events-btn" href="user-events.php">
                         <div class="event-content">
                             <h3>HRTech Connect: The Future of Work & Innovation</h3>
                             <p>Description: A must-attend conference for HR and IT professionals...</p>
