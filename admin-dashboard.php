@@ -1,8 +1,11 @@
 <?php
-require_once 'config.php'; // Ensure this is at the top
+require_once 'config.php';
 
-// Fetch events from the database
-$sql = "SELECT id, title, event_specification FROM events ORDER BY start_datetime ASC";
+// Set the default sort order to ASC (Soonest events first)
+$sortOrder = isset($_GET['sort']) && ($_GET['sort'] == 'DESC') ? 'DESC' : 'ASC';
+
+// Fetch only upcoming events from the database (ignores past events)
+$sql = "SELECT id, title, event_specification, start_datetime FROM events WHERE start_datetime >= NOW() ORDER BY start_datetime $sortOrder";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -19,9 +22,6 @@ if (!$result) {
     <link href="styles/admin-dashboard.css" rel="stylesheet">
 	<title>Dashboard-Template</title>
 </head>
-<style type="text/css">
-    /* Add your styles here */
-</style>
 <body>
 
 	<div class="container">
@@ -36,63 +36,66 @@ if (!$result) {
                 </div>
             </div>
         </div>
-    </div>
 
+        <!-- Main Content -->
+        <div class="content">
+            <div class="content-header">
+                <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
+                <p>Learning and Development</p>
+                <h1>EVENT MANAGEMENT SYSTEM</h1>
+            </div><br><br><br><br><br>
 
-    <div class="content">
-    	<div class="content-header">
-	    	<img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
-	    	<p>Learning and Development</p>
-	    	<h1>EVENT MANAGEMENT SYSTEM</h1>
-    	</div><br><br><br><br><br>
+            <div class="content-body">
+                <h1>Welcome, Admin!</h1>
+                <hr><br><br>
 
-    	<div class="content-body">
-	    	<h1>Welcome, Admin!</h1>
-	    	<hr><br><br>
-
-            <div class="content-area">
-                <div class="events-section">
-                    <h2>Events</h2>
-                    <?php while ($event = $result->fetch_assoc()) : ?>
-                        <div class="event">
-                            <div class="event-content">
-                                <h3><?php echo htmlspecialchars($event['title']); ?></h3>
-                                <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['event_specification']); ?></p>
+                <div class="content-area">
+                    <div class="events-section">
+                        <h2>Events</h2>
+                        <div class="sort-events">
+                            <!-- Sort Icon to Toggle Order -->
+                            <i class="fa fa-sort" id="sortIcon" onclick="toggleSortOrder()"></i>
+                        </div>
+                        <?php while ($event = $result->fetch_assoc()) : ?>
+                            <div class="event">
+                                <div class="event-content">
+                                    <h3><?php echo htmlspecialchars($event['title']); ?></h3>
+                                    <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['event_specification']); ?></p>
+                                    <p><strong>Start Date:</strong> <?php echo htmlspecialchars($event['start_datetime']); ?></p>
+                                </div>
                             </div>
-                        </div>
-                    <?php endwhile; ?>
-                </div>
-
-                <div class="notifications-section">
-                    <h2>Notifications</h2>
-                    <div class="notification important">
-                        <a class="events-btn" href="select_quiz.php">
-                        <div class="notification-content">
-                            <p>Your certificate from "Sample Event" is here. Download it now.</p>
-                        </div></a>
+                        <?php endwhile; ?>
                     </div>
 
-                    <div class="notification">
-                        <div class="notification-content">
-                            <p>Sample event notification</p>
+                    <!-- Notifications Section -->
+                    <div class="notifications-section">
+                        <h2>Notifications</h2>
+                        <div class="notification important">
+                            <a class="events-btn" href="select_quiz.php">
+                                <div class="notification-content">
+                                    <p>Your certificate from "Sample Event" is here. Download it now.</p>
+                                </div>
+                            </a>
                         </div>
-                    </div>
-
-                    <div class="notification">
-                        <div class="notification-content">
-                            <p>Sample event notification</p>
-                        </div>
-                    </div>
-
-                    <div class="notification">
-                        <div class="notification-content">
-                            <p>Sample event notification</p>
-                        </div>
+                        <!-- More notifications here -->
                     </div>
                 </div>
             </div>
-    	</div>
+        </div>
     </div>
-</div>
+
+<script>
+    function toggleSortOrder() {
+        // Get the current sort order from the URL
+        const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
+
+        // Toggle sort order
+        const newSortOrder = (currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
+
+        // Update the URL to reflect the new sort order
+        window.location.href = window.location.pathname + '?sort=' + newSortOrder;
+    }
+</script>
+
 </body>
 </html>
