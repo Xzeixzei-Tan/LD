@@ -15,21 +15,9 @@ if (!$result) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <link href="styles/admin-events.css" rel="stylesheet">
     <title>USER-events</title>
-    <style>
-        .content-area { display: flex; justify-content: space-between; }
-        .details-section { display: none; flex-basis: 30%; margin-left: 20px; background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        .events-section { flex-basis: 100%; transition: flex-basis 0.3s; }
-        .events-section.shrink { flex-basis: 70%; }
-        .details-section h2 { margin-top: 0; }
-        .details-section .detail-item { margin-bottom: 15px; }
-        .details-section .detail-item h3 { margin: 0; font-size: 1.2em; }
-        .details-section .detail-item p { margin: 5px 0 0; color: #555; }
-        .expand-btn { cursor: pointer; float: right; }
-        .expand { flex-basis: 100% !important; }
-        .hidden { display: none; }
-        * {
+    <style> 
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -41,110 +29,120 @@ html {
     height: 100%;
 }
 
+.sidebar {
+    width: 230px;
+    height: 100vh;
+    background-color: #12753E;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+    position: fixed;
+}
+
+.sidebar-content {
+    margin-top: 30%;
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    font-family: Tilt Warp;
+}
+
+.sidebar-content a{
+    font-family: 'Tilt Warp';
+    color: #ffffff;
+    text-decoration: none;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    border-radius: 5px;
+    transition: background 0.3s;
+    font-family: Tilt Warp Regular;
+    margin-bottom: .5rem;
+}
+
+.sidebar-content span{
+    font-family: Tilt Warp;
+    font-size: 1rem;
+}
+
+.sidebar-content i{
+    margin-right: 0.5rem;
+}
+
+.sidebar-content a:hover {
+    background-color: white;
+    color: #12753E; 
+}
+
+.sidebar-content .active{
+    background-color: white;
+    color: #12753E;
+}
+
+.user-profile {
+    padding: 15px;
+    border-top: 1px solid white;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    bottom: 0;
+    background-color: #12753E;
+    width: 100%;
+}
+
+#logout {
+    float: right;
+    border: 1px solid black;
+    height: 100%;
+    width: 100%;
+    color: white;
+
+}
+
+.user-avatar img{
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid white;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-family: Tilt Warp;
+}
+
+.username {
+    font-family: Tilt Warp;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    background-color: #ecf0f1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
     .sidebar {
-        width: 230px;
-        height: 100vh;
-        background-color: #12753E;
-        color: white;
+        width: 70px;
+    }
+
+    .sidebar-header h2, .menu-text, .username {
+        display: none;
+    }
+
+    .menu-item {
         display: flex;
-        flex-direction: column;
-        transition: width 0.3s ease;
-        position: fixed;
-    }
-
-    .sidebar-content {
-        margin-top: 30%;
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        font-family: Tilt Warp;
-    }
-
-    .sidebar-content a{
-        font-family: 'Tilt Warp';
-        color: #ffffff;
-        text-decoration: none;
-        padding: 1rem;
-        display: flex;
-        align-items: center;
-        font-size: 1rem;
-        border-radius: 5px;
-        transition: background 0.3s;
-        font-family: Tilt Warp Regular;
-        margin-bottom: .5rem;
-    }
-
-    .sidebar-content span{
-        font-family: Tilt Warp;
-        font-size: 1rem;
-    }
-
-    .sidebar-content i{
-        margin-right: 0.5rem;
-    }
-
-    .sidebar-content a:hover {
-        background-color: white;
-        color: #12753E; 
-    }
-
-    .sidebar-content .active{
-        background-color: white;
-        color: #12753E;
+        justify-content: center;
     }
 
     .user-profile {
-        padding: 15px;
-        border-top: 1px solid white;
-        display: flex;
-        align-items: center;
-        position: sticky;
-        bottom: 0;
-        background-color: #12753E;
-        width: 100%;
-    }
-
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background-color: #3498db;
-        display: flex;
-        align-items: center;
         justify-content: center;
-        margin-right: 10px;
-        font-family: Tilt Warp;
     }
-
-    .username {
-        font-family: Tilt Warp;
-    }
-
-    .main-content {
-        flex: 1;
-        padding: 20px;
-        background-color: #ecf0f1;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .sidebar {
-            width: 70px;
-        }
-
-        .sidebar-header h2, .menu-text, .username {
-            display: none;
-        }
-
-        .menu-item {
-            display: flex;
-            justify-content: center;
-        }
-
-        .user-profile {
-            justify-content: center;
-        }
-    }
+}
 .content {
     flex: 1;
     background-color: #ffffff;
@@ -315,12 +313,51 @@ html {
     text-decoration: none;
     color: black;
 }
+
+.content-area { 
+    display: flex; 
+    justify-content: space-between; 
+}
+.details-section { 
+    display: none; 
+    flex-basis: 30%; 
+    margin-left: 20px; 
+    background-color: #f9f9f9; 
+    padding: 20px; 
+    border-radius: 8px; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+}
+.events-section { 
+    flex-basis: 100%; 
+    transition: flex-basis 0.3s; 
+}
+.events-section.shrink { 
+    flex-basis: 70%; 
+}
+.details-section h2 { 
+    margin-top: 0; 
+}
+.details-section .detail-item { 
+    margin-bottom: 15px; 
+}
+.details-section .detail-item h3 { 
+    margin: 0; font-size: 1.2em; 
+}
+.details-section .detail-item p { 
+    margin: 5px 0 0; color: #555; 
+}
+.expand-btn { 
+    cursor: pointer; float: right; 
+}
+.expand { 
+    flex-basis: 100% !important; 
+}
+.hidden { 
+    display: none; 
+}
     </style>
 </head>
 <body>
-
-<div class="container">
-<!-- Sidebar -->
 <div class="sidebar">
         <div class="sidebar-content">
             <a href="user-dashboard.php" class="menu-item">
@@ -339,7 +376,7 @@ html {
             <!-- Add more menu items as needed -->
         </div>
         <div class="user-profile">
-            <div class="user-avatar">JC</div>
+            <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
             <div class="username">Jess Constante</div>
         </div>
     </div>

@@ -89,11 +89,12 @@
         font-color: black;
     }
 
-    .user-avatar {
+    .user-avatar img{
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background-color: #3498db;
+        border: 2px solid white;
+        padding: 2px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -251,9 +252,8 @@
             <!-- Add more menu items as needed -->
         </div>
         <div class="user-profile">
-            <div class="user-avatar">JC</div>
+            <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
             <div class="username">Jess Constante</div>
-            <i class="fa-solid fa-right-from-bracket" id="logout"></i>
         </div>
     </div>
 
