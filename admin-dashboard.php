@@ -2,7 +2,7 @@
 require_once 'config.php'; // Ensure this is at the top
 
 // Fetch events from the database
-$sql = "SELECT id, title, description, event_mode, start_datetime, end_datetime, venue FROM events ORDER BY start_datetime ASC";
+$sql = "SELECT id, title, event_specification FROM events ORDER BY start_datetime ASC";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -35,12 +35,8 @@ if (!$result) {
                     <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
                 </div>
             </div>
-                <div class="user-profile">
-                    <div class="user-avatar">JD</div>
-                    <div class="username">John Doe</div>
-                </div>
-            </div>
         </div>
+    </div>
 
 
     <div class="content">
@@ -61,11 +57,7 @@ if (!$result) {
                         <div class="event">
                             <div class="event-content">
                                 <h3><?php echo htmlspecialchars($event['title']); ?></h3>
-                                <p style="margin-bottom: 5%;"><?php echo htmlspecialchars($event['description']); ?></p>
-                                <p><strong>Event Mode:</strong> <?php echo htmlspecialchars($event['event_mode']); ?></p>
-                                <p><strong>Start Date:</strong> <?php echo htmlspecialchars($event['start_datetime']); ?></p>
-                                <p><strong>End Date:</strong> <?php echo htmlspecialchars($event['end_datetime']); ?></p>
-                                <p><strong>Venue:</strong> <?php echo htmlspecialchars($event['venue']); ?></p>
+                                <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['event_specification']); ?></p>
                             </div>
                         </div>
                     <?php endwhile; ?>

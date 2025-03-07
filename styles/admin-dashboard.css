@@ -22,7 +22,7 @@ html {
     position: fixed;
 }
 
-.sidebar-content{
+.sidebar-content {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
@@ -93,6 +93,7 @@ hr {
 .username {
     font-weight: bold;
 }
+
 .content {
     flex: 1;
     background-color: #ffffff;
