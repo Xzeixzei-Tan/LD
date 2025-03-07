@@ -55,7 +55,7 @@ if (!$result) {
             <h1>Events</h1>
             <hr><br>
 
-            <a class="create-btn" href="admin-create-event.php">Create an Event!</a>
+            <a class="create-btn" href="admin-create_events.php">Create an Event!</a>
 
             <div class="content-area">
                 <div class="events-section">
