@@ -1,22 +1,45 @@
+<?php
+require_once 'config.php';
+
+$sql = "SELECT id, title, description, event_mode, start_datetime, end_datetime, venue FROM events ORDER BY start_datetime DESC";
+$result = $conn->query($sql);
+
+if (!$result) {
+    die("Query failed: " . $conn->error);
+}
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-	<title>Events</title>
-</head>
-<style type="text/css">
-	* {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, sans-serif;
-    }
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="styles/admin-events.css" rel="stylesheet">
+    <title>USER-events</title>
+    <style>
+        .content-area { display: flex; justify-content: space-between; }
+        .details-section { display: none; flex-basis: 30%; margin-left: 20px; background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .events-section { flex-basis: 100%; transition: flex-basis 0.3s; }
+        .events-section.shrink { flex-basis: 70%; }
+        .details-section h2 { margin-top: 0; }
+        .details-section .detail-item { margin-bottom: 15px; }
+        .details-section .detail-item h3 { margin: 0; font-size: 1.2em; }
+        .details-section .detail-item p { margin: 5px 0 0; color: #555; }
+        .expand-btn { cursor: pointer; float: right; }
+        .expand { flex-basis: 100% !important; }
+        .hidden { display: none; }
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
 
-    body, html {
-        height: 100%;
-    }
+body,
+html {
+    height: 100%;
+}
 
     .sidebar {
         width: 230px;
@@ -122,224 +145,181 @@
             justify-content: center;
         }
     }
+.content {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 4rem;
+    margin-left: 17%;
+}
 
-    .content {
-        flex: 1;
-        background-color: #ffffff;
-        padding: 4rem;
-        margin-left: 17%;
-    }
+.content-header h1 {
+    font-size: 1.5rem;
+    color: #333333;
+    font-family: Wensley Demo;
+    margin-left: 32%;
+}
 
-    .content-header h1 {
-        font-size: 1.5rem;
-        color: #333333;
-        font-family: Wensley Demo;
-        margin-left: 32%;
-    }
+.content-header p {
+    color: #999;
+    font-size: 1rem;
+    margin-top: -3%;
+    font-family: LT Cushion Light;
+    margin-left: 44%;
+}
 
-    .content-header p {
-        color: #999;
-        font-size: 1rem;
-        margin-top: -3%;
-        font-family: LT Cushion Light;
-        margin-left: 44%;
-    }
+.content-header img {
+    float: left;
+    margin-left: 22%;
+    margin-top: -1%;
+    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
+}
 
-    .content-header img {
-        float: left;
-        margin-left: 22%;
-        margin-top: -1%;
-        filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
-    }
+.content-body h1 {
+    font-family: Montserrat ExtraBold;
+    font-size: 2rem;
+    padding: 10px;
+    color: ##12753E;
+}
 
-    .content-body h1{
-    	font-family: 'Montserrat ExtraBold';
-    	font-size: 2rem;
-    	padding: 10px;
-    }
+.content-body hr {
+    border: 1px solid #95A613;
+}
 
-    .content-body hr{
-    	border: 1px solid #95A613;
-    }
-    .join-btn{
-    	padding: 11px;
-    	padding-left: 15px;
-    	padding-right: 15px;
-        font-family: Montserrat;
-        font-weight: bold;
-        font-size: 12px;
-        color: white;
-        text-decoration: none;
-        background-color: #12753E;
-        border-radius: 5px;
-    }
+.create-btn {
+    float: right;
+    padding: 11px;
+    padding-left: 15px;
+    padding-right: 15px;
+    font-family: Montserrat;
+    font-weight: bold;
+    font-size: 13px;
+    color: white;
+    text-decoration: none;
+    background-color: #12753E;
+    border-radius: 5px;
+    margin-top: -7%;
+}
 
-    .content {
-        flex: 1;
-        background-color: #ffffff;
-        padding: 4rem;
-        margin-left: 17%;
-    }
+.content-area {
+    display: flex;
+    justify-content: space-between;
+}
 
-    .content-header h1 {
-        font-size: 1.5rem;
-        color: #333333;
-        font-family: Wensley Demo;
-        margin-left: 32%;
-    }
+.events-section, {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-family: 'Wesley Demo', serif;
+    flex: 1;
+    min-width: 300px;
+}
 
-    .content-header p {
-        color: #999;
-        font-size: 1rem;
-        margin-top: -3%;
-        font-family: LT Cushion Light;
-        margin-left: 44%;
-    }
+.events-section {
+    flex-basis: 100%;
+    transition: flex-basis 0.3s;
+}
 
-    .content-header img {
-        float: left;
-        margin-left: 22%;
-        margin-top: -1%;
-        filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
-    }
+.event.selected{
+    background: #12753E;
+}
 
-    .content-body h1{
-    	font-family: Montserrat;
-    	font-size: 2rem;
-        font-weight: bolder;
-    	padding: 10px;
-    }
+.event.selected h3{
+    color: white;
+}
 
-    .content-body hr{
-    	border: 1px solid #95A613;
-    }
-    .join-btn{
-    	float: right;
-    	padding: 11px;
-    	padding-left: 20px;
-    	padding-right: 20px;
-        font-family: Montserrat;
-        font-weight: bold;
-        font-size: 12px;
-        color: white;
-        text-decoration: none;
-        background-color: #12753E;
-        border-radius: 5px;
-    }
+.event.selected p{
+    color: rgb(231, 231, 231);
+}
 
-    .content-area {
-        display: flex;
-        gap: 15px;
-        background-color: #ffffff;
-    }
+#details-section {
+    display: none;
+    flex-basis: 30%;
+    margin-left: 20px;
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    border: 2px solid #12753E;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 
-    .events-section {
-        border-radius: 8px;
-        padding: 20px;
-        font-family: Wesley Demo;
-        flex: 3;
-    }
+.events-section.shrink {
+    flex-basis: 70%;
+}
 
-    .notifications-section {
-        margin-bottom: 20%;
-        flex: 2;
-        background-color: white;
-        border-radius: 8px;
-        padding: 24px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        font-family: Montserrat;
-        font-weight: bolder;
-    }
+.details-section h2 {
+    margin-top: 0;
+    font-family: Montserrat Extrabold;
+    font-weight: bold;
+    margin-bottom: 10%;
+}
 
-    .events-section h2{
-        font-size: 22px;
-        margin-bottom: 20px;
-        color: #333;
-        font-family: Montserrat;
-        font-weight: bolder;
-    }
+#detail-title{
+    font-family: Montserrat Extrabold;
+    color: #12753E;
+}
 
-    .notifications-section h2{
-        font-size: 22px;
-        margin-bottom: 20px;
-        color: #333;
-        font-family: Montserrat;
-        font-weight: bolder;
-    }
+.details-section .detail-item {
+    margin-bottom: 15px;
+}
 
-    .notifications-section p{
-        font-size: 13px;
-        font-family: Montserrat;
-        font-weight: medium;
-    }
+.details-section .detail-item h3 {
+    margin: 0;
+    font-size: 1em;
+    font-family: Montserrat;
+    color: #12753E;
+}
 
-    .event, .notification {
-        background-color:  rgb(215, 222, 247);
-        border-radius: 5px;
-        padding: 15px;
-        margin-bottom: 15px;
-        position: relative;
-    }
+.details-section .detail-item p {
+    margin: 5px 0 0;
+    color: #000000;
+    font-size: .8em;
+    font-family: Montserrat Medium
+}
 
-    .event.featured {
-        background-color: #    background-color: #f9f9f9;
-    }
+.events-section h2 {
+    font-size: 22px;
+    font-family: Montserrat ExtraBold;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
 
-    .notification.important {
-        background-color: #    background-color: #f9f9f9;
-        color: white;
-    }
+.event {
+    background-color: #d7f3e4;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 15px;
+    position: relative;
+}
 
-    .event h1 {
-        font-size: 16px;
-        margin-bottom: 5px;
-        font-family: Montserrat ExtraBold;
-    }
+.event-content h3 {
+    font-size: 18px;
+    margin-bottom: 5px;
+    font-family: Montserrat;
+    color: #12753E;
+}
 
-    .event-target {
-        color: black;
-        font-size: 15px;
-    }
+.event-content p {
+    font-size: 13px;
+    color: #585858;
+    font-family: Montserrat Medium;
+}
 
-    .event-date {
-        color: #CF7F00;
-        font-size: 18px;
-    }
+.notification p {
+    font-size: 14px;
+    font-family: Montserrat;
+}
 
-    .event-desc {
-        font-weight: lighter;        
-        color: #999;
-        padding: 5px;
-    }
-
-    .events-section a{
-        text-decoration: none;
-        color: black;
-    }
-    
-    .event-content{
-        padding: 8px;
-    }
-
-    .event-content h3 {
-        font-size: 16px;
-        margin-bottom: 5px;
-        font-family: Montserrat;
-    }
-
-    .event-content p {
-        font-size: 13px;
-        color: inherit;
-        font-family: Montserrat;
-    }
-
-    .events-btn{
-        text-decoration: none;
-        color: black;
-    }
-</style>
+.events-btn {
+    text-decoration: none;
+    color: black;
+}
+    </style>
+</head>
 <body>
 
+<div class="container">
 <!-- Sidebar -->
 <div class="sidebar">
         <div class="sidebar-content">
@@ -365,96 +345,114 @@
     </div>
 
     <div class="content">
-    	<div class="content-header">
-	    	<img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
-	    	<p>Learning and Development</p>
-	    	<h1>EVENT MANAGEMENT SYSTEM</h1>
-    	</div><br><br><br><br><br>
+        <div class="content-header">
+            <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
+            <p>Learning and Development</p>
+            <h1>EVENT MANAGEMENT SYSTEM</h1>
+        </div><br><br><br>
 
-    	<div class="content-body">
-	    	<h1>Events</h1>
-	    	<hr><br><br>
+        <div class="content-body">
+            <h1>Events</h1>
+            <hr><br>
 
             <div class="content-area">
                 <div class="events-section">
-                    <div class="event featured">
-                        <a class="events-btn" href="select_quiz.php">
-                        <div class="event-content">
-                            <h3>Enhancing Classroom Management for...</h3><i class="fa-solid fa-circle-info"></i>
-                            <p>A workshop aimed at equipping teachers with practical strategies...</p>
-                        </div></a>
-                    </div>
-
-                    
-                    <div class="event">
-                        <div class="event-content">
-                            <h3>HRTech Connect: The Future of Work & Innovation</h3>
-                            <p>Description: A must-attend conference for HR and IT professionals...</p>
-                        </div>
-                    </div>
-
-                    <div class="event">
-                        <div class="event-content">
-                            <h3>TechConnect 2025: Innovating the Future</h3>
-                            <p>Description: A premier gathering of tech leaders, developers, and...</p>
-                        </div>
-                    </div>
-
-                    <div class="event">
-                        <div class="event-content">
-                            <h3>CyberShield 2025: Strengthening Digital Defense</h3>
-                            <p>Description: A cybersecurity-focused event highlighting emerging...</p>
-                        </div>
-                    </div>
-
-                    <div class="event">
-                        <div class="event-content">
-                            <h3>SecuTech 2025: The Next Era of Cyber Defense</h3>
-                            <p>Description: An essential gathering of cybersecurity professionals...</p>
-                        </div>
-                    </div>
+                    <?php
+                    if ($result->num_rows > 0) {
+                        while ($row = $result->fetch_assoc()) {
+                            echo '<a class="events-btn" href="javascript:void(0);" onclick="showDetails(' . htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8') . ')">';
+                            echo '<div class="event">';
+                            echo '<div class="event-content">';
+                            echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
+                            echo '<p>' . htmlspecialchars(substr($row["description"], 0, 100)) . '...</p>';
+                            echo '</div></a>';
+                            echo '</div>';
+                        }
+                    } else {
+                        echo "<p>No events found.</p>";
+                    }
+                    ?>
                 </div>
 
-                <div class="notifications-section">
-                    <h2>Digital Teaching Strategies</h2>
-                    <h2>for 21st Century Learners</h2>
-
-                <hr><br>
-                <div class="event-target">
-                    <p>Target Participants: sample</p>
-                    <p>Event Mode: Face-to-face</p>
-                    <br>
-                <div class="event-date">
-                    <p>Date &amp; Time: March 15, 2025 at 9:00 AM
-                    <p>Location: DepEd Division of General Trias City - Conference Hall
-
-            <br><br>
-            <div class="notification">
-                <div class="event-desc">
-                    <p>Description: A training program designed to equip educators with innovative teaching strategies using digital tools and technology in the classroom.</p>
-                </div>
-                </div>
-            <hr>
-            <br><br>
-            <div class="reg-text">
-            <center><a class="join-btn" href="register.php">REGISTER</a></center>
-
-            </div>
-            </div>
-                    
-
-                    
-
-                    
-
-
-                    
+                <div class="details-section" id="details-section">
+                    <i class="fas fa-expand expand-btn" onclick="toggleExpand()"></i>
+                    <h2>Details</h2>
+                    <div class="detail-item">
+                        <h3 id="detail-title"></h3>
+                        <p id="detail-description"></p>
+                    </div>
+                    <div class="detail-item">
+                        <h3>Mode:</h3>
+                        <p id="detail-mode"></p>
+                    </div>
+                    <div class="detail-item">
+                        <h3>Start:</h3>
+                        <p id="detail-start"></p>
+                    </div>
+                    <div class="detail-item">
+                        <h3>End:</h3>
+                        <p id="detail-end"></p>
+                    </div>
+                    <div class="detail-item">
+                        <h3>Venue:</h3>
+                        <p id="detail-venue"></p>
+                    </div><br>
+                                <a class="create-btn" href="Register.php">Register</a>
                 </div>
             </div>
-    	</div>
+        </div>
     </div>
 </div>
+
+<script>
+function showDetails(eventData) {
+    document.getElementById('detail-title').textContent = eventData.title;
+    document.getElementById('detail-description').textContent = eventData.description;
+    document.getElementById('detail-mode').textContent = eventData.event_mode;
+    document.getElementById('detail-start').textContent = eventData.start_datetime;
+    document.getElementById('detail-end').textContent = eventData.end_datetime;
+    document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
+
+    document.getElementById('details-section').style.display = 'block';
+    document.querySelector('.events-section').classList.add('shrink');
+}
+
+function selectEvent(event) {
+    document.querySelectorAll('.event').forEach(div => {
+        div.classList.remove('selected');
+    });
+
+    event.currentTarget.classList.add('selected');
+}
+
+function toggleExpand() {
+    let detailsSection = document.getElementById('details-section');
+    let eventsSection = document.querySelector('.events-section');
+    let expandIcon = document.querySelector('.expand-btn');
+
+    if (detailsSection.classList.contains('expand')) {
+        detailsSection.classList.remove('expand');
+        eventsSection.classList.remove('hidden');
+        expandIcon.classList.replace('fa-compress', 'fa-expand');
+    } else {
+        detailsSection.classList.add('expand');
+        eventsSection.classList.add('hidden');
+        expandIcon.classList.replace('fa-expand', 'fa-compress');
+    }
+}
+
+// Modify the PHP to add the onclick event
+document.addEventListener('DOMContentLoaded', () => {
+    const eventDivs = document.querySelectorAll('.event');
+    eventDivs.forEach(div => {
+        div.addEventListener('click', selectEvent);
+    });
+});
+</script>
+
 </body>
-
-
 </html>
+
+<?php
+$conn->close();
+?>
