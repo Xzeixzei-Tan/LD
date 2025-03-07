@@ -98,7 +98,7 @@
     }
 
     .content-body h1{
-    	font-family: Montserrat;
+    	font-family: Montserrat Extrabold;
     	font-size: 2rem;
     	padding: 10px;
     }
@@ -506,6 +506,60 @@
         font-style: italic;
         margin-left: 4px;
     }
+
+    .personnel-selection {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .personnel-btn {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #2b3a8f;
+            background-color: white;
+            color: #2b3a8f;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .personnel-btn.active {
+            background-color: #2b3a8f;
+            color: white;
+        }
+        
+        .personnel-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(43, 58, 143, 0.2);
+        }
+        
+        .personnel-btn i {
+            font-size: 1.2rem;
+        }
+        
+        /* Hidden sections */
+        .school-personnel-sections {
+            display: block;
+        }
+        
+        .hidden {
+            display: none;
+        }
+
+        .division-personnel-section {
+            display: block;
+
+        }
+        .school-personnel-sections, 
+.division-personnel-section {
+    display: none;
+}
 </style>
 <body>
 	<div class="container">
@@ -527,7 +581,7 @@
             </div><br><br><br><br><br>
 
             <div class="content-body">
-                <h1>EVENTS</h1>
+                <h1>Events</h1>
                 <hr><br><br>
 
                 <div class="form-container">
@@ -827,10 +881,23 @@
                             </script>
                         </div>
 
+                        <div class="form-group">
+                                <div class="section-title">Target Personnel</div>
+                                <div class="personnel-selection">
+                                        <button type="button" id="school-btn" class="personnel-btn active">
+                                    <i class="fas fa-school"></i> School Personnel
+                                </button>
+                                    <button type="button" id="division-btn" class="personnel-btn">
+                                <i class="fas fa-building"></i> Division Personnel
+                            </button>
+                            </div>
+                            </div>
+
                         
 
                         <!-- Eligible Participants -->
                         <div class="form-group">
+                        <div class="form-group school-personnel-sections" id="eligible-participants">
                             <div class="section-title">Eligible Participants</div>
                             
                             <div class="form-elig">
@@ -863,6 +930,8 @@
                             <hr>
                             <br><br><br>
                             
+
+                            <div class="form-group school-personnel-sections" id="specialization">
                             <div class="special"></div>
                             <div class="section-title">Specialization</div>
                             <br>
@@ -884,11 +953,127 @@
                                 </div>
                             </div>
                         </div>
-                        </form>
+                            </div>
+
+                        <hr>
+
+    <div class="form-group division-personnel-section" id="sectors-units"><br>
+    <div class="section-title">Sectors/Units</div>
+        <div class="radio-group">
+            <div class="form-col">
+                <label><input type="radio" name="sector" value="sds">Office of the Schools Division Superintendent</label>
+                <label><input type="radio" name="sector" value="asds">Office of the Assistant Schools Division Superintendent</label>
+                <label><input type="radio" name="sector" value="legal-services">Legal Services</label>
+                <label><input type="radio" name="sector" value="ict-services"> ICT Services</label>
+                <label><input type="radio" name="sector" value="administrative"> Administrative Services</label>
+                <label><input type="radio" name="sector" value="personnel">Personnel</label>
+                <label><input type="radio" name="sector" value="records">Records</label>
+                <label><input type="radio" name="sector" value="cashier">Cashier</label>
+                <label><input type="radio" name="sector" value="suply-property"> Supply & Property</label>
+                <label><input type="radio" name="sector" value="budget"> Budget</label>
+                <label><input type="radio" name="sector" value="finance">Finance</label>
+            </div>
+            <div class="form-col">
+                <label><input type="radio" name="sector" value="cid">Curriculum Implementation Division</label>
+                <label><input type="radio" name="sector" value="lrm">Learning Resource Management</label>
+                <label><input type="radio" name="sector" value="cim"> Curriculum Implementation Management</label>
+                <label><input type="radio" name="sector" value="dim">District Instructional Management</label>
+                <label><input type="radio" name="sector" value="als">Alternative Learning System</label>
+                <label><input type="radio" name="sector" value="sgod">School Governance and Operations Division</label>
+                <label><input type="radio" name="sector" value="smme">School Management Monitoring & Evaluation</label>
+                <label><input type="radio" name="sector" value="hrd">Human Resource Development</label>
+                <label><input type="radio" name="sector" value="smn">Social Mobilization and Networking</label>
+                <label><input type="radio" name="sector" value="pr"> Planning & Research</label>
+                <label><input type="radio" name="sector" value="educ-facilities">Education Facilities</label>
+                <label><input type="radio" name="sector" value="sh-nu">School Health & Nutrition Unit</label>
+            </div>
+        </div>
+    </div>
+        <div class="submit-btn">
+            <button type="submit">Create Event</button>
+        </div>
+        </form>
                         
-                        <div class="submit-btn">
-                            <button type="submit">Create Event</button>
-                        </div>
+                   
+        
+<script>
+function selectPersonnel(type) {
+    // Get the buttons
+    const schoolBtn = document.getElementById('school-btn');
+    const divisionBtn = document.getElementById('division-btn');
+    
+    // Get all the sections we need to toggle
+    const schoolSections = document.querySelectorAll('.school-personnel-sections');
+    const divisionSection = document.querySelector('.division-personnel-section');
+    
+    if (type === 'school') {
+        // Update button states
+        schoolBtn.classList.add('active');
+        divisionBtn.classList.remove('active');
+        
+        // Show school sections
+        schoolSections.forEach(section => {
+            section.style.display = 'block';
+        });
+        
+        // Hide division section
+        if (divisionSection) {
+            divisionSection.style.display = 'none';
+        }
+    } else if (type === 'division') {
+        // Update button states
+        divisionBtn.classList.add('active');
+        schoolBtn.classList.remove('active');
+        
+        // Hide school sections
+        schoolSections.forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Show division section
+        if (divisionSection) {
+            divisionSection.style.display = 'block';
+        }
+    } else {
+        // No selection - hide all sections
+        schoolBtn.classList.remove('active');
+        divisionBtn.classList.remove('active');
+        
+        schoolSections.forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        if (divisionSection) {
+            divisionSection.style.display = 'none';
+        }
+    }
+}
+
+// Make sure this runs after the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up event listeners for the buttons
+    const schoolBtn = document.getElementById('school-btn');
+    const divisionBtn = document.getElementById('division-btn');
+    
+    if (schoolBtn) {
+        schoolBtn.addEventListener('click', function() {
+            selectPersonnel('school');
+        });
+    }
+    
+    if (divisionBtn) {
+        divisionBtn.addEventListener('click', function() {
+            selectPersonnel('division');
+        });
+    }
+    
+    // Initialize with no personnel selected
+    selectPersonnel(null);
+});
+    </script>
+
+                       
+
                     </form>
                 </div>
             </div>
