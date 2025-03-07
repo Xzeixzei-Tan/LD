@@ -189,13 +189,13 @@ $positionResult = $conn->query($positionQuery);
             font-family: Tilt Warp; 
         }
 
-        label[for=lastName], label[for="sex"]{
+        label[for=last_name], label[for="sex"]{
             margin-left: -5%;
         }
 
-        #lastName {
+        #last_name {
             margin-left: -5%;
-            width: 150%;
+            width: 200%;
         }
 
         #suffix {
