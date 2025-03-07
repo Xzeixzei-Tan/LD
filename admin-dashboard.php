@@ -21,6 +21,34 @@ if (!$result) {
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/admin-dashboard.css" rel="stylesheet">
 	<title>Dashboard-Template</title>
+    <style>
+        /* Make the event section scrollable */
+        .events-section {
+            max-height: 500px; /* Set a fixed height or adjust as needed */
+            overflow-y: auto;  /* Makes the section scrollable */
+            margin-bottom: 20px; /* Adds some space at the bottom */
+        }
+
+        /* Make the notification section scrollable */
+        .notifications-section {
+            max-height: 500px; /* Set a fixed height or adjust as needed */
+            overflow-y: auto;  /* Makes the section scrollable */
+        }
+
+        /* Optional: Styling for the scrollbars */
+        .events-section::-webkit-scrollbar, .notifications-section::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .events-section::-webkit-scrollbar-thumb, .notifications-section::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .events-section::-webkit-scrollbar-thumb:hover, .notifications-section::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
 </head>
 <body>
 
