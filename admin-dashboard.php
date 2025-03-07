@@ -24,23 +24,15 @@ if (!$result) {
 </style>
 <body>
 
-	<div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="sidebar-content">
-                <div class="menu">
-                    <a href="admin-dashboard.php" class="active"><i class="fas fa-home mr-3"></i>Home</a>
-                    <a href="admin-events.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
-                    <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
-                    <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
-                </div>
-            </div>
-                <div class="user-profile">
-                    <div class="user-avatar">JD</div>
-                    <div class="username">John Doe</div>
-                </div>
-            </div>
+<div class="container">
+    <div class="sidebar">
+        <div class="menu">
+            <a href="admin-dashboard.php" class="active"><i class="fas fa-home mr-3"></i>Home</a>
+            <a href="admin-events.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
+            <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
+            <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a>
         </div>
+    </div>
 
 
     <div class="content">
