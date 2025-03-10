@@ -20,14 +20,14 @@ if ($result === false) {
 //Query to count the number of Users from Schools
 $schoolCount = $conn->prepare("
     SELECT COUNT(*) as count
-        FROM users_lnd WHERE affiliation_id = 1");
+        FROM users_lnd WHERE affiliation_id = '1'");
 $schoolCount->execute();
 $schoolResult = $schoolCount->get_result();
 
 //Query to count the number of Users from Division
 $divCount = $conn->prepare("
     SELECT COUNT(*) as count
-        FROM users_lnd WHERE affiliation_id = 2");
+        FROM users_lnd WHERE affiliation_id = '2'");
 $divCount->execute();
 $divResult = $divCount->get_result();
 ?>
@@ -278,13 +278,19 @@ $divResult = $divCount->get_result();
 	    	<hr><br>
 
             <div class="personnel">
-                <div class="school">
-                    <p>School personnel: </p>
-                </div>
 
                 <?php
                 if ($schoolResult) {
                     $row = $schoolResult->fetch_assoc();
+                }
+                ?>
+                <div class="school">
+                    <p>School personnel: <?php echo $row['count']; ?></p>
+                </div>
+
+                <?php
+                if ($divResult) {
+                    $row = $divResult->fetch_assoc();
                 }
                 ?>
                 <div class="division">
