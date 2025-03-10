@@ -1,3 +1,37 @@
+<?php 
+require_once 'config.php';
+
+// Fetch users from database
+$sql = "SELECT u.id, u.first_name, u.middle_name, u.last_name, u.suffix, u.sex, 
+        u.contact_no, u.email, c.name as classification_name, cp.name as position_name 
+        FROM users u 
+        LEFT JOIN users_lnd ul ON u.id = ul.user_id
+        LEFT JOIN class_position cp ON ul.position_id = cp.id 
+        LEFT JOIN classification c ON ul.classification_id = c.id 
+        WHERE u.deleted_at IS NULL 
+        ORDER BY u.id";
+$result = $conn->query($sql);
+
+// Error handling for SQL query
+if ($result === false) {
+    die("SQL Error: " . $conn->error);
+}
+
+//Query to count the number of Users from Schools
+$schoolCount = $conn->prepare("
+    SELECT COUNT(*) as count
+        FROM users_lnd WHERE affiliation_id = '1'");
+$schoolCount->execute();
+$schoolResult = $schoolCount->get_result();
+
+//Query to count the number of Users from Division
+$divCount = $conn->prepare("
+    SELECT COUNT(*) as count
+        FROM users_lnd WHERE affiliation_id = '2'");
+$divCount->execute();
+$divResult = $divCount->get_result();
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -168,6 +202,7 @@
     }
     .search-container {
         position: relative;
+        flex-grow: 1;
     }
     .search-icon {
         position: absolute;
@@ -180,6 +215,33 @@
         border: 1px solid #ccc;
         border-radius: 4px;
         width: 200px;
+    }
+    .bulk-actions {
+        opacity: 0;
+        visibility: hidden;
+        margin-left: auto;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .bulk-actions.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+    .delete-selected-btn {
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: Tilt Warp;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .delete-selected-btn:hover {
+        background-color: #ff3333;
+        transform: scale(1.05);
+    }
+    .delete-selected-btn:active {
+        transform: scale(0.95);
     }
     table {
         width: 100%;
@@ -208,6 +270,15 @@
     .checkbox-cell {
         text-align: center;
     }
+
+    .checkbox-cell {
+    width: 40px;
+    text-align: center;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+    }
 </style>
 <body>
 
@@ -220,6 +291,7 @@
                 <a href="admin-events.php"><i class="fas fa-calendar-alt"></i>Events</a>
                 <a href="admin-users.php" class="active"><i class="fas fa-users"></i>Users</a>
                 <a href="admin-notification.php"><i class="fas fa-bell"></i>Notification</a> 
+                <a href="admin-archives.php"><i class="fa fa-archive" aria-hidden="true"></i>Archives</a>
             </div>
         </div>
 
@@ -235,12 +307,23 @@
 	    	<hr><br>
 
             <div class="personnel">
+
+                <?php
+                if ($schoolResult) {
+                    $row = $schoolResult->fetch_assoc();
+                }
+                ?>
                 <div class="school">
-                    <p>School personnel:</p>
+                    <p>School personnel: <?php echo $row['count']; ?></p>
                 </div>
 
+                <?php
+                if ($divResult) {
+                    $row = $divResult->fetch_assoc();
+                }
+                ?>
                 <div class="division">
-                    <p>Division personnel:</p>
+                    <p>Division personnel: <?php echo $row['count']; ?></p>
                 </div>
             </div>
     
@@ -250,12 +333,15 @@
                     <span class="search-icon"><i class="fa fa-search" aria-hidden="true"></i></span>
                     <input type="text" class="search-input" placeholder="Search for users...">
                 </div>
+                <div class="bulk-actions" id="bulk-actions">
+                    <button class="delete-selected-btn" id="delete-selected"><i class="fa fa-trash" aria-hidden="true"></i> Delete Selected</button>
+                </div>
             </div>
     
             <table>
                 <thead>
                     <tr>
-                        <th><input type="checkbox"></th>
+                        <th><input type="checkbox" id="select-all"></th>
                         <th>#</th>
                         <th>Name</th>
                         <th>Sex</th>
@@ -267,85 +353,136 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>1</td>
-                        <td>Jess T. Constante</td>
-                        <td>Male</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - Main Campus</td>
-                        <td>Teacher II</td>
-                        <td>jess.constante@cvsu.edu.ph</td>
-                        <td>*****</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>2</td>
-                        <td>Chynna Larize S. Layos</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - CCAT Campus</td>
-                        <td>Teacher I</td>
-                        <td>chynna.layos@cvsu.edu.ph</td>
-                        <td>*****</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>3</td>
-                        <td>Alessandra G. Castillas</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - Trece Campus</td>
-                        <td>Teacher I</td>
-                        <td>alex.castillas@cvsu.edu.ph</td>
-                        <td>*****</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>4</td>
-                        <td>Hersheyline Nhadyn B. Dudas</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - General Trias Campus</td>
-                        <td>Teacher III</td>
-                        <td>hershey.dudas@cvsu.edu.ph</td>
-                        <td>*******</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>5</td>
-                        <td>Princess Mae J. Tan</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - Naic Campus</td>
-                        <td>Teacher II</td>
-                        <td>princess.tan@cvsu.edu.ph</td>
-                        <td>*****</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>6</td>
-                        <td>Shinby M. Yao</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - Trece Campus</td>
-                        <td>Teacher II</td>
-                        <td>shinby.yao@cvsu.edu.ph</td>
-                        <td>*******</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>7</td>
-                        <td>Louiela Mae G. Apolona</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - Main Campus</td>
-                        <td>Teacher III</td>
-                        <td>ella.apolona@cvsu.edu.ph</td>
-                        <td>*******,a**</td>
-                    </tr>
+                    <?php
+                    if ($result->num_rows > 0) {
+                        $count = 1;
+                        while ($row = $result->fetch_assoc()) {
+                            // Format name with middle initial and suffix
+                            $middle_initial = !empty($row["middle_name"]) ? " " . substr($row["middle_name"], 0, 1) . "." : "";
+                            $suffix = !empty($row["suffix"]) ? " " . $row["suffix"] : "";
+                            $full_name = $row["first_name"] . $middle_initial . " " . $row["last_name"] . $suffix;
+
+                            echo "<tr>";
+                            echo "<td class='checkbox-cell'><input type='checkbox' class='user-checkbox' data-id='" . $row["id"] . "'></td>";
+                            echo "<td>" . $count . "</td>";
+                            echo "<td>" . $full_name . "</td>";
+                            echo "<td>" . $row["sex"] . "</td>";
+                            echo "<td>" . $row["contact_no"] . "</td>";
+                            echo "<td>" . ($row["classification_name"] ?? "Not Assigned") . "</td>";
+                            echo "<td>" . ($row["position_name"] ?? "Not Assigned") . "</td>";
+                            echo "<td>" . $row["email"] . "</td>";
+                            echo "<td>*****</td>";
+                            echo "</tr>";
+                            $count++;
+                        }
+                    } else {
+                        echo "<tr><td colspan='10' style='text-align:center'>No users found</td></tr>";
+                    }
+                    ?>
                 </tbody>
             </table>
+ <script>
+        // Function to check if any checkboxes are selected
+        function checkSelectedCheckboxes() {
+            const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+            const bulkActions = document.getElementById('bulk-actions');
+            
+            if (checkboxes.length > 0) {
+                bulkActions.classList.add('visible');
+            } else {
+                bulkActions.classList.remove('visible');
+            }
+        }
 
-    </body>
-    </html>
+        // Handle checkbox changes to show/hide bulk delete button
+        document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', checkSelectedCheckboxes);
+        });
+
+        // Handle select all checkbox
+        document.getElementById('select-all').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            checkSelectedCheckboxes();
+        });
+        
+        // Handle delete button clicks for individual users
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this user?')) {
+                    const userId = this.getAttribute('data-id');
+                    // Send AJAX request to delete user
+                    fetch('delete_user.php?id=' + userId, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remove row from table
+                            this.closest('tr').remove();
+                        } else {
+                            alert('Error deleting user: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+            });
+        });
+
+        // Handle bulk delete button click
+        document.getElementById('delete-selected').addEventListener('click', function() {
+            const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                alert('Please select at least one user to delete.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete ' + selectedCheckboxes.length + ' selected user(s)?')) {
+                // Collect all selected user IDs
+                const userIds = Array.from(selectedCheckboxes).map(checkbox => checkbox.getAttribute('data-id'));
+                
+                // Send AJAX request to delete multiple users
+                fetch('delete_multiple_users.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userIds: userIds })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove rows from table
+                        selectedCheckboxes.forEach(checkbox => {
+                            checkbox.closest('tr').remove();
+                        });
+                        
+                        // Hide bulk actions button
+                        document.getElementById('bulk-actions').classList.remove('visible');
+                        
+                        // Uncheck select all
+                        document.getElementById('select-all').checked = false;
+                        
+                        alert('Selected users have been deleted successfully.');
+                    } else {
+                        alert('Error deleting users: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        });
+</script>        
+
+</body>
+</html>
+
+<?php 
+$conn->close();
+?>

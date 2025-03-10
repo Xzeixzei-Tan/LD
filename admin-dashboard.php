@@ -4,8 +4,15 @@ require_once 'config.php';
 // Set the default sort order to ASC (Soonest events first)
 $sortOrder = isset($_GET['sort']) && ($_GET['sort'] == 'DESC') ? 'DESC' : 'ASC';
 
-// Fetch only upcoming events from the database (ignores past events)
-$sql = "SELECT id, title, event_specification, start_datetime FROM events WHERE start_datetime >= NOW() ORDER BY start_datetime $sortOrder";
+// Fetch upcoming and ongoing events from the database
+$sql = "SELECT id, title, event_specification, start_datetime, end_datetime,
+        CASE 
+            WHEN NOW() BETWEEN start_datetime AND end_datetime THEN 'Ongoing'
+            ELSE 'Upcoming'
+        END AS status
+        FROM events 
+        WHERE end_datetime >= NOW()
+        ORDER BY start_datetime $sortOrder";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -16,15 +23,15 @@ if (!$result) {
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/admin-dashboard.css" rel="stylesheet">
-	<title>Dashboard-Template</title>
+    <title>Dashboard-Template</title>
 </head>
 <body>
 
-	<div class="container">
+    <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-content">
@@ -33,6 +40,7 @@ if (!$result) {
                     <a href="admin-events.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
                     <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
                     <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
+                    <a href="admin-archives.php"><i class="fa fa-archive" aria-hidden="true"></i>Archives</a>
                 </div>
             </div>
         </div>
@@ -53,8 +61,8 @@ if (!$result) {
                     <div class="events-section">
                         <h2>Events</h2>
                         <div class="sort-events">
-                            <!-- Sort Icon to Toggle Order -->
-                            <i class="fa fa-sort" id="sortIcon" onclick="toggleSortOrder()"></i>
+                            <!-- Sort Button to Toggle Order -->
+                            <button id="sortButton" onclick="toggleSortOrder()">Sort Events: <?php echo $sortOrder === 'ASC' ? 'Asc' : 'Des'; ?></button>
                         </div>
                         <?php while ($event = $result->fetch_assoc()) : ?>
                             <div class="event">
@@ -62,6 +70,9 @@ if (!$result) {
                                     <h3><?php echo htmlspecialchars($event['title']); ?></h3>
                                     <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['event_specification']); ?></p>
                                     <p><strong>Start Date:</strong> <?php echo htmlspecialchars($event['start_datetime']); ?></p>
+                                    <?php if ($event['status'] === 'Ongoing') : ?>
+                                        <span class="ongoing-label">Ongoing</span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php endwhile; ?>
@@ -95,7 +106,13 @@ if (!$result) {
         // Update the URL to reflect the new sort order
         window.location.href = window.location.pathname + '?sort=' + newSortOrder;
     }
-</script>
 
+    // Update the sort order label and button text on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
+        document.getElementById('sortOrderLabel').textContent = currentSortOrder === 'ASC' ? 'Ascending' : 'Descending';
+        document.getElementById('sortButton').textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
+    });
+</script>
 </body>
 </html>
