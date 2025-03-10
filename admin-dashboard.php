@@ -31,27 +31,24 @@ if (!$result) {
 </head>
 <body>
 
-    <div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="sidebar-content">
-                <div class="menu">
-                    <a href="admin-dashboard.php" class="active"><i class="fas fa-home mr-3"></i>Home</a>
-                    <a href="admin-events.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
-                    <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
-                    <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
-                    <a href="admin-archives.php"><i class="fa fa-archive" aria-hidden="true"></i>Archives</a>
-                </div>
-            </div>
+<div class="sidebar">
+        
+        <div class="menu">
+            <a href="admin-dashboard.php" class="active"><i class="fas fa-home"></i>Home</a>
+            <a href="admin-events.php"><i class="fas fa-calendar-alt"></i>Events</a>
+            <a href="admin-users.php"><i class="fas fa-users"></i>Users</a>
+            <a href="admin-notification.php"><i class="fas fa-bell"></i>Notification</a> 
+            <a href="admin-archives.php"><i class="fa fa-archive" aria-hidden="true"></i>Archives</a>
         </div>
+    </div>
 
-        <!-- Main Content -->
-        <div class="content">
-            <div class="content-header">
-                <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
-                <p>Learning and Development</p>
-                <h1>EVENT MANAGEMENT SYSTEM</h1>
-            </div><br><br><br><br><br>
+<div class="content">
+    <div class="content-header">
+        <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
+        <p>Learning and Development</p>
+        <h1>EVENT MANAGEMENT SYSTEM</h1>
+    </div><br><br><br><br><br>
+
 
             <div class="content-body">
                 <h1>Welcome, Admin!</h1>
