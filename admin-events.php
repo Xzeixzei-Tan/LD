@@ -1,7 +1,21 @@
 <?php
 require_once 'config.php';
 
-$sql = "SELECT id, title, event_specification, delivery, start_datetime, end_datetime, venue FROM events ORDER BY start_datetime DESC";
+// Get the current date and time
+$currentDateTime = date('Y-m-d H:i:s');
+
+// Debugging: Output the current date and time
+error_log("Current Date and Time: " . $currentDateTime);
+
+// Modify the SQL query to filter out past events and add status
+$sql = "SELECT id, title, event_specification, delivery, start_datetime, end_datetime, venue,
+        CASE 
+            WHEN NOW() BETWEEN start_datetime AND end_datetime THEN 'Ongoing'
+            ELSE 'Upcoming'
+        END AS status
+        FROM events 
+        WHERE end_datetime >= NOW()
+        ORDER BY start_datetime ASC";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -17,19 +31,6 @@ if (!$result) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/admin-events.css" rel="stylesheet">
     <title>Dashboard-Template</title>
-    <style>
-        .content-area { display: flex; justify-content: space-between; }
-        .details-section { display: none; flex-basis: 30%; margin-left: 20px; background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        .events-section { flex-basis: 100%; transition: flex-basis 0.3s; }
-        .events-section.shrink { flex-basis: 70%; }
-        .details-section h2 { margin-top: 0; }
-        .details-section .detail-item { margin-bottom: 15px; }
-        .details-section .detail-item h3 { margin: 0; font-size: 1.2em; }
-        .details-section .detail-item p { margin: 5px 0 0; color: #555; }
-        .expand-btn { cursor: pointer; float: right; }
-        .expand { flex-basis: 100% !important; }
-        .hidden { display: none; }
-    </style>
 </head>
 <body>
 
@@ -40,6 +41,13 @@ if (!$result) {
             <a href="admin-events.php" class="active"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
             <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
             <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a>
+<<<<<<< HEAD
+            <a href="#archive" class="archive-link">
+                <i class="fas fa-archive"></i> Archive
+            </a>
+=======
+            <a href="admin-archives.php"><i class="fa fa-archive" aria-hidden="true"></i>Archives</a>
+>>>>>>> 106f6fb4ef09c233a0b2a6bef19e0643849a461a
         </div>
     </div>
 
@@ -66,11 +74,14 @@ if (!$result) {
                             echo '<div class="event-content">';
                             echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
                             echo '<p><strong>Event Specification:</strong> ' . htmlspecialchars(substr($row["event_specification"], 0, 100)) . '</p>';
+                            if ($row["status"] === "Ongoing") {
+                                echo '<span class="ongoing-label">Ongoing</span>';
+                            }
                             echo '</div></a>';
                             echo '</div>';
                         }
                     } else {
-                        echo "<p>No events found.</p>";
+                        echo "<p>No upcoming or ongoing events found.</p>";
                     }
                     ?>
                 </div>
