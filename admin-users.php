@@ -1,3 +1,37 @@
+<?php 
+require_once 'config.php';
+
+// Fetch users from database
+$sql = "SELECT u.id, u.first_name, u.middle_name, u.last_name, u.suffix, u.sex, 
+        u.contact_no, u.email, c.name as classification_name, cp.name as position_name 
+        FROM users u 
+        LEFT JOIN users_lnd ul ON u.id = ul.user_id
+        LEFT JOIN class_position cp ON ul.position_id = cp.id 
+        LEFT JOIN classification c ON ul.classification_id = c.id 
+        WHERE u.deleted_at IS NULL 
+        ORDER BY u.id";
+$result = $conn->query($sql);
+
+// Error handling for SQL query
+if ($result === false) {
+    die("SQL Error: " . $conn->error);
+}
+
+//Query to count the number of Users from Schools
+$schoolCount = $conn->prepare("
+    SELECT COUNT(*) as count
+        FROM users_lnd WHERE affiliation_id = '1'");
+$schoolCount->execute();
+$schoolResult = $schoolCount->get_result();
+
+//Query to count the number of Users from Division
+$divCount = $conn->prepare("
+    SELECT COUNT(*) as count
+        FROM users_lnd WHERE affiliation_id = '2'");
+$divCount->execute();
+$divResult = $divCount->get_result();
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -208,6 +242,15 @@
     .checkbox-cell {
         text-align: center;
     }
+
+    .checkbox-cell {
+    width: 40px;
+    text-align: center;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+    }
 </style>
 <body>
 
@@ -235,12 +278,23 @@
 	    	<hr><br>
 
             <div class="personnel">
+
+                <?php
+                if ($schoolResult) {
+                    $row = $schoolResult->fetch_assoc();
+                }
+                ?>
                 <div class="school">
-                    <p>School personnel:</p>
+                    <p>School personnel: <?php echo $row['count']; ?></p>
                 </div>
 
+                <?php
+                if ($divResult) {
+                    $row = $divResult->fetch_assoc();
+                }
+                ?>
                 <div class="division">
-                    <p>Division personnel:</p>
+                    <p>Division personnel: <?php echo $row['count']; ?></p>
                 </div>
             </div>
     
@@ -255,7 +309,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th><input type="checkbox"></th>
+                        <th><input type="checkbox" id="select-all"></th>
                         <th>#</th>
                         <th>Name</th>
                         <th>Sex</th>
@@ -264,88 +318,88 @@
                         <th>Position</th>
                         <th>E-mail</th>
                         <th>Password</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>1</td>
-                        <td>Jess T. Constante</td>
-                        <td>Male</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - Main Campus</td>
-                        <td>Teacher II</td>
-                        <td>jess.constante@cvsu.edu.ph</td>
-                        <td>*****</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>2</td>
-                        <td>Chynna Larize S. Layos</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - CCAT Campus</td>
-                        <td>Teacher I</td>
-                        <td>chynna.layos@cvsu.edu.ph</td>
-                        <td>*****</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>3</td>
-                        <td>Alessandra G. Castillas</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - Trece Campus</td>
-                        <td>Teacher I</td>
-                        <td>alex.castillas@cvsu.edu.ph</td>
-                        <td>*****</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>4</td>
-                        <td>Hersheyline Nhadyn B. Dudas</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - General Trias Campus</td>
-                        <td>Teacher III</td>
-                        <td>hershey.dudas@cvsu.edu.ph</td>
-                        <td>*******</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>5</td>
-                        <td>Princess Mae J. Tan</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - Naic Campus</td>
-                        <td>Teacher II</td>
-                        <td>princess.tan@cvsu.edu.ph</td>
-                        <td>*****</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>6</td>
-                        <td>Shinby M. Yao</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - Trece Campus</td>
-                        <td>Teacher II</td>
-                        <td>shinby.yao@cvsu.edu.ph</td>
-                        <td>*******</td>
-                    </tr>
-                    <tr>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                        <td>7</td>
-                        <td>Louiela Mae G. Apolona</td>
-                        <td>Female</td>
-                        <td>09123456890</td>
-                        <td>Cavite State University - Main Campus</td>
-                        <td>Teacher III</td>
-                        <td>ella.apolona@cvsu.edu.ph</td>
-                        <td>*******,a**</td>
-                    </tr>
+                    <?php
+                    if ($result->num_rows > 0) {
+                        $count = 1;
+                        while ($row = $result->fetch_assoc()) {
+                            // Format name with middle initial and suffix
+                            $middle_initial = !empty($row["middle_name"]) ? " " . substr($row["middle_name"], 0, 1) . "." : "";
+                            $suffix = !empty($row["suffix"]) ? " " . $row["suffix"] : "";
+                            $full_name = $row["first_name"] . $middle_initial . " " . $row["last_name"] . $suffix;
+
+                            echo "<tr>";
+                            echo "<td class='checkbox-cell'><input type='checkbox' class='user-checkbox' data-id='" . $row["id"] . "'></td>";
+                            echo "<td>" . $count . "</td>";
+                            echo "<td>" . $full_name . "</td>";
+                            echo "<td>" . $row["sex"] . "</td>";
+                            echo "<td>" . $row["contact_no"] . "</td>";
+                            echo "<td>" . ($row["classification_name"] ?? "Not Assigned") . "</td>";
+                            echo "<td>" . ($row["position_name"] ?? "Not Assigned") . "</td>";
+                            echo "<td>" . $row["email"] . "</td>";
+                            echo "<td>*****</td>";
+                            echo "<td>
+                                    <button class='delete-btn' data-id='" . $row["id"] . "'>Delete</button>
+                                  </td>";
+                            echo "</tr>";
+                            $count++;
+                        }
+                    } else {
+                        echo "<tr><td colspan='10' style='text-align:center'>No users found</td></tr>";
+                    }
+                    ?>
                 </tbody>
             </table>
+ <script>
+        // Handle select all checkbox
+        document.getElementById('select-all').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+        
+        // Handle edit button clicks
+        document.querySelectorAll('.edit-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const userId = this.getAttribute('data-id');
+                // Redirect to edit page or open modal with user data
+                window.location.href = 'edit_user.php?id=' + userId;
+            });
+        });
+        
+        // Handle delete button clicks
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this user?')) {
+                    const userId = this.getAttribute('data-id');
+                    // Send AJAX request to delete user
+                    fetch('delete_user.php?id=' + userId, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Remove row from table
+                            this.closest('tr').remove();
+                        } else {
+                            alert('Error deleting user: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
+            });
+        });
+</script>        
 
-    </body>
-    </html>
+</body>
+</html>
+
+<?php 
+$conn->close();
+?>

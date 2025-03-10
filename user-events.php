@@ -1,7 +1,7 @@
 <?php
 require_once 'config.php';
 
-$sql = "SELECT id, title, description, event_mode, start_datetime, end_datetime, venue FROM events ORDER BY start_datetime DESC";
+$sql = "SELECT id, title, start_datetime, end_datetime, venue FROM events ORDER BY start_datetime DESC";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -401,7 +401,6 @@ html {
                             echo '<div class="event">';
                             echo '<div class="event-content">';
                             echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                            echo '<p>' . htmlspecialchars(substr($row["description"], 0, 100)) . '...</p>';
                             echo '</div></a>';
                             echo '</div>';
                         }
