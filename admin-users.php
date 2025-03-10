@@ -17,12 +17,19 @@ if ($result === false) {
     die("SQL Error: " . $conn->error);
 }
 
-//Query to count the number of Users
-$userCount = $conn->prepare("
+//Query to count the number of Users from Schools
+$schoolCount = $conn->prepare("
     SELECT COUNT(*) as count
-        FROM users_lnd");
-$userCount->execute();
-$userResult = $userCount->get_result();
+        FROM users_lnd WHERE affiliation_id = 1");
+$schoolCount->execute();
+$schoolResult = $schoolCount->get_result();
+
+//Query to count the number of Users from Division
+$divCount = $conn->prepare("
+    SELECT COUNT(*) as count
+        FROM users_lnd WHERE affiliation_id = 2");
+$divCount->execute();
+$divResult = $divCount->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -276,8 +283,8 @@ $userResult = $userCount->get_result();
                 </div>
 
                 <?php
-                if ($userResult) {
-                    $row = $userResult->fetch_assoc();
+                if ($schoolResult) {
+                    $row = $schoolResult->fetch_assoc();
                 }
                 ?>
                 <div class="division">
