@@ -162,6 +162,10 @@ hr {
 
 .event.selected {
     background: #374ab6;
+
+    .ongoing-label {
+        color: yellow;
+    }
 }
 
 .event.selected h3 {

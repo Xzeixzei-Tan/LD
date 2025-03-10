@@ -7,15 +7,29 @@ $currentDateTime = date('Y-m-d H:i:s');
 // Debugging: Output the current date and time
 error_log("Current Date and Time: " . $currentDateTime);
 
-// Modify the SQL query to filter out past events and add status
-$sql = "SELECT id, title, event_specification, delivery, start_datetime, end_datetime, venue,
-        CASE 
-            WHEN NOW() BETWEEN start_datetime AND end_datetime THEN 'Ongoing'
-            ELSE 'Upcoming'
-        END AS status
-        FROM events 
-        WHERE end_datetime >= NOW()
-        ORDER BY start_datetime ASC";
+// SQL query to fetch event details, meal plan, and count registered users
+$sql = "SELECT 
+            e.id, e.title, e.event_specification, e.delivery, 
+            e.start_datetime, e.end_datetime, e.venue,
+            (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id) AS user_count,
+            GROUP_CONCAT(DISTINCT fs.source SEPARATOR ', ') AS funding_sources,  
+            GROUP_CONCAT(DISTINCT s.speaker_name SEPARATOR ', ') AS speakers,  
+            GROUP_CONCAT(DISTINCT CONCAT(ep.school_level, ' ', ep.specialization) SEPARATOR ', ') AS eligible_participants,  
+            GROUP_CONCAT(DISTINCT mp.day SEPARATOR ', ') AS meal_days, 
+            GROUP_CONCAT(DISTINCT mp.meal_type SEPARATOR ', ') AS meal_types,  -- This fetches the meal plan details
+            CASE 
+                WHEN NOW() BETWEEN e.start_datetime AND e.end_datetime THEN 'Ongoing'
+                ELSE 'Upcoming'
+            END AS status
+        FROM events e
+        LEFT JOIN funding_sources fs ON e.id = fs.event_id
+        LEFT JOIN speakers s ON e.id = s.event_id
+        LEFT JOIN eligible_participants ep ON e.id = ep.event_id
+        LEFT JOIN meal_plan mp ON e.id = mp.event_id
+        WHERE e.end_datetime >= NOW()
+        GROUP BY e.id
+        ORDER BY e.start_datetime ASC";
+
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -30,7 +44,7 @@ if (!$result) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/admin-events.css" rel="stylesheet">
-    <title>Dashboard-Template</title>
+    <title>Event Management System</title>
 </head>
 <body>
 
@@ -41,13 +55,9 @@ if (!$result) {
             <a href="admin-events.php" class="active"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
             <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
             <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a>
-<<<<<<< HEAD
             <a href="#archive" class="archive-link">
                 <i class="fas fa-archive"></i> Archive
             </a>
-=======
-            <a href="admin-archives.php"><i class="fa fa-archive" aria-hidden="true"></i>Archives</a>
->>>>>>> 106f6fb4ef09c233a0b2a6bef19e0643849a461a
         </div>
     </div>
 
@@ -110,6 +120,26 @@ if (!$result) {
                         <h3>Venue:</h3>
                         <p id="detail-venue"></p>
                     </div>
+                    <div class="detail-item">
+                        <h3>Registered Users:</h3>
+                        <p id="detail-user_count"></p> <!-- New element for user count -->
+                    </div>
+                    <div class="detail-item">
+                        <h3>Funding Sources:</h3>
+                        <p id="detail-funding_sources"></p> <!-- New element for funding sources -->
+                    </div>
+                    <div class="detail-item">
+                        <h3>Speakers:</h3>
+                        <p id="detail-speakers"></p> <!-- New element for speakers -->
+                    </div>
+                    <div class="detail-item">
+                        <h3>Eligible Participants:</h3>
+                        <p id="detail-eligible_participants"></p> <!-- New element for eligible participants -->
+                    </div>
+                    <div class="detail-item">
+                        <h3>Meal Plan:</h3>
+                        <p id="detail-meal_plan"></p> <!-- New element for meal plan -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -117,16 +147,41 @@ if (!$result) {
 </div>
 
 <script>
-function showDetails(eventData) {
-    document.getElementById('detail-title').textContent = eventData.title;
-    document.getElementById('detail-event_specification').textContent = eventData.event_specification;
-    document.getElementById('detail-delivery').textContent = eventData.delivery;
-    document.getElementById('detail-start').textContent = eventData.start_datetime;
-    document.getElementById('detail-end').textContent = eventData.end_datetime;
-    document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
+let currentEvent = null;
 
-    document.getElementById('details-section').style.display = 'block';
-    document.querySelector('.events-section').classList.add('shrink');
+function showDetails(eventData) {
+    const detailsSection = document.getElementById('details-section');
+    const eventsSection = document.querySelector('.events-section');
+
+    if (currentEvent === eventData.id) {
+        detailsSection.style.display = 'none';
+        eventsSection.classList.remove('shrink');
+        currentEvent = null;
+    } else {
+        document.getElementById('detail-title').textContent = eventData.title;
+        document.getElementById('detail-event_specification').textContent = eventData.event_specification;
+        document.getElementById('detail-delivery').textContent = eventData.delivery;
+        document.getElementById('detail-start').textContent = eventData.start_datetime;
+        document.getElementById('detail-end').textContent = eventData.end_datetime;
+        document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
+        document.getElementById('detail-user_count').textContent = eventData.user_count;
+        document.getElementById('detail-funding_sources').textContent = eventData.funding_sources || "Not specified";
+        document.getElementById('detail-speakers').textContent = eventData.speakers || "Not specified";
+        document.getElementById('detail-eligible_participants').textContent = eventData.eligible_participants || "Not specified";
+        
+        // Display the meal plan information
+        if (eventData.meal_days && eventData.meal_types) {
+            const mealDays = eventData.meal_days.split(', ').join(', ');
+            const mealTypes = eventData.meal_types.split(', ').join(', ');
+            document.getElementById('detail-meal_plan').textContent = `${mealDays}: ${mealTypes}`;
+        } else {
+            document.getElementById('detail-meal_plan').textContent = "Not specified";
+        }
+
+        detailsSection.style.display = 'block';
+        eventsSection.classList.add('shrink');
+        currentEvent = eventData.id;
+    }
 }
 
 function selectEvent(event) {
@@ -153,7 +208,6 @@ function toggleExpand() {
     }
 }
 
-// Modify the PHP to add the onclick event
 document.addEventListener('DOMContentLoaded', () => {
     const eventDivs = document.querySelectorAll('.event');
     eventDivs.forEach(div => {
