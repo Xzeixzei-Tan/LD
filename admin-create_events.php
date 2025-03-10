@@ -619,7 +619,7 @@
                             
                             <div class="form-row">
                                 <div class="form-col" id="start-dates-container">
-                                    <label>Start Date/Time:</label>
+                                    <label>Start Date</label>
                                     <div class="dynamic-dates">
                                         <input type="datetime-local" name="start_date[]" class="start-date-input">
                                     </div>
@@ -884,111 +884,114 @@
                         <div class="form-group">
                                 <div class="section-title">Target Personnel</div>
                                 <div class="personnel-selection">
-                                        <button type="button" id="school-btn" class="personnel-btn active">
-                                    <i class="fas fa-school"></i> School Personnel
-                                </button>
-                                    <button type="button" id="division-btn" class="personnel-btn">
-                                <i class="fas fa-building"></i> Division Personnel
+                                    <button type="button" id="school-btn" class="personnel-btn active">
+                                     <i class="fas fa-school"></i> School Personnel
                             </button>
-                            </div>
+                                     <button type="button" id="division-btn" class="personnel-btn">
+                                    <i class="fas fa-building"></i> Division Personnel
+                            </button>
+                                    <button type="button" id="all-btn" class="personnel-btn">
+                                     <i class="fas fa-users"></i> All Personnel
+                            </button>
+            </div>
                             </div>
 
                         
 
-                        <!-- Eligible Participants -->
-                        <div class="form-group">
-                        <div class="form-group school-personnel-sections" id="eligible-participants">
-                            <div class="section-title">Eligible Participants</div>
-                            
-                            <div class="form-elig">
-                                <div class="radio-group">
-                                    <div class="form-row">
-                                        <div class="form-col">
-                                            <label style="font-weight: bold;">Educational Level:</label>
-                                            
-                                            <label><input type="radio" name="level" value="elementary"> Elementary</label>
-                                            <label><input type="radio" name="level" value="junior"> Junior High School</label>
-                                            <label><input type="radio" name="level" value="senior"> Senior High School</label>
-                                        
-                                        </div>
-                                    </div>
-                                </div>
-                            
-                                <div class="radio-group">
-                                    <div class="form-row">
-                                        <div class="form-col">
-                                            <label style="font-weight: bold;">Participants:</label>
-                                            <label><input type="radio" name="participants" value="teaching"> Teaching</label>
-                                            <label><input type="radio" name="participants" value="non-teaching"> Non-teaching</label>
-                                        
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <br>
-
-                            <hr>
-                            <br><br><br>
-                            
-
-                            <div class="form-group school-personnel-sections" id="specialization">
-                            <div class="special"></div>
-                            <div class="section-title">Specialization</div>
-                            <br>
-                            <div class="radio-group">
-                                <div class="form-col">
-                                    <label><input type="radio" name="specialization" value="mtb-mle"> Mother Tongue-Based Multilingual Education (MTB-MLE)</label>
-                                    <label><input type="radio" name="specialization" value="filipino"> Filipino</label>
-                                    <label><input type="radio" name="specialization" value="english"> English</label>
-                                    <label><input type="radio" name="specialization" value="mathematics"> Mathematics</label>
-                                    <label><input type="radio" name="specialization" value="science"> Science</label>
-                                    <label><input type="radio" name="specialization" value="tle"> Technology and Livelihood Education</label>
-                                </div>
-                                <div class="form-col">
-                                    <label><input type="radio" name="specialization" value="esp"> Edukasyon sa Pagpapakatao (EsP)</label>
-                                    <label><input type="radio" name="specialization" value="mapeh"> Music, Arts, PE & Health (MAPEH)</label>
-                                    <label><input type="radio" name="specialization" value="epp"> Edukasyong Pantahanan at Pangkabuhayan</label>
-                                    <label><input type="radio" name="specialization" value="sped"> Special Education</label>
-                                    <label><input type="radio" name="specialization" value="non-teaching"> N/A (for non-teaching)</label>
-                                </div>
-                            </div>
-                        </div>
-                            </div>
-
-                        <hr>
-
-    <div class="form-group division-personnel-section" id="sectors-units"><br>
-    <div class="section-title">Sectors/Units</div>
-        <div class="radio-group">
-            <div class="form-col">
-                <label><input type="radio" name="sector" value="sds">Office of the Schools Division Superintendent</label>
-                <label><input type="radio" name="sector" value="asds">Office of the Assistant Schools Division Superintendent</label>
-                <label><input type="radio" name="sector" value="legal-services">Legal Services</label>
-                <label><input type="radio" name="sector" value="ict-services"> ICT Services</label>
-                <label><input type="radio" name="sector" value="administrative"> Administrative Services</label>
-                <label><input type="radio" name="sector" value="personnel">Personnel</label>
-                <label><input type="radio" name="sector" value="records">Records</label>
-                <label><input type="radio" name="sector" value="cashier">Cashier</label>
-                <label><input type="radio" name="sector" value="suply-property"> Supply & Property</label>
-                <label><input type="radio" name="sector" value="budget"> Budget</label>
-                <label><input type="radio" name="sector" value="finance">Finance</label>
+                     <!-- Eligible Participants -->
+<div class="form-group">
+<div class="form-group school-personnel-sections" id="eligible-participants">
+    <div class="section-title">Eligible Participants</div>
+    
+    <div class="form-elig">
+        <div class="checkbox-group">
+            <div class="form-row">
+                <div class="form-col">
+                    <label style="font-weight: bold;">Educational Level:</label>
+                    
+                    <label><input type="checkbox" name="level" value="elementary"> Elementary</label>
+                    <label><input type="checkbox" name="level" value="junior"> Junior High School</label>
+                    <label><input type="checkbox" name="level" value="senior"> Senior High School</label>
+                
+                </div>
             </div>
-            <div class="form-col">
-                <label><input type="radio" name="sector" value="cid">Curriculum Implementation Division</label>
-                <label><input type="radio" name="sector" value="lrm">Learning Resource Management</label>
-                <label><input type="radio" name="sector" value="cim"> Curriculum Implementation Management</label>
-                <label><input type="radio" name="sector" value="dim">District Instructional Management</label>
-                <label><input type="radio" name="sector" value="als">Alternative Learning System</label>
-                <label><input type="radio" name="sector" value="sgod">School Governance and Operations Division</label>
-                <label><input type="radio" name="sector" value="smme">School Management Monitoring & Evaluation</label>
-                <label><input type="radio" name="sector" value="hrd">Human Resource Development</label>
-                <label><input type="radio" name="sector" value="smn">Social Mobilization and Networking</label>
-                <label><input type="radio" name="sector" value="pr"> Planning & Research</label>
-                <label><input type="radio" name="sector" value="educ-facilities">Education Facilities</label>
-                <label><input type="radio" name="sector" value="sh-nu">School Health & Nutrition Unit</label>
+        </div>
+    
+        <div class="checkbox-group">
+            <div class="form-row">
+                <div class="form-col">
+                    <label style="font-weight: bold;">Participants:</label>
+                    <label><input type="checkbox" name="participants" value="teaching"> Teaching</label>
+                    <label><input type="checkbox" name="participants" value="non-teaching"> Non-teaching</label>
+                
+                </div>
             </div>
         </div>
     </div>
+<br>
+
+    <hr>
+    <br><br>
+    
+
+    <div class="form-group school-personnel-sections" id="specialization">
+    <div class="special"></div>
+    <div class="section-title">Specialization</div>
+    
+    <div class="checkbox-group">
+        <div class="form-col">
+            <label><input type="checkbox" name="specialization" value="mtb-mle"> Mother Tongue-Based Multilingual Education (MTB-MLE)</label>
+            <label><input type="checkbox" name="specialization" value="filipino"> Filipino</label>
+            <label><input type="checkbox" name="specialization" value="english"> English</label>
+            <label><input type="checkbox" name="specialization" value="mathematics"> Mathematics</label>
+            <label><input type="checkbox" name="specialization" value="science"> Science</label>
+            <label><input type="checkbox" name="specialization" value="tle"> Technology and Livelihood Education</label>
+        </div>
+        <div class="form-col">
+            <label><input type="checkbox" name="specialization" value="esp"> Edukasyon sa Pagpapakatao (EsP)</label>
+            <label><input type="checkbox" name="specialization" value="mapeh"> Music, Arts, PE & Health (MAPEH)</label>
+            <label><input type="checkbox" name="specialization" value="epp"> Edukasyong Pantahanan at Pangkabuhayan</label>
+            <label><input type="checkbox" name="specialization" value="sped"> Special Education</label>
+            <label><input type="checkbox" name="specialization" value="non-teaching"> N/A (for non-teaching)</label>
+        </div>
+    </div>
+</div>
+    </div>
+
+<hr>
+
+<div class="form-group division-personnel-section" id="sectors-units"><br>
+<div class="section-title">Sectors/Units</div>
+<div class="checkbox-group">
+    <div class="form-col">
+        <label><input type="checkbox" name="sector" value="sds">Office of the Schools Division Superintendent</label>
+        <label><input type="checkbox" name="sector" value="asds">Office of the Assistant Schools Division Superintendent</label>
+        <label><input type="checkbox" name="sector" value="legal-services">Legal Services</label>
+        <label><input type="checkbox" name="sector" value="ict-services"> ICT Services</label>
+        <label><input type="checkbox" name="sector" value="administrative"> Administrative Services</label>
+        <label><input type="checkbox" name="sector" value="personnel">Personnel</label>
+        <label><input type="checkbox" name="sector" value="records">Records</label>
+        <label><input type="checkbox" name="sector" value="cashier">Cashier</label>
+        <label><input type="checkbox" name="sector" value="suply-property"> Supply & Property</label>
+        <label><input type="checkbox" name="sector" value="budget"> Budget</label>
+        <label><input type="checkbox" name="sector" value="finance">Finance</label>
+    </div>
+    <div class="form-col">
+        <label><input type="checkbox" name="sector" value="cid">Curriculum Implementation Division</label>
+        <label><input type="checkbox" name="sector" value="lrm">Learning Resource Management</label>
+        <label><input type="checkbox" name="sector" value="cim"> Curriculum Implementation Management</label>
+        <label><input type="checkbox" name="sector" value="dim">District Instructional Management</label>
+        <label><input type="checkbox" name="sector" value="als">Alternative Learning System</label>
+        <label><input type="checkbox" name="sector" value="sgod">School Governance and Operations Division</label>
+        <label><input type="checkbox" name="sector" value="smme">School Management Monitoring & Evaluation</label>
+        <label><input type="checkbox" name="sector" value="hrd">Human Resource Development</label>
+        <label><input type="checkbox" name="sector" value="smn">Social Mobilization and Networking</label>
+        <label><input type="checkbox" name="sector" value="pr"> Planning & Research</label>
+        <label><input type="checkbox" name="sector" value="educ-facilities">Education Facilities</label>
+        <label><input type="checkbox" name="sector" value="sh-nu">School Health & Nutrition Unit</label>
+    </div>
+</div>
+</div>
         <div class="submit-btn">
             <button type="submit">Create Event</button>
         </div>
@@ -1001,15 +1004,20 @@ function selectPersonnel(type) {
     // Get the buttons
     const schoolBtn = document.getElementById('school-btn');
     const divisionBtn = document.getElementById('division-btn');
+    const allBtn = document.getElementById('all-btn');
     
     // Get all the sections we need to toggle
     const schoolSections = document.querySelectorAll('.school-personnel-sections');
     const divisionSection = document.querySelector('.division-personnel-section');
     
+    // Reset all buttons first
+    schoolBtn.classList.remove('active');
+    divisionBtn.classList.remove('active');
+    allBtn.classList.remove('active');
+    
     if (type === 'school') {
-        // Update button states
+        // Update button state
         schoolBtn.classList.add('active');
-        divisionBtn.classList.remove('active');
         
         // Show school sections
         schoolSections.forEach(section => {
@@ -1021,9 +1029,8 @@ function selectPersonnel(type) {
             divisionSection.style.display = 'none';
         }
     } else if (type === 'division') {
-        // Update button states
+        // Update button state
         divisionBtn.classList.add('active');
-        schoolBtn.classList.remove('active');
         
         // Hide school sections
         schoolSections.forEach(section => {
@@ -1034,11 +1041,20 @@ function selectPersonnel(type) {
         if (divisionSection) {
             divisionSection.style.display = 'block';
         }
+    } else if (type === 'all') {
+        // Update button state
+        allBtn.classList.add('active');
+        
+        // Show all sections
+        schoolSections.forEach(section => {
+            section.style.display = 'block';
+        });
+        
+        if (divisionSection) {
+            divisionSection.style.display = 'block';
+        }
     } else {
         // No selection - hide all sections
-        schoolBtn.classList.remove('active');
-        divisionBtn.classList.remove('active');
-        
         schoolSections.forEach(section => {
             section.style.display = 'none';
         });
@@ -1054,6 +1070,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up event listeners for the buttons
     const schoolBtn = document.getElementById('school-btn');
     const divisionBtn = document.getElementById('division-btn');
+    const allBtn = document.getElementById('all-btn');
+    
+    // Get all the sections we need to initially hide
+    const schoolSections = document.querySelectorAll('.school-personnel-sections');
+    const divisionSection = document.querySelector('.division-personnel-section');
+    
+    // Initially hide all sections
+    schoolSections.forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    if (divisionSection) {
+        divisionSection.style.display = 'none';
+    }
+    
+    // Remove default active class from school button
+    if (schoolBtn) {
+        schoolBtn.classList.remove('active');
+    }
     
     if (schoolBtn) {
         schoolBtn.addEventListener('click', function() {
@@ -1067,8 +1102,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialize with no personnel selected
-    selectPersonnel(null);
+    if (allBtn) {
+        allBtn.addEventListener('click', function() {
+            selectPersonnel('all');
+        });
+    }
+    
+    // No need to call selectPersonnel('school') here since we want sections hidden by default
 });
     </script>
 
