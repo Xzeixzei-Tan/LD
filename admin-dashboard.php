@@ -4,8 +4,15 @@ require_once 'config.php';
 // Set the default sort order to ASC (Soonest events first)
 $sortOrder = isset($_GET['sort']) && ($_GET['sort'] == 'DESC') ? 'DESC' : 'ASC';
 
-// Fetch only upcoming events from the database (ignores past events)
-$sql = "SELECT id, title, event_specification, start_datetime FROM events WHERE start_datetime >= NOW() ORDER BY start_datetime $sortOrder";
+// Fetch upcoming and ongoing events from the database
+$sql = "SELECT id, title, event_specification, start_datetime, end_datetime,
+        CASE 
+            WHEN NOW() BETWEEN start_datetime AND end_datetime THEN 'Ongoing'
+            ELSE 'Upcoming'
+        END AS status
+        FROM events 
+        WHERE end_datetime >= NOW()
+        ORDER BY start_datetime $sortOrder";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -24,7 +31,7 @@ if (!$result) {
 </head>
 <body>
 
-	<div class="container">
+    <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-content">
@@ -55,7 +62,7 @@ if (!$result) {
                         <h2>Events</h2>
                         <div class="sort-events">
                             <!-- Sort Button to Toggle Order -->
-                            <button id="sortButton" onclick="toggleSortOrder()">Sort Events</button>
+                            <button id="sortButton" onclick="toggleSortOrder()">Sort Events: <?php echo $sortOrder === 'ASC' ? 'Asc' : 'Des'; ?></button>
                         </div>
                         <?php while ($event = $result->fetch_assoc()) : ?>
                             <div class="event">
@@ -63,6 +70,9 @@ if (!$result) {
                                     <h3><?php echo htmlspecialchars($event['title']); ?></h3>
                                     <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['event_specification']); ?></p>
                                     <p><strong>Start Date:</strong> <?php echo htmlspecialchars($event['start_datetime']); ?></p>
+                                    <?php if ($event['status'] === 'Ongoing') : ?>
+                                        <span class="ongoing-label">Ongoing</span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php endwhile; ?>
@@ -96,7 +106,13 @@ if (!$result) {
         // Update the URL to reflect the new sort order
         window.location.href = window.location.pathname + '?sort=' + newSortOrder;
     }
-</script>
 
+    // Update the sort order label and button text on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
+        document.getElementById('sortOrderLabel').textContent = currentSortOrder === 'ASC' ? 'Ascending' : 'Descending';
+        document.getElementById('sortButton').textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
+    });
+</script>
 </body>
 </html>

@@ -128,9 +128,12 @@ html {
 .notifications-section {
     background-color: white;
     border-radius: 8px;
+    /* Adjust this value as needed */
     padding: 20px;
+    /* Adjust this value as needed */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     font-family: 'Wensley Demo', serif;
+    /* Adjust this value as needed */
     flex: 2;
     max-height: 400px;
     overflow-y: auto;
