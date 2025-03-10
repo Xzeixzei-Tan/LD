@@ -62,6 +62,29 @@ hr {
     margin-right: 0.5rem;
 }
 
+.sidebar .menu a.archive-link {
+    font-family: 'Tilt Warp';
+    color: #ffffff;
+    text-decoration: none;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    border-radius: 5px;
+    transition: background 0.3s;
+    margin-bottom: .5rem;
+}
+
+.sidebar .menu a.archive-link:hover,
+.sidebar .menu a.archive-link.active {
+    background-color: white;
+    color: #2b3a8f;
+}
+
+.sidebar .menu a.archive-link i {
+    margin-right: 0.5rem;
+}
+
 .content {
     flex: 1;
     background-color: #ffffff;
@@ -137,15 +160,15 @@ hr {
     transition: flex-basis 0.3s;
 }
 
-.event.selected{
+.event.selected {
     background: #374ab6;
 }
 
-.event.selected h3{
+.event.selected h3 {
     color: white;
 }
 
-.event.selected p{
+.event.selected p {
     color: rgb(231, 231, 231);
 }
 
@@ -153,10 +176,9 @@ hr {
     display: none;
     flex-basis: 30%;
     margin-left: 20px;
-    background-color: white;
-    padding: 30px;
+    background-color: #f9f9f9;
+    padding: 20px;
     border-radius: 8px;
-    border: 2px solid #374ab6;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -166,12 +188,9 @@ hr {
 
 .details-section h2 {
     margin-top: 0;
-    font-family: Montserrat Extrabold;
-    font-weight: bold;
-    margin-bottom: 10%;
 }
 
-#detail-title{
+#detail-title {
     font-family: Montserrat Extrabold;
 }
 
@@ -181,16 +200,12 @@ hr {
 
 .details-section .detail-item h3 {
     margin: 0;
-    font-size: 1em;
-    font-family: Montserrat;
-    color: #2b3a8f;
+    font-size: 1.2em;
 }
 
 .details-section .detail-item p {
     margin: 5px 0 0;
-    color: #000000;
-    font-size: .8em;
-    font-family: Montserrat Medium
+    color: #555;
 }
 
 .events-section h2,
@@ -231,4 +246,22 @@ hr {
 .events-btn {
     text-decoration: none;
     color: black;
+}
+
+.expand-btn {
+    cursor: pointer;
+    float: right;
+}
+
+.expand {
+    flex-basis: 100% !important;
+}
+
+.hidden {
+    display: none;
+}
+
+.ongoing-label {
+    color: #95A613;
+    font-weight: bold;
 }
