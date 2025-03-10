@@ -202,6 +202,7 @@ $divResult = $divCount->get_result();
     }
     .search-container {
         position: relative;
+        flex-grow: 1;
     }
     .search-icon {
         position: absolute;
@@ -214,6 +215,33 @@ $divResult = $divCount->get_result();
         border: 1px solid #ccc;
         border-radius: 4px;
         width: 200px;
+    }
+    .bulk-actions {
+        opacity: 0;
+        visibility: hidden;
+        margin-left: auto;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    .bulk-actions.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+    .delete-selected-btn {
+        background-color: #ff4d4d;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-family: Tilt Warp;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .delete-selected-btn:hover {
+        background-color: #ff3333;
+        transform: scale(1.05);
+    }
+    .delete-selected-btn:active {
+        transform: scale(0.95);
     }
     table {
         width: 100%;
@@ -305,6 +333,9 @@ $divResult = $divCount->get_result();
                     <span class="search-icon"><i class="fa fa-search" aria-hidden="true"></i></span>
                     <input type="text" class="search-input" placeholder="Search for users...">
                 </div>
+                <div class="bulk-actions" id="bulk-actions">
+                    <button class="delete-selected-btn" id="delete-selected"><i class="fa fa-trash" aria-hidden="true"></i> Delete Selected</button>
+                </div>
             </div>
     
             <table>
@@ -319,7 +350,6 @@ $divResult = $divCount->get_result();
                         <th>Position</th>
                         <th>E-mail</th>
                         <th>Password</th>
-                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -342,9 +372,6 @@ $divResult = $divCount->get_result();
                             echo "<td>" . ($row["position_name"] ?? "Not Assigned") . "</td>";
                             echo "<td>" . $row["email"] . "</td>";
                             echo "<td>*****</td>";
-                            echo "<td>
-                                    <button class='delete-btn' data-id='" . $row["id"] . "'>Delete</button>
-                                  </td>";
                             echo "</tr>";
                             $count++;
                         }
@@ -355,24 +382,33 @@ $divResult = $divCount->get_result();
                 </tbody>
             </table>
  <script>
+        // Function to check if any checkboxes are selected
+        function checkSelectedCheckboxes() {
+            const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+            const bulkActions = document.getElementById('bulk-actions');
+            
+            if (checkboxes.length > 0) {
+                bulkActions.classList.add('visible');
+            } else {
+                bulkActions.classList.remove('visible');
+            }
+        }
+
+        // Handle checkbox changes to show/hide bulk delete button
+        document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', checkSelectedCheckboxes);
+        });
+
         // Handle select all checkbox
         document.getElementById('select-all').addEventListener('change', function() {
             const checkboxes = document.querySelectorAll('.user-checkbox');
             checkboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;
             });
+            checkSelectedCheckboxes();
         });
         
-        // Handle edit button clicks
-        document.querySelectorAll('.edit-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const userId = this.getAttribute('data-id');
-                // Redirect to edit page or open modal with user data
-                window.location.href = 'edit_user.php?id=' + userId;
-            });
-        });
-        
-        // Handle delete button clicks
+        // Handle delete button clicks for individual users
         document.querySelectorAll('.delete-btn').forEach(button => {
             button.addEventListener('click', function() {
                 if (confirm('Are you sure you want to delete this user?')) {
@@ -395,6 +431,52 @@ $divResult = $divCount->get_result();
                     });
                 }
             });
+        });
+
+        // Handle bulk delete button click
+        document.getElementById('delete-selected').addEventListener('click', function() {
+            const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                alert('Please select at least one user to delete.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete ' + selectedCheckboxes.length + ' selected user(s)?')) {
+                // Collect all selected user IDs
+                const userIds = Array.from(selectedCheckboxes).map(checkbox => checkbox.getAttribute('data-id'));
+                
+                // Send AJAX request to delete multiple users
+                fetch('delete_multiple_users.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userIds: userIds })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove rows from table
+                        selectedCheckboxes.forEach(checkbox => {
+                            checkbox.closest('tr').remove();
+                        });
+                        
+                        // Hide bulk actions button
+                        document.getElementById('bulk-actions').classList.remove('visible');
+                        
+                        // Uncheck select all
+                        document.getElementById('select-all').checked = false;
+                        
+                        alert('Selected users have been deleted successfully.');
+                    } else {
+                        alert('Error deleting users: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
         });
 </script>        
 
