@@ -41,9 +41,13 @@ if (!$result) {
             <a href="admin-events.php" class="active"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
             <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
             <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a>
+<<<<<<< HEAD
             <a href="#archive" class="archive-link">
                 <i class="fas fa-archive"></i> Archive
             </a>
+=======
+            <a href="admin-archives.php"><i class="fa fa-archive" aria-hidden="true"></i>Archives</a>
+>>>>>>> 106f6fb4ef09c233a0b2a6bef19e0643849a461a
         </div>
     </div>
 

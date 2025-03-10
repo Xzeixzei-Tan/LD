@@ -33,6 +33,7 @@ if (!$result) {
                     <a href="admin-events.php"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
                     <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
                     <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
+                    <a href="admin-archives.php"><i class="fa fa-archive" aria-hidden="true"></i>Archives</a>
                 </div>
             </div>
         </div>
