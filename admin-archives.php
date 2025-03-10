@@ -4,20 +4,12 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-        <link href="styles/admin-events.css" rel="stylesheet">
+        <link href="styles/admin-archives[.css" rel="stylesheet">
         <title>admin-archives</title>
         <style>
             .content-area { display: flex; justify-content: space-between; }
             .details-section { display: none; flex-basis: 30%; margin-left: 20px; background-color: #f9f9f9; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
             .events-section { flex-basis: 100%; transition: flex-basis 0.3s; }
-            .events-section.shrink { flex-basis: 70%; }
-            .details-section h2 { margin-top: 0; }
-            .details-section .detail-item { margin-bottom: 15px; }
-            .details-section .detail-item h3 { margin: 0; font-size: 1.2em; }
-            .details-section .detail-item p { margin: 5px 0 0; color: #555; }
-            .expand-btn { cursor: pointer; float: right; }
-            .expand { flex-basis: 100% !important; }
-            .hidden { display: none; }
         </style>
     </head>
     <body>
