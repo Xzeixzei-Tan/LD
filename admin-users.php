@@ -263,6 +263,7 @@ $divResult = $divCount->get_result();
                 <a href="admin-events.php"><i class="fas fa-calendar-alt"></i>Events</a>
                 <a href="admin-users.php" class="active"><i class="fas fa-users"></i>Users</a>
                 <a href="admin-notification.php"><i class="fas fa-bell"></i>Notification</a> 
+                <a href="admin-archives.php"><i class="fa fa-archive" aria-hidden="true"></i>Archives</a>
             </div>
         </div>
 
