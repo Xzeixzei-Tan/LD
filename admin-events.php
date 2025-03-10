@@ -80,11 +80,12 @@ if (!$result) {
                     <h2>Details</h2>
                     <div class="detail-item">
                         <h3 id="detail-title"></h3>
-                        <p id="detail-description"></p>
+                        <h4>Event Specification:</h4>
+                        <p id="detail-event_specification"></p>
                     </div>
                     <div class="detail-item">
-                        <h3>Mode:</h3>
-                        <p id="detail-mode"></p>
+                        <h3>Delivery:</h3>
+                        <p id="detail-delivery"></p>
                     </div>
                     <div class="detail-item">
                         <h3>Start:</h3>
@@ -107,8 +108,8 @@ if (!$result) {
 <script>
 function showDetails(eventData) {
     document.getElementById('detail-title').textContent = eventData.title;
-    document.getElementById('detail-description').textContent = eventData.description;
-    document.getElementById('detail-mode').textContent = eventData.event_mode;
+    document.getElementById('detail-event_specification').textContent = eventData.event_specification;
+    document.getElementById('detail-delivery').textContent = eventData.delivery;
     document.getElementById('detail-start').textContent = eventData.start_datetime;
     document.getElementById('detail-end').textContent = eventData.end_datetime;
     document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
