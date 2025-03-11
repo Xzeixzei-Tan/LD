@@ -156,11 +156,13 @@ hr {
     text-decoration: none;
     border-radius: 4px;
     margin-right: 10px;
+    font-family: Tilt Warp Regular;
 }
 
 .archive-toggle a.active {
     background-color: #4CAF50;
     color: white;
+    font-family: Tilt Warp Regular;
 }
 
 .archived-label {
@@ -172,23 +174,17 @@ hr {
     margin-left: 10px;
 }
 
-.ongoing-label {
-    color: #95A613 !important;
-    border-radius: 4px;
-    font-size: 1rem !important;
-    font-family: Tilt Warp;
-    margin-left: 10px;
-}
-
-.events-section,
-.notifications-section {
+.events-section {
     background-color: white;
     border-radius: 8px;
     padding: 30px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     font-family: 'Wesley Demo', serif;
     flex: 1;
-    min-width: 300px;
+    min-width: 30%;
+    max-height: fit-content;
+    border: 2px solid #374ab6;
+    margin-top: 20px;
 }
 
 .events-section {
@@ -212,9 +208,11 @@ hr {
     display: none;
     flex-basis: 30%;
     margin-left: 20px;
+    margin-top: 20px;
     background-color: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
+    border: 2px solid #374ab6;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -223,32 +221,72 @@ hr {
 }
 
 .details-section h2 {
-    margin-top: 0;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    font-family: Montserrat ;
+}
+
+.details-section hr{
+    margin-bottom: 15px;
 }
 
 #detail-title {
+    font-size: 24px;
     font-family: Montserrat Extrabold;
+    margin-bottom: 10px;
+    color: #2b3a8f;
 }
 
 .details-section .detail-item {
     margin-bottom: 15px;
 }
 
-.details-section .detail-item h3 {
-    margin: 0;
-    font-size: 1.2em;
+.details-section .detail-item h4 {
+    font-family: Montserrat;
+    font-size: 18px;
+    margin-bottom: 5px;
 }
 
 .details-section .detail-item p {
-    margin: 5px 0 0;
+    font-family: Montserrat Medium;
+    font-size: 16px; 
     color: #555;
+}
+
+.detail-items{
+    display: flex;
+}
+
+.detail-items-1{
+    margin-top: 2%;
+}
+
+.detail-items-2{
+    margin-left: 30%;
+    margin-top: 2%;
+}
+
+/* New styles for expanded content */
+.expanded-content {
+    display: none;
+}
+
+.details-section.expand .expanded-content {
+    display: block;
+}
+
+.details-section {
+    transition: all 0.3s ease;
+}
+
+.details-section.expand .expand-btn {
+    transform: rotate(180deg);
 }
 
 .events-section h2,
 .notifications-section h2 {
     font-size: 22px;
     font-family: Montserrat ExtraBold;
-    font-weight: bold;
     margin-bottom: 20px;
     color: #333;
 }
@@ -265,13 +303,29 @@ hr {
 .event-content h3 {
     font-size: 18px;
     margin-bottom: 5px;
-    font-family: Montserrat;
+    font-family: Montserrat Extrabold;
 }
 
 .event-content p {
     font-size: 13px;
     color: #585858;
     font-family: Montserrat Medium;
+    margin-bottom: 10px;
+}
+
+.event-content p strong{
+    font-weight: bold;
+    font-family: Montserrat;
+}
+
+.event-content span{
+    color: #4CAF50;
+    font-family: Tilt Warp;
+    font-size: 20px;   
+}
+
+.event-content span .archived{
+    background-color: white !important;
 }
 
 .notification p {
@@ -291,8 +345,23 @@ hr {
 
 .expand {
     flex-basis: 100% !important;
+    display: flex;
 }
 
 .hidden {
     display: none;
 }
+
+#archive-btn{
+    float: right;
+    font-family: Tilt Warp;
+    background-color: #2b3a8f;
+    color: white;
+    padding: 12px;
+    border: 2px solid #2b3a8f;
+    border-radius: 5px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+
