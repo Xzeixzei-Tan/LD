@@ -1,3 +1,25 @@
+<?php
+require_once 'config.php';
+
+// Set the default sort order to ASC (Soonest events first)
+$sortOrder = isset($_GET['sort']) && ($_GET['sort'] == 'DESC') ? 'DESC' : 'ASC';
+
+// Fetch upcoming and ongoing events from the database
+$sql = "SELECT id, title, event_specification, start_datetime, end_datetime,
+        CASE 
+            WHEN NOW() BETWEEN start_datetime AND end_datetime THEN 'Ongoing'
+            ELSE 'Upcoming'
+        END AS status
+        FROM events 
+        WHERE end_datetime >= NOW()
+        ORDER BY start_datetime $sortOrder";
+$result = $conn->query($sql);
+
+if (!$result) {
+    die("Query failed: " . $conn->error);
+}
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -187,6 +209,23 @@
 
     .events-section {
         flex: 3;
+        max-height: 400px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    /* Scrollbar Styling */
+    .events-section::-webkit-scrollbar,
+    .notifications-section::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .events-section::-webkit-scrollbar-thumb,
+    .notifications-section::-webkit-scrollbar-thumb {
+        background: #95A613;
+        border-radius: 4px;
     }
 
     .notifications-section {
@@ -262,7 +301,7 @@
 	    	<img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
 	    	<p>Learning and Development</p>
 	    	<h1>EVENT MANAGEMENT SYSTEM</h1>
-    	</div><br><br><br<br><br><br><br>
+    	</div><br><br><br><br><br><br><br>
 
     	<div class="content-body">
 	    	<h1>Welcome, User!</h1>
@@ -273,39 +312,20 @@
                     <h2>Events</h2>
                     <div class="event-featured">
                         <div class="event-content">
-
-                    <div class="event">
-                        <a class="events-btn" href="user-events.php">
-                        <div class="event-content">
-                            <h3>HRTech Connect: The Future of Work & Innovation</h3>
-                            <p>Description: A must-attend conference for HR and IT professionals...</p>
-                        </div>
-                    </a>
-                    </div>
-
-                    <div class="event">
-                        <div class="event-content">
-                            <h3>TechConnect 2025: Innovating the Future</h3>
-                            <p>Description: A premier gathering of tech leaders, developers, and...</p>
-                        </div>
-                    </div>
-
-                    <div class="event">
-                        <div class="event-content">
-                            <h3>CyberShield 2025: Strengthening Digital Defense</h3>
-                            <p>Description: A cybersecurity-focused event highlighting emerging...</p>
-                        </div>
-                    </div>
-
-                    <div class="event">
-                        <div class="event-content">
-                            <h3>SecuTech 2025: The Next Era of Cyber Defense</h3>
-                            <p>Description: An essential gathering of cybersecurity professionals...</p>
+                        <?php while ($event = $result->fetch_assoc()) : ?>    
+                            <div class="event">
+                                <a class="events-btn" href="user-events.php?event_id=<?php echo urlencode($event['id']); ?>">
+                                <div class="event-content">
+                                    <h3><?php echo htmlspecialchars($event['title']); ?></h3>
+                                    <p>Event Specification: <?php echo htmlspecialchars($event['event_specification']); ?></p>
+                                    <p style="visibility: hidden;"><?php echo htmlspecialchars($event['start_datetime']); ?></p>
+                                </div>
+                                </a>
+                            </div>
+                        <?php endwhile; ?>    
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
                 <div class="notifications-section">
                     <h2>Notifications</h2>
                     <div class="notification important">

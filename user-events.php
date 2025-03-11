@@ -1,14 +1,98 @@
 <?php
 require_once 'config.php';
 
-$sql = "SELECT id, title, start_datetime, end_datetime, venue FROM events ORDER BY start_datetime DESC";
-$result = $conn->query($sql);
+// Start the session
+session_start();
+
+// Display session messages if any exist
+if (isset($_SESSION['message'])) {
+    echo '<div class="alert alert-info">' . $_SESSION['message'] . '</div>';
+    unset($_SESSION['message']); // Clear the message after displaying
+}
+
+// Get the user ID from session
+$user_id = 8;
+
+// Check if an event ID is specified in the URL
+$selected_event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null;
+
+// Determine which tab is active (default to "Unregistered" if not specified)
+$active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'unregistered';
+
+// Fetch all events from the database
+$sql = "SELECT e.id, e.title, e.start_datetime, e.end_datetime, e.venue, e.event_specification, e.delivery, e.organizer_name,
+               (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered
+        FROM events e 
+        GROUP BY e.id
+        ORDER BY start_datetime DESC";
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id); // FIXED: Use $user_id instead of $current_user_id
+$stmt->execute();
+$result = $stmt->get_result();
 
 if (!$result) {
-    die("Query failed: " . $conn->error);
+    // Log the error and display a user-friendly message
+    error_log("Query failed in user-events.php: " . $conn->error);
+    die("There was a problem loading the events. Please try again later.");
+}
+
+// Separate events into registered and unregistered
+$registered_events = [];
+$unregistered_events = [];
+
+while ($row = $result->fetch_assoc()) {
+    if ($row['is_registered'] > 0) {
+        $registered_events[] = $row;
+    } else {
+        $unregistered_events[] = $row;
+    }
+}
+
+// If an event is selected, fetch its details and speakers
+$selected_event = null;
+$speakers = [];
+$is_registered = false;
+
+if ($selected_event_id) {
+    // Fetch event details
+    $detail_sql = "SELECT e.*, 
+                  (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered 
+                  FROM events e WHERE e.id = ?";
+    $stmt = $conn->prepare($detail_sql);
+    $stmt->bind_param("ii", $user_id, $selected_event_id);
+    $stmt->execute();
+    $detail_result = $stmt->get_result();
+    
+    if ($detail_result && $detail_result->num_rows > 0) {
+        $selected_event = $detail_result->fetch_assoc();
+        $is_registered = ($selected_event['is_registered'] > 0);
+        
+        // Set the active tab based on the selected event's registration status
+        $active_tab = $is_registered ? 'registered' : 'unregistered';
+    } else {
+        // Event not found, set message
+        $_SESSION['message'] = "The selected event was not found.";
+        header("Location: user-events.php");
+        exit();
+    }
+    $stmt->close();
+    
+    // Fetch speakers for the selected event
+    $speakers_sql = "SELECT speaker_name FROM speakers WHERE event_id = ?";
+    $stmt = $conn->prepare($speakers_sql);
+    $stmt->bind_param("i", $selected_event_id);
+    $stmt->execute();
+    $speakers_result = $stmt->get_result();
+    
+    if ($speakers_result) {
+        while ($speaker = $speakers_result->fetch_assoc()) {
+            $speakers[] = $speaker['speaker_name'];
+        }
+    }
+    $stmt->close();
 }
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -203,7 +287,7 @@ html {
     justify-content: space-between;
 }
 
-.events-section, {
+.events-section {
     background-color: white;
     border-radius: 8px;
     padding: 30px;
@@ -218,15 +302,15 @@ html {
     transition: flex-basis 0.3s;
 }
 
-.event.selected{
+.event.selected {
     background: #12753E;
 }
 
-.event.selected h3{
+.event.selected h3 {
     color: white;
 }
 
-.event.selected p{
+.event.selected p {
     color: rgb(231, 231, 231);
 }
 
@@ -249,10 +333,10 @@ html {
     margin-top: 0;
     font-family: Montserrat Extrabold;
     font-weight: bold;
-    margin-bottom: 10%;
+    margin-bottom: 2%;
 }
 
-#detail-title{
+#detail-title {
     font-family: Montserrat Extrabold;
     color: #12753E;
 }
@@ -289,6 +373,7 @@ html {
     padding: 20px;
     margin-bottom: 15px;
     position: relative;
+    cursor: pointer;
 }
 
 .event-content h3 {
@@ -312,6 +397,7 @@ html {
 .events-btn {
     text-decoration: none;
     color: black;
+    display: block;
 }
 
 .content-area { 
@@ -347,7 +433,9 @@ html {
     margin: 5px 0 0; color: #555; 
 }
 .expand-btn { 
-    cursor: pointer; float: right; 
+    cursor: pointer; 
+    float: right; 
+    transition: transform 0.3s ease;
 }
 .expand { 
     flex-basis: 100% !important; 
@@ -355,7 +443,79 @@ html {
 .hidden { 
     display: none; 
 }
-    </style>
+
+/* New styles for expanded content */
+.expanded-content {
+    display: none;
+}
+
+.details-section.expand .expanded-content {
+    display: block;
+}
+
+.details-section {
+    transition: all 0.3s ease;
+}
+
+.details-section.expand .expand-btn {
+    transform: rotate(180deg);
+}
+
+/* Tabs styles */
+.tabs {
+    display: flex;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.tab {
+    padding: 10px 20px;
+    background-color: #f5f5f5;
+    border: none;
+    border-radius: 5px 5px 0 0;
+    margin-right: 5px;
+    cursor: pointer;
+    font-family: Montserrat;
+    font-weight: 600;
+    color: #555;
+    transition: all 0.3s ease;
+}
+
+.tab.active {
+    background-color: #12753E;
+    color: white;
+    font-weight: bold;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.badge {
+    background-color: #95A613;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 8px;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+.registered-badge {
+    background-color: #95A613;
+    color: white;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+</style>
 </head>
 <body>
 <div class="sidebar">
@@ -393,47 +553,122 @@ html {
             <hr><br>
 
             <div class="content-area">
-                <div class="events-section">
-                    <?php
-                    if ($result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
-                            echo '<a class="events-btn" href="javascript:void(0);" onclick="showDetails(' . htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8') . ')">';
-                            echo '<div class="event">';
-                            echo '<div class="event-content">';
-                            echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                            echo '</div></a>';
-                            echo '</div>';
+                <div class="events-section <?php echo $selected_event ? 'shrink' : ''; ?>">
+                    <div class="tabs">
+                        <button class="tab <?php echo $active_tab == 'registered' ? 'active' : ''; ?>" onclick="switchTab('registered')">
+                            Registered <span class="badge"><?php echo count($registered_events); ?></span>
+                        </button>
+                        <button class="tab <?php echo $active_tab == 'unregistered' ? 'active' : ''; ?>" onclick="switchTab('unregistered')">
+                            Unregistered <span class="badge"><?php echo count($unregistered_events); ?></span>
+                        </button>
+                    </div>
+
+                    <!-- Registered Events Tab -->
+                    <div id="registered-tab" class="tab-content <?php echo $active_tab == 'registered' ? 'active' : ''; ?>">
+                        <h2>Registered Events</h2>
+                        <?php
+                        if (count($registered_events) > 0) {
+                            foreach ($registered_events as $row) {
+                                $isSelected = ($selected_event_id == $row['id']) ? 'selected' : '';
+                                echo '<div class="event ' . $isSelected . '">';
+                                echo '<a class="events-btn" href="user-events.php?event_id=' . urlencode($row['id']) . '&tab=registered">';
+                                echo '<div class="event-content">';
+                                echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
+                                echo '<p>Event Specification: ' . htmlspecialchars($row["event_specification"]) . '</p>';
+                                echo '<p>Date: ' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
+                                echo '</div></a>';
+                                echo '<span class="registered-badge">Registered</span>';
+                                echo '</div>';
+                            }
+                        } else {
+                            echo "<p>You haven't registered for any events yet.</p>";
                         }
-                    } else {
-                        echo "<p>No events found.</p>";
-                    }
-                    ?>
+                        ?>
+                    </div>
+
+                    <!-- Unregistered Events Tab -->
+                    <div id="unregistered-tab" class="tab-content <?php echo $active_tab == 'unregistered' ? 'active' : ''; ?>">
+                        <h2>Available Events</h2>
+                        <?php
+                        if (count($unregistered_events) > 0) {
+                            foreach ($unregistered_events as $row) {
+                                $isSelected = ($selected_event_id == $row['id']) ? 'selected' : '';
+                                echo '<div class="event ' . $isSelected . '">';
+                                echo '<a class="events-btn" href="user-events.php?event_id=' . urlencode($row['id']) . '&tab=unregistered">';
+                                echo '<div class="event-content">';
+                                echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
+                                echo '<p>Event Specification: ' . htmlspecialchars($row["event_specification"]) . '</p>';
+                                echo '<p>Date: ' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
+                                echo '</div></a>';
+                                echo '</div>';
+                            }
+                        } else {
+                            echo "<p>No available events found.</p>";
+                        }
+                        ?>
+                    </div>
                 </div>
 
-                <div class="details-section" id="details-section">
+                <div class="details-section" id="details-section" <?php echo $selected_event ? 'style="display: block;"' : ''; ?>>
                     <i class="fas fa-expand expand-btn" onclick="toggleExpand()"></i>
                     <h2>Details</h2>
+                    <?php if ($selected_event): ?>
                     <div class="detail-item">
-                        <h3 id="detail-title"></h3>
-                        <p id="detail-description"></p>
+                        <h3 id="detail-title"><?php echo htmlspecialchars($selected_event["title"]); ?></h3>
                     </div>
+
                     <div class="detail-item">
-                        <h3>Mode:</h3>
-                        <p id="detail-mode"></p>
+                        <h3>Delivery:</h3>
+                        <p id="detail-mode"><?php echo htmlspecialchars($selected_event["delivery"]); ?></p>
                     </div>
+
+                    <div class="detail-item">
+                        <h3>Venue:</h3>
+                        <p id="detail-venue"><?php echo htmlspecialchars($selected_event["venue"] ?? "Not specified"); ?></p>
+                    </div>
+
+                    <div class="detail-item expanded-content">
+                        <h3>Event Specification:</h3>
+                        <p id="detail-specification"><?php echo htmlspecialchars($selected_event["event_specification"]); ?></p>
+                    </div>
+
                     <div class="detail-item">
                         <h3>Start:</h3>
-                        <p id="detail-start"></p>
+                        <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_datetime"]); ?></p>
                     </div>
                     <div class="detail-item">
                         <h3>End:</h3>
-                        <p id="detail-end"></p>
+                        <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_datetime"]); ?></p>
                     </div>
+
+                    <div class="detail-item expanded-content">
+                        <h3>Organizer:</h3>
+                        <p id="detail-organizer"><?php echo htmlspecialchars($selected_event["organizer_name"] ?? "Not specified"); ?></p>
+                    </div>
+
+                    <div class="detail-item expanded-content">
+                        <h3>Speaker(s):</h3>
+                        <p id="detail-speakers">
+                        <?php 
+                        if (!empty($speakers)) {
+                            echo htmlspecialchars(implode(", ", $speakers));
+                        } else {
+                            echo "Not specified";
+                        }
+                        ?>
+                        </p>
+                    </div>
+                    <br>
+                    <?php if (!$is_registered): ?>
+                    <a class="create-btn" href="register.php?event_id=<?php echo urlencode($selected_event['id']); ?>">Register</a>
+                    <?php else: ?>
+                    <a class="create-btn" href="unregister.php?event_id=<?php echo urlencode($selected_event['id']); ?>" style="background-color: #95A613; border-style: none; cursor: pointer;" onclick="return confirm('Are you sure you want to unregister from this event?');">Unregister</a>
+                    <?php endif; ?>
+                    <?php else: ?>
                     <div class="detail-item">
-                        <h3>Venue:</h3>
-                        <p id="detail-venue"></p>
-                    </div><br>
-                                <a class="create-btn" href="Register.php">Register</a>
+                        <p>Select an event to view details</p>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -441,49 +676,85 @@ html {
 </div>
 
 <script>
-function showDetails(eventData) {
-    document.getElementById('detail-title').textContent = eventData.title;
-    document.getElementById('detail-description').textContent = eventData.description;
-    document.getElementById('detail-mode').textContent = eventData.event_mode;
-    document.getElementById('detail-start').textContent = eventData.start_datetime;
-    document.getElementById('detail-end').textContent = eventData.end_datetime;
-    document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
-
-    document.getElementById('details-section').style.display = 'block';
-    document.querySelector('.events-section').classList.add('shrink');
+// Function to switch tabs
+function switchTab(tabName) {
+    // Hide all tab contents
+    var tabContents = document.getElementsByClassName('tab-content');
+    for (var i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove('active');
+    }
+    
+    // Remove active class from all tabs
+    var tabs = document.getElementsByClassName('tab');
+    for (var i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove('active');
+    }
+    
+    // Show the selected tab content and mark tab as active
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Find and activate the correct tab button
+    var tabButtons = document.querySelectorAll('.tab');
+    for (var i = 0; i < tabButtons.length; i++) {
+        if (tabButtons[i].textContent.toLowerCase().includes(tabName)) {
+            tabButtons[i].classList.add('active');
+        }
+    }
+    
+    // Update URL with the active tab parameter
+    if (window.location.href.includes('event_id=')) {
+        // If there's an event ID in the URL, preserve it
+        var eventId = new URLSearchParams(window.location.search).get('event_id');
+        window.history.replaceState(null, null, `?event_id=${eventId}&tab=${tabName}`);
+    } else {
+        window.history.replaceState(null, null, `?tab=${tabName}`);
+    }
 }
 
-function selectEvent(event) {
-    document.querySelectorAll('.event').forEach(div => {
-        div.classList.remove('selected');
-    });
-
-    event.currentTarget.classList.add('selected');
-}
+// Auto-scroll to selected event
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if there's a selected event
+    const selectedEvent = document.querySelector('.event.selected');
+    
+    // If a selected event exists, scroll to it
+    if (selectedEvent) {
+        // Smooth scroll to the element
+        selectedEvent.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center' // Centers the element in the viewport
+        });
+        
+        // Optional: Add a brief highlight effect
+        setTimeout(function() {
+            selectedEvent.style.transition = 'background-color 0.5s';
+            const originalBackground = selectedEvent.style.backgroundColor;
+            selectedEvent.style.backgroundColor = '#95A613'; // Flash with a different color
+            
+            setTimeout(function() {
+                selectedEvent.style.backgroundColor = originalBackground;
+            }, 700);
+        }, 300);
+    }
+});
 
 function toggleExpand() {
     let detailsSection = document.getElementById('details-section');
     let eventsSection = document.querySelector('.events-section');
     let expandIcon = document.querySelector('.expand-btn');
+    let expandedContent = document.querySelectorAll('.expanded-content');
 
     if (detailsSection.classList.contains('expand')) {
+        // Collapse
         detailsSection.classList.remove('expand');
         eventsSection.classList.remove('hidden');
         expandIcon.classList.replace('fa-compress', 'fa-expand');
     } else {
+        // Expand
         detailsSection.classList.add('expand');
         eventsSection.classList.add('hidden');
         expandIcon.classList.replace('fa-expand', 'fa-compress');
     }
 }
-
-// Modify the PHP to add the onclick event
-document.addEventListener('DOMContentLoaded', () => {
-    const eventDivs = document.querySelectorAll('.event');
-    eventDivs.forEach(div => {
-        div.addEventListener('click', selectEvent);
-    });
-});
 </script>
 
 </body>
