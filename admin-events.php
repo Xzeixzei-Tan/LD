@@ -139,11 +139,9 @@ if (!$result) {
                             echo '<div class="event">';
                             echo '<div class="event-content">';
                             echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                            echo '<p><strong>Event Specification:</strong> ' . htmlspecialchars(substr($row["event_specification"], 0, 100)) . '</p><br>';
+                            echo '<p><strong>Event Specification:</strong> ' . htmlspecialchars(substr($row["event_specification"], 0, 100)) . '</p>';
                             if ($row["status"] === "Ongoing") {
-                                echo '<span class="ongoing-label">Ongoing</span>';
-                            } elseif ($row["status"] === "Archived") {
-                                echo '<span class="archived-label">Archived</span>';
+                                echo '<span>Ongoing...</span>';
                             }
                             echo '</div></a>';
                             echo '</div>';
@@ -161,51 +159,58 @@ if (!$result) {
                 <div class="details-section" id="details-section">
                     <i class="fas fa-expand expand-btn" onclick="toggleExpand()"></i>
                     <h2>Details</h2>
-                    <div class="detail-item">
-                        <h3 id="detail-title"></h3>
-                        <h4>Event Specification:</h4>
-                        <p id="detail-event_specification"></p>
+                    <hr>
+                    <h3 id="detail-title"></h3>
+                <div class="detail-items">
+                    <div class="detail-items-1">
+                        <div class="detail-item">
+                            <h4>Event Specification:</h4>
+                            <p id="detail-event_specification"></p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>Delivery:</h4>
+                            <p id="detail-delivery"></p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>Start:</h4>
+                            <p id="detail-start"></p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>End:</h4>
+                            <p id="detail-end"></p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>Status:</h4>
+                            <p id="detail-status"></p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>Venue:</h4>
+                            <p id="detail-venue"></p>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <h3>Delivery:</h3>
-                        <p id="detail-delivery"></p>
+                    <div class="detail-items-2 expanded-content">
+                        <div class="detail-item">
+                            <h4>Registered Users:</h4>
+                            <p id="detail-user_count"></p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>Funding Sources:</h4>
+                            <p id="detail-funding_sources"></p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>Speakers:</h4>
+                            <p id="detail-speakers"></p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>Eligible Participants:</h4>
+                            <p id="detail-eligible_participants"></p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>Meal Plan:</h4>
+                            <p id="detail-meal_plan"></p>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <h3>Start:</h3>
-                        <p id="detail-start"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>End:</h3>
-                        <p id="detail-end"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>Status:</h3>
-                        <p id="detail-status"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>Venue:</h3>
-                        <p id="detail-venue"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>Registered Users:</h3>
-                        <p id="detail-user_count"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>Funding Sources:</h3>
-                        <p id="detail-funding_sources"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>Speakers:</h3>
-                        <p id="detail-speakers"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>Eligible Participants:</h3>
-                        <p id="detail-eligible_participants"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>Meal Plan:</h3>
-                        <p id="detail-meal_plan"></p>
-                    </div>
+                </div>
                     <?php if ($viewArchived): ?>
                     <div class="detail-item">
                         <button onclick="unarchiveEvent()" id="unarchive-btn" style="display:none;">Unarchive Event</button>
@@ -300,12 +305,15 @@ function toggleExpand() {
     let detailsSection = document.getElementById('details-section');
     let eventsSection = document.querySelector('.events-section');
     let expandIcon = document.querySelector('.expand-btn');
+    let expandedContent = document.querySelectorAll('.expanded-content');
 
     if (detailsSection.classList.contains('expand')) {
+        // Collapse
         detailsSection.classList.remove('expand');
         eventsSection.classList.remove('hidden');
         expandIcon.classList.replace('fa-compress', 'fa-expand');
     } else {
+        // Expand
         detailsSection.classList.add('expand');
         eventsSection.classList.add('hidden');
         expandIcon.classList.replace('fa-expand', 'fa-compress');
