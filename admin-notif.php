@@ -16,12 +16,7 @@ if (!$result) {
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 	<title>admin-notif</title>
-<<<<<<< HEAD
-</head>
-<style type="text/css">
-=======
 	<style type="text/css">
->>>>>>> 3c3928ebb69e0204abe1dac22b0f4cf3a54ad6fc
 	* {
         margin: 0;
         padding: 0;
@@ -87,238 +82,6 @@ if (!$result) {
     flex: 1;
     padding: 20px;
     background-color: #ecf0f1;
-<<<<<<< HEAD
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 70px;
-    }
-
-    .sidebar-header h2, .menu-text, .username {
-        display: none;
-    }
-
-    .menu-item {
-        display: flex;
-        justify-content: center;
-    }
-
-    .user-profile {
-        justify-content: center;
-    }
-}
-.content {
-    flex: 1;
-    background-color: #ffffff;
-    padding: 4rem;
-    margin-left: 17%;
-}
-
-.content-header h1 {
-    font-size: 1.5rem;
-    color: #333333;
-    font-family: Wensley Demo;
-    margin-left: 32%;
-}
-
-.content-header p {
-    color: #999;
-    font-size: 1rem;
-    margin-top: -3%;
-    font-family: LT Cushion Light;
-    margin-left: 44%;
-}
-
-.content-header img {
-    float: left;
-    margin-left: 22%;
-    margin-top: -1%;
-    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
-}
-
-.content-body h1 {
-    font-family: Montserrat ExtraBold;
-    font-size: 2rem;
-    padding: 10px;
-    color: ##12753E;
-}
-
-.content-body hr {
-    border: 1px solid #95A613;
-}
-
-.create-btn {
-    float: right;
-    padding: 11px;
-    padding-left: 15px;
-    padding-right: 15px;
-    font-family: Montserrat;
-    font-weight: bold;
-    font-size: 13px;
-    color: white;
-    text-decoration: none;
-    background-color: #12753E;
-    border-radius: 5px;
-    margin-top: -7%;
-}
-
-.content-area {
-    display: flex;
-    justify-content: space-between;
-}
-
-/* Modified events section for 3-column layout */
-.events-section {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    flex: 1;
-    transition: flex-basis 0.3s;
-}
-
-.events-section.shrink {
-    flex-basis: 70%;
-}
-
-.event {
-    background-color: #d7f3e4;
-    border-radius: 5px;
-    padding: 20px;
-    position: relative;
-    transition: transform 0.2s;
-    height: 100%;
-}
-
-.event:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-.event.selected{
-    background: #12753E;
-}
-
-.event.selected h3{
-    color: white;
-}
-
-.event.selected p{
-    color: rgb(231, 231, 231);
-}
-
-/* Responsive adjustments for the grid */
-@media (max-width: 992px) {
-    .events-section {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 576px) {
-    .events-section {
-        grid-template-columns: 1fr;
-    }
-}
-
-#details-section {
-    display: none;
-    flex-basis: 30%;
-    margin-left: 20px;
-    background-color: white;
-    padding: 30px;
-    border-radius: 8px;
-    border: 2px solid #12753E;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.details-section h2 {
-    margin-top: 0;
-    font-family: Montserrat Extrabold;
-    font-weight: bold;
-    margin-bottom: 10%;
-}
-
-#detail-title{
-    font-family: Montserrat Extrabold;
-    color: #12753E;
-}
-
-.details-section .detail-item {
-    margin-bottom: 15px;
-}
-
-.details-section .detail-item h3 {
-    margin: 0;
-    font-size: 1em;
-    font-family: Montserrat;
-    color: #12753E;
-}
-
-.details-section .detail-item p {
-    margin: 5px 0 0;
-    color: #000000;
-    font-size: .8em;
-    font-family: Montserrat Medium
-}
-
-.events-section h2 {
-    font-size: 22px;
-    font-family: Montserrat ExtraBold;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.event-content h3 {
-    font-size: 18px;
-    margin-bottom: 5px;
-    font-family: Montserrat;
-    color: #12753E;
-}
-
-.event-content p {
-    font-size: 13px;
-    color: #585858;
-    font-family: Montserrat Medium;
-}
-
-.notification p {
-    font-size: 14px;
-    font-family: Montserrat;
-}
-
-.events-btn {
-    text-decoration: none;
-    color: black;
-    display: block;
-    height: 100%;
-}
-
-.details-section { 
-    display: none; 
-    flex-basis: 30%; 
-    margin-left: 20px; 
-    background-color: #D6DAFF; 
-    padding: 20px; 
-    border-radius: 8px; 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
-}
-
-.expand-btn { 
-    cursor: pointer; 
-    float: right; 
-}
-
-.expand { 
-    flex-basis: 100% !important; 
-}
-
-.hidden { 
-    display: none; 
-}
-</style>
-=======
     }
 
     /* Responsive adjustments */
@@ -569,7 +332,6 @@ if (!$result) {
     }
 	</style>
 </head>
->>>>>>> 3c3928ebb69e0204abe1dac22b0f4cf3a54ad6fc
 <body>
 
 <div class="container">
@@ -600,11 +362,7 @@ if (!$result) {
                     if ($result->num_rows > 0) {
                         while ($row = $result->fetch_assoc()) {
                             echo '<div class="event">';
-<<<<<<< HEAD
-                            echo '<a class="events-btn" href="javascript:void(0);" onclick="showDetails(' . htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8') . ')">';
-=======
                             echo '<a class="events-btn" href="javascript:void(0);" onclick="showModal(' . htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8') . ')">';
->>>>>>> 3c3928ebb69e0204abe1dac22b0f4cf3a54ad6fc
                             echo '<div class="event-content">';
                             echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
                             echo '</div></a>';
@@ -615,58 +373,11 @@ if (!$result) {
                     }
                     ?>
                 </div>
-<<<<<<< HEAD
-
-                <div class="details-section" id="details-section">
-                    <i class="fas fa-expand expand-btn" onclick="toggleExpand()"></i>
-                    <h2>Details</h2>
-                    <div class="detail-item">
-                        <h3 id="detail-title"></h3>
-                        <p id="detail-description"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>Mode:</h3>
-                        <p id="detail-mode"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>Start:</h3>
-                        <p id="detail-start"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>End:</h3>
-                        <p id="detail-end"></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>Venue:</h3>
-                        <p id="detail-venue"></p>
-                    </div><br>
-                    <a class="create-btn" href="Register.php">Register</a>
-                </div>
-=======
->>>>>>> 3c3928ebb69e0204abe1dac22b0f4cf3a54ad6fc
             </div>
         </div>
     </div>
 </div>
 
-<<<<<<< HEAD
-<script>
-function showDetails(eventData) {
-    document.getElementById('detail-title').textContent = eventData.title;
-    document.getElementById('detail-description').textContent = eventData.description || "No description available";
-    document.getElementById('detail-mode').textContent = eventData.event_mode || "Not specified";
-    document.getElementById('detail-start').textContent = eventData.start_datetime;
-    document.getElementById('detail-end').textContent = eventData.end_datetime;
-    document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
-
-    document.getElementById('details-section').style.display = 'block';
-    document.querySelector('.events-section').classList.add('shrink');
-    
-    // Remove selected class from all events
-    document.querySelectorAll('.event').forEach(div => {
-        div.classList.remove('selected');
-    });
-=======
 <!-- Event Details Modal -->
 <div id="eventModal" class="modal">
     <div class="modal-content">
@@ -717,27 +428,11 @@ function showModal(eventData) {
 
     // Display the modal with flex to center it
     modal.style.display = "flex";
->>>>>>> 3c3928ebb69e0204abe1dac22b0f4cf3a54ad6fc
     
     // Add selected class to clicked event
     event.currentTarget.closest('.event').classList.add('selected');
 }
 
-<<<<<<< HEAD
-function toggleExpand() {
-    let detailsSection = document.getElementById('details-section');
-    let eventsSection = document.querySelector('.events-section');
-    let expandIcon = document.querySelector('.expand-btn');
-
-    if (detailsSection.classList.contains('expand')) {
-        detailsSection.classList.remove('expand');
-        eventsSection.classList.remove('hidden');
-        expandIcon.classList.replace('fa-compress', 'fa-expand');
-    } else {
-        detailsSection.classList.add('expand');
-        eventsSection.classList.add('hidden');
-        expandIcon.classList.replace('fa-expand', 'fa-compress');
-=======
 // Function to close the modal
 function closeModal() {
     modal.style.display = "none";
@@ -752,7 +447,6 @@ function closeModal() {
 window.onclick = function(event) {
     if (event.target == modal) {
         closeModal();
->>>>>>> 3c3928ebb69e0204abe1dac22b0f4cf3a54ad6fc
     }
 }
 </script>
@@ -762,8 +456,4 @@ window.onclick = function(event) {
 
 <?php
 $conn->close();
-<<<<<<< HEAD
 ?>
-=======
-?>
->>>>>>> 3c3928ebb69e0204abe1dac22b0f4cf3a54ad6fc
