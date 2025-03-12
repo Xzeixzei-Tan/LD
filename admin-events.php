@@ -89,6 +89,8 @@ if (!$result) {
         }
         
         .ongoing-label {
+            float: right;
+            
             color: white;
             padding: 3px 8px;
             border-radius: 4px;

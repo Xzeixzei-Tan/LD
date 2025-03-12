@@ -319,9 +319,16 @@ hr {
 }
 
 .event-content span{
-    color: #4CAF50;
+    position: absolute;
+    background-color: #7e85af;
+    color: white;
     font-family: Tilt Warp;
-    font-size: 20px;   
+    font-size: 13px;   
+    bottom: 10%;
+    right: 2%;
+    padding: 6px 14px;
+    border-radius: 20px;
+    
 }
 
 .event-content span .archived{
