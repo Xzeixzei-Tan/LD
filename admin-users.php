@@ -193,6 +193,7 @@ $divResult = $divCount->get_result();
         background-color: #f5f5f5;
         padding: 8px;
         border-radius: 4px;
+        position: relative;
     }
     .filter-icon {
         background-color: #ddd;
@@ -200,6 +201,12 @@ $divResult = $divCount->get_result();
         margin-right: 10px;
         border-radius: 4px;
     }
+
+    .filter-icon:hover {
+      background-color: #19a155;
+      color: white;
+    }
+
     .search-container {
         position: relative;
         flex-grow: 1;
@@ -216,6 +223,66 @@ $divResult = $divCount->get_result();
         border-radius: 4px;
         width: 200px;
     }
+
+    .filter-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 5px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 180px;
+      display: none;
+      z-index: 100;
+    }
+    
+    .filter-dropdown.show {
+      display: block;
+    }
+    
+    .dropdown-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-family: Montserrat !important;
+    }
+    
+    .dropdown-item:hover {
+      background-color: white;
+    }
+    
+    .dropdown-item:first-child {
+      border-radius: 4px 4px 0 0;
+    }
+    
+    .dropdown-item:last-child {
+      border-radius: 0 0 4px 4px;
+    }
+
+    .positions-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 200px;
+      margin-top: 5px;
+      background-color: white;
+      border-radius: 4px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 180px;
+      z-index: 100;
+      border: 1px solid black;
+    }
+
+    .positions-dropdown .dropdown-item {
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .positions-dropdown .dropdown-item:hover {
+      background-color: #f0f7ff;
+    }
+
     .bulk-actions {
         opacity: 0;
         visibility: hidden;
@@ -291,7 +358,6 @@ $divResult = $divCount->get_result();
                 <a href="admin-events.php"><i class="fas fa-calendar-alt"></i>Events</a>
                 <a href="admin-users.php" class="active"><i class="fas fa-users"></i>Users</a>
                 <a href="admin-notification.php"><i class="fas fa-bell"></i>Notification</a> 
-                <a href="admin-archives.php"><i class="fa fa-archive" aria-hidden="true"></i>Archives</a>
             </div>
         </div>
 
@@ -329,6 +395,11 @@ $divResult = $divCount->get_result();
     
             <div class="filter-bar">
                 <span class="filter-icon"><i class="fa fa-filter" aria-hidden="true"></i></span>
+                <div class="filter-dropdown">
+                    <div class="dropdown-item">Teaching</div>
+                    <div class="dropdown-item">Non-Teaching</div>
+                    <div class="dropdown-item">Positions</div>
+                </div>
                 <div class="search-container">
                     <span class="search-icon"><i class="fa fa-search" aria-hidden="true"></i></span>
                     <input type="text" class="search-input" placeholder="Search for users...">
@@ -477,6 +548,182 @@ $divResult = $divCount->get_result();
                     console.error('Error:', error);
                 });
             }
+        });
+
+       // Get elements
+        const filterIcon = document.querySelector('.filter-icon');
+        const dropdown = document.querySelector('.filter-dropdown');
+        const searchInput = document.querySelector('.search-input');
+        const tableRows = document.querySelectorAll('table tbody tr');
+
+        // Toggle dropdown when filter icon is clicked
+        filterIcon.addEventListener('click', function() {
+          dropdown.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+          if (!filterIcon.contains(event.target) && !dropdown.contains(event.target)) {
+            dropdown.classList.remove('show');
+            // Also remove positions dropdown if it exists
+            const positionsDropdown = document.querySelector('.positions-dropdown');
+            if (positionsDropdown) {
+              positionsDropdown.remove();
+            }
+          }
+        });
+
+        // Handle teaching/non-teaching filter clicks
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+        dropdownItems.forEach(item => {
+          item.addEventListener('click', function() {
+            const filterValue = this.textContent.trim();
+            
+            if (filterValue === 'Positions') {
+              // Create positions dropdown
+              createPositionsDropdown();
+            } else {
+              // Filter table by classification (Teaching/Non-Teaching)
+              filterTableByClassification(filterValue);
+              dropdown.classList.remove('show');
+            }
+          });
+        });
+
+        // Function to create positions dropdown
+        function createPositionsDropdown() {
+          // Remove existing positions dropdown if it exists
+          const existingDropdown = document.querySelector('.positions-dropdown');
+          if (existingDropdown) {
+            existingDropdown.remove();
+            return;
+          }
+          
+          // Get unique positions from the table
+          const positions = [];
+          tableRows.forEach(row => {
+            const positionCell = row.cells[6]; // Position is in the 7th column (index 6)
+            if (positionCell) {
+              const position = positionCell.textContent.trim();
+              if (position !== "Not Assigned" && !positions.includes(position) && position !== "") {
+                positions.push(position);
+              }
+            }
+          });
+          
+          // Create dropdown element
+          const positionsDropdown = document.createElement('div');
+          positionsDropdown.className = 'positions-dropdown';
+          positionsDropdown.style.position = 'absolute';
+          positionsDropdown.style.top = '100%';
+          positionsDropdown.style.left = '200px'; // Position it next to the search input
+          positionsDropdown.style.marginTop = '5px';
+          positionsDropdown.style.backgroundColor = 'white';
+          positionsDropdown.style.borderRadius = '4px';
+          positionsDropdown.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+          positionsDropdown.style.width = '180px';
+          positionsDropdown.style.zIndex = '100';
+          positionsDropdown.style.border = '1px solid black';
+          
+          // Add positions to dropdown
+          positions.forEach(position => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            item.textContent = position;
+            item.style.padding = '10px 15px';
+            item.style.cursor = 'pointer';
+            
+            item.addEventListener('click', function() {
+              filterTableByPosition(position);
+              positionsDropdown.remove();
+              dropdown.classList.remove('show');
+            });
+            
+            positionsDropdown.appendChild(item);
+          });
+          
+          // Add "All Positions" option
+          const allItem = document.createElement('div');
+          allItem.className = 'dropdown-item';
+          allItem.textContent = 'All Positions';
+          allItem.style.padding = '10px 15px';
+          allItem.style.cursor = 'pointer';
+          allItem.style.fontWeight = 'bold';
+          
+          allItem.addEventListener('click', function() {
+            resetTableFilter();
+            positionsDropdown.remove();
+            dropdown.classList.remove('show');
+          });
+          
+          positionsDropdown.insertBefore(allItem, positionsDropdown.firstChild);
+          
+          // Add dropdown to page
+          document.querySelector('.filter-bar').appendChild(positionsDropdown);
+        }
+
+        // Function to filter table by classification (Teaching/Non-Teaching)
+        function filterTableByClassification(classification) {
+          tableRows.forEach(row => {
+            const classificationCell = row.cells[5]; // Classification is in the 6th column (index 5)
+            if (classificationCell) {
+              const cellValue = classificationCell.textContent.trim().toLowerCase();
+              
+              // Check if classification contains our filter value (case insensitive)
+              if (cellValue === classification.toLowerCase()) {
+                row.style.display = '';
+              } else {
+                row.style.display = 'none';
+              }
+            }
+          });
+        }
+
+        // Function to filter table by position
+        function filterTableByPosition(position) {
+          tableRows.forEach(row => {
+            const positionCell = row.cells[6]; // Position is in the 7th column (index 6)
+            if (positionCell) {
+              const cellValue = positionCell.textContent.trim();
+              
+              if (cellValue === position) {
+                row.style.display = '';
+              } else {
+                row.style.display = 'none';
+              }
+            }
+          });
+        }
+
+        // Function to reset table filter
+        function resetTableFilter() {
+          tableRows.forEach(row => {
+            row.style.display = '';
+          });
+        }
+
+        // Handle search input
+        searchInput.addEventListener('input', function() {
+          const searchValue = this.value.toLowerCase();
+          
+          tableRows.forEach(row => {
+            let found = false;
+            
+            // Search through all cells in the row (except the first checkbox cell)
+            for (let i = 1; i < row.cells.length; i++) {
+              const cellValue = row.cells[i].textContent.toLowerCase();
+              if (cellValue.includes(searchValue)) {
+                found = true;
+                break;
+              }
+            }
+            
+            if (found) {
+              row.style.display = '';
+            } else {
+              row.style.display = 'none';
+            }
+          });
         });
 </script>        
 
