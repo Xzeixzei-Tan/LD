@@ -21,12 +21,22 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'unregistered';
 
 // Fetch all events from the database
 $sql = "SELECT e.id, e.title, e.start_datetime, e.end_datetime, e.venue, e.event_specification, e.delivery, e.organizer_name,
-               (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered
+               (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered,
+               CASE 
+                   WHEN NOW() BETWEEN e.start_datetime AND e.end_datetime THEN 'Ongoing'
+                   WHEN NOW() < e.start_datetime THEN 'Upcoming'
+                   ELSE 'Past'
+               END AS status
         FROM events e 
-        GROUP BY e.id
-        ORDER BY start_datetime DESC";
-
+        ORDER BY e.start_datetime DESC";
 $stmt = $conn->prepare($sql);
+
+// Check if the prepare statement was successful
+if ($stmt === false) {
+    echo "Prepare failed: (" . $conn->errno . ") " . $conn->error;
+    exit();
+}
+
 $stmt->bind_param("i", $user_id); // FIXED: Use $user_id instead of $current_user_id
 $stmt->execute();
 $result = $stmt->get_result();
@@ -576,6 +586,7 @@ html {
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
                                 echo '<p>Event Specification: ' . htmlspecialchars($row["event_specification"]) . '</p>';
                                 echo '<p>Date: ' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
+                                echo '<span class="status-badge status-' . strtolower($row["status"]) . '">' . htmlspecialchars($row["status"]) . '</span>';
                                 echo '</div></a>';
                                 echo '<span class="registered-badge">Registered</span>';
                                 echo '</div>';
