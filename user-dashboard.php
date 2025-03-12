@@ -319,6 +319,9 @@ if (!$result) {
                                     <h3><?php echo htmlspecialchars($event['title']); ?></h3>
                                     <p>Event Specification: <?php echo htmlspecialchars($event['event_specification']); ?></p>
                                     <p style="visibility: hidden;"><?php echo htmlspecialchars($event['start_datetime']); ?></p>
+                                    <?php if ($event["status"] === "Ongoing") { ?>
+                                            <span>Ongoing...</span>
+                                    <?php } ?>        
                                 </div>
                                 </a>
                             </div>
