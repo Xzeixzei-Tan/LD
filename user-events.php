@@ -744,13 +744,8 @@ function switchTab(tabName) {
     // Show the selected tab content and mark tab as active
     document.getElementById(tabName + '-tab').classList.add('active');
     
-    // Find and activate the correct tab button
-    var tabButtons = document.querySelectorAll('.tab');
-    for (var i = 0; i < tabButtons.length; i++) {
-        if (tabButtons[i].textContent.toLowerCase().includes(tabName)) {
-            tabButtons[i].classList.add('active');
-        }
-    }
+    // Explicitly activate the clicked tab button
+    document.querySelector('.tab:nth-child(' + (tabName === 'registered' ? '1' : '2') + ')').classList.add('active');
     
     // Update URL with the active tab parameter
     if (window.location.href.includes('event_id=')) {
