@@ -279,9 +279,9 @@ html {
 
 .create-btn {
     float: right;
-    padding: 11px;
-    padding-left: 15px;
-    padding-right: 15px;
+    bottom: 1%;
+    right: 3%;
+    padding: 11px 15px;
     font-family: Montserrat;
     font-weight: bold;
     font-size: 13px;
@@ -289,7 +289,6 @@ html {
     text-decoration: none;
     background-color: #12753E;
     border-radius: 5px;
-    margin-top: -7%;
 }
 
 .content-area {
@@ -333,6 +332,7 @@ html {
     border-radius: 8px;
     border: 2px solid #12753E;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-height: fit-content;
 }
 
 .events-section.shrink {
@@ -389,13 +389,18 @@ html {
 .event-content h3 {
     font-size: 18px;
     margin-bottom: 5px;
-    font-family: Montserrat;
+    font-family: Montserrat ExtraBold;
     color: #12753E;
 }
 
 .event-content p {
-    font-size: 13px;
+    font-size: 14px;
     color: #585858;
+    font-family: Montserrat;
+}
+
+.event-content p strong{
+    font-size: 13px;
     font-family: Montserrat Medium;
 }
 
@@ -430,17 +435,48 @@ html {
 .events-section.shrink { 
     flex-basis: 70%; 
 }
+
+#detail-title {
+    font-size: 24px;
+    font-family: Montserrat Extrabold;
+    margin-bottom: 10px;
+    color: #12753E;
+}
+
 .details-section h2 { 
-    margin-top: 0; 
+    margin-top: 3%; 
+    margin-bottom: 2%;
+}
+.details-section hr{
+    margin-bottom: 2%;
 }
 .details-section .detail-item { 
     margin-bottom: 15px; 
 }
-.details-section .detail-item h3 { 
-    margin: 0; font-size: 1.2em; 
+
+.details-section .detail-item h4 {
+    font-family: Montserrat;
+    font-size: 18px;
+    margin-bottom: 5px;
 }
+
 .details-section .detail-item p { 
-    margin: 5px 0 0; color: #555; 
+    font-family: Montserrat Medium;
+    font-size: 16px; 
+    color: #555;
+}
+
+.detail-items{
+    display: flex;
+}
+
+.detail-items-1{
+    margin-top: 2%;
+}
+
+.detail-items-2{
+    margin-left: 30%;
+    margin-top: 2%;
 }
 .expand-btn { 
     cursor: pointer; 
@@ -511,18 +547,20 @@ html {
     border-radius: 50%;
     padding: 2px 8px;
     font-size: 0.8em;
+    font-family: Montserrat;
     margin-left: 5px;
 }
 
-.registered-badge {
-    background-color: #95A613;
+.status-badge {
+    background-color:rgb(142, 159, 8);
     color: white;
+    font-family: Montserrat Medium;
     font-size: 12px;
-    padding: 3px 8px;
+    padding: 5px 15px;
     border-radius: 12px;
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 10%;
+    right: 2%;
 }
 
 </style>
@@ -584,11 +622,10 @@ html {
                                 echo '<a class="events-btn" href="user-events.php?event_id=' . urlencode($row['id']) . '&tab=registered">';
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                                echo '<p>Event Specification: ' . htmlspecialchars($row["event_specification"]) . '</p>';
-                                echo '<p>Date: ' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
+                                echo '<p>'. '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["event_specification"]) . '</p>';
+                                echo '<p>' . '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
                                 echo '<span class="status-badge status-' . strtolower($row["status"]) . '">' . htmlspecialchars($row["status"]) . '</span>';
                                 echo '</div></a>';
-                                echo '<span class="registered-badge">Registered</span>';
                                 echo '</div>';
                             }
                         } else {
@@ -608,8 +645,8 @@ html {
                                 echo '<a class="events-btn" href="user-events.php?event_id=' . urlencode($row['id']) . '&tab=unregistered">';
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                                echo '<p>Event Specification: ' . htmlspecialchars($row["event_specification"]) . '</p>';
-                                echo '<p>Date: ' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
+                                echo '<p>' . '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["event_specification"]) . '</p>';
+                                echo '<p>'. '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
                                 echo '</div></a>';
                                 echo '</div>';
                             }
@@ -618,56 +655,59 @@ html {
                         }
                         ?>
                     </div>
-                </div>
+                </div>  
 
                 <div class="details-section" id="details-section" <?php echo $selected_event ? 'style="display: block;"' : ''; ?>>
                     <i class="fas fa-expand expand-btn" onclick="toggleExpand()"></i>
                     <h2>Details</h2>
-                    <?php if ($selected_event): ?>
-                    <div class="detail-item">
-                        <h3 id="detail-title"><?php echo htmlspecialchars($selected_event["title"]); ?></h3>
-                    </div>
+                    <hr>
+                    <h3 id="detail-title"><?php echo htmlspecialchars($selected_event["title"]); ?></h3>
+                    <div class="detail-items">
+                        <div class="detail-items-1"> 
+                            <?php if ($selected_event): ?>
+                            <div class="detail-item">
+                                <h4>Delivery:</h4>
+                                <p id="detail-mode"><?php echo htmlspecialchars($selected_event["delivery"]); ?></p>
+                            </div>
 
-                    <div class="detail-item">
-                        <h3>Delivery:</h3>
-                        <p id="detail-mode"><?php echo htmlspecialchars($selected_event["delivery"]); ?></p>
-                    </div>
+                            <div class="detail-item">
+                                <h4>Venue:</h4>
+                                <p id="detail-venue"><?php echo htmlspecialchars($selected_event["venue"] ?? "Not specified"); ?></p>
+                            </div>
 
-                    <div class="detail-item">
-                        <h3>Venue:</h3>
-                        <p id="detail-venue"><?php echo htmlspecialchars($selected_event["venue"] ?? "Not specified"); ?></p>
-                    </div>
+                            <div class="detail-item expanded-content">
+                                <h4>Event Specification:</h4>
+                                <p id="detail-specification"><?php echo htmlspecialchars($selected_event["event_specification"]); ?></p>
+                            </div>
 
-                    <div class="detail-item expanded-content">
-                        <h3>Event Specification:</h3>
-                        <p id="detail-specification"><?php echo htmlspecialchars($selected_event["event_specification"]); ?></p>
-                    </div>
+                            <div class="detail-item">
+                                <h4>Start:</h4>
+                                <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_datetime"]); ?></p>
+                            </div>
+                            <div class="detail-item">
+                                <h4>End:</h4>
+                                <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_datetime"]); ?></p>
+                            </div>
+                        </div>
+                        <div class="detail-items-2">
+                            <div class="detail-item expanded-content">
+                                <h4>Organizer:</h4>
+                                <p id="detail-organizer"><?php echo htmlspecialchars($selected_event["organizer_name"] ?? "Not specified"); ?></p>
+                            </div>
 
-                    <div class="detail-item">
-                        <h3>Start:</h3>
-                        <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_datetime"]); ?></p>
-                    </div>
-                    <div class="detail-item">
-                        <h3>End:</h3>
-                        <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_datetime"]); ?></p>
-                    </div>
-
-                    <div class="detail-item expanded-content">
-                        <h3>Organizer:</h3>
-                        <p id="detail-organizer"><?php echo htmlspecialchars($selected_event["organizer_name"] ?? "Not specified"); ?></p>
-                    </div>
-
-                    <div class="detail-item expanded-content">
-                        <h3>Speaker(s):</h3>
-                        <p id="detail-speakers">
-                        <?php 
-                        if (!empty($speakers)) {
-                            echo htmlspecialchars(implode(", ", $speakers));
-                        } else {
-                            echo "Not specified";
-                        }
-                        ?>
-                        </p>
+                            <div class="detail-item expanded-content">
+                                <h4>Speaker(s):</h4>
+                                <p id="detail-speakers">
+                                <?php 
+                                if (!empty($speakers)) {
+                                    echo htmlspecialchars(implode(", ", $speakers));
+                                } else {
+                                    echo "Not specified";
+                                }
+                                ?>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                     <br>
                     <?php if (!$is_registered): ?>
