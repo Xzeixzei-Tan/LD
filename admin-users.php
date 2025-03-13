@@ -170,10 +170,11 @@ $divResult = $divCount->get_result();
       border-radius: 5px;
       background: #19a155;
       color: white;
-      padding: 15px;
+      padding: 10px 15px;
       font-size: 15px;
-      margin-bottom: 4%;
+      margin-bottom: 6%;
       margin-right: 2%;
+      margin-left: -5%;
     }
 
     .division{
@@ -181,9 +182,9 @@ $divResult = $divCount->get_result();
       border-radius: 5px;
       background: #d7f3e4;
       color: #19a155;
-      padding: 15px;
+      padding: 10px 15px;
       font-size: 15px;
-      margin-bottom: 4%;
+      margin-bottom: 6%;
     }
 
     .school p, .division p{
@@ -217,6 +218,7 @@ $divResult = $divCount->get_result();
     }
 
     .filter-text {
+      font-size: 15px;
         font-weight: 500;
         font-family: Montserrat;
         margin-right: 5px;
@@ -377,59 +379,208 @@ $divResult = $divCount->get_result();
     .delete-selected-btn:active {
         transform: scale(0.95);
     }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    th {
-        background-color: #374ab6;
-        color: white;
-        text-align: left;
-        padding: 15px;
-        font-weight: bolder;
-        font-family: Montserrat;
-        font-size: 14px;
-    }
+    /* Improved Table Styles */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
 
-    th:first-child {
-      border-top-left-radius: 8px;
-    }
+th {
+    background-color: #2b3a8f;
+    color: white;
+    text-align: left;
+    padding: 16px;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 
-    th:last-child {
-      border-top-right-radius: 8px;
-    }
+th:first-child {
+    border-top-left-radius: 10px;
+    padding-left: 20px;
+}
 
-    td {
-        padding: 8px 10px;
-        font-family: Montserrat;
-        font-weight: medium;
-        font-size: 13px;
-    }
+th:last-child {
+    border-top-right-radius: 10px;
+    padding-right: 20px;
+}
 
-    tr:nth-child(even) {
-        background-color:  rgb(215, 222, 247);
-    }
+td {
+    padding: 15px 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    border-bottom: 1px solid #edf2f7;
+    color:rgb(1, 8, 20);
+    transition: background-color 0.2s ease;
+}
 
-    td:first-child {
-      border-bottom-left-radius: 8px;
-    }
+td:first-child {
+    padding-left: 20px;
+}
 
-    td:last-child {
-      border-bottom-right-radius: 8px;
-    }
+td:last-child {
+    padding-right: 20px;
+}
 
-    .checkbox-cell {
-        text-align: center;
-    }
+tr:last-child td {
+    border-bottom: none;
+}
 
-    .checkbox-cell {
+tr:nth-child(even) {
+    background-color:rgb(242, 248, 254);
+}
+
+tr:hover td {
+    background-color: #edf2ff;
+}
+
+/* Enhance checkbox styling */
+.checkbox-cell {
     width: 40px;
     text-align: center;
-    }
+}
 
-    tr:hover {
-        background-color: #f5f5f5;
-    }
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #cbd5e0;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    vertical-align: middle;
+    transition: all 0.2s ease;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #2b3a8f;
+    border-color: #2b3a8f;
+}
+
+input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Scrollable table for responsive design */
+.table-container {
+    max-height: 600px;
+    overflow-y: auto;
+    border-radius: 10px;
+    margin-top: 20px;
+    background: #fff;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Status indicators (for future use) */
+.status-active {
+    background-color: #d7f3e4;
+    color: #19a155;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-inactive {
+    background-color: #fee2e2;
+    color: #e53e3e;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+/* Action buttons styling */
+.action-btn {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    margin-right: 5px;
+}
+
+.edit-btn {
+    background-color: #ebf5ff;
+    color: #3182ce;
+}
+
+.edit-btn:hover {
+    background-color: #bee3f8;
+}
+
+.delete-btn {
+    background-color: #fff5f5;
+    color: #e53e3e;
+}
+
+.delete-btn:hover {
+    background-color: #fed7d7;
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #a0aec0;
+    font-style: italic;
+}
+
+/* Pagination styling (for future use) */
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    align-items: center;
+}
+
+.pagination-btn {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    border-radius: 4px;
+    margin: 0 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-btn:hover {
+    background-color: #f7fafc;
+}
+
+.pagination-btn.active {
+    background-color: #2b3a8f;
+    color: white;
+    border-color: #2b3a8f;
+}
+
+.pagination-text {
+    color: #718096;
+    font-size: 14px;
+    margin: 0 10px;
+}
 </style>
 <body>
 
