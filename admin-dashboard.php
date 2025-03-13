@@ -18,6 +18,10 @@ $result = $conn->query($sql);
 if (!$result) {
     die("Query failed: " . $conn->error);
 }
+
+// Fetch notifications for admin
+$notif_query = "SELECT message, created_at, is_read FROM notifications WHERE notification_type = 'admin' ORDER BY created_at DESC";
+$notif_result = $conn->query($notif_query);
 ?>
 
 <!DOCTYPE html>
@@ -37,7 +41,7 @@ if (!$result) {
             <a href="admin-dashboard.php" class="active"><i class="fas fa-home"></i>Home</a>
             <a href="admin-events.php"><i class="fas fa-calendar-alt"></i>Events</a>
             <a href="admin-users.php"><i class="fas fa-users"></i>Users</a>
-            <a href="admin-notification.php"><i class="fas fa-bell"></i>Notification</a> 
+            <a href="admin-notif.php"><i class="fas fa-bell"></i>Notification</a> 
         </div>
     </div>
 
@@ -77,10 +81,13 @@ if (!$result) {
                     <!-- Notifications Section -->
                     <div class="notifications-section">
                         <h2>Notifications</h2>
+                        <?php while ($notif = $notif_result->fetch_assoc()): ?>
                         <div class="notification important">
-                            <a class="events-btn" href="select_quiz.php">
+                            <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="select_quiz.php">
                                 <div class="notification-content">
-                                    <p>Your certificate from "Sample Event" is here. Download it now.</p>
+                                    <p><?php echo htmlspecialchars($notif['message']); ?></p>
+                                    <br><small><?php echo $notif['created_at']; ?></small>
+                                <?php endwhile; ?>    
                                 </div>
                             </a>
                         </div>

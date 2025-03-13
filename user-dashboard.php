@@ -1,6 +1,17 @@
 <?php
 require_once 'config.php';
 
+// Start the session
+session_start();
+
+$user_id = $_SESSION['user_id'];
+
+// Display session messages if any exist
+if (isset($_SESSION['message'])) {
+    echo '<div class="alert alert-info">' . $_SESSION['message'] . '</div>';
+    unset($_SESSION['message']); // Clear the message after displaying
+}
+
 // Set the default sort order to ASC (Soonest events first)
 $sortOrder = isset($_GET['sort']) && ($_GET['sort'] == 'DESC') ? 'DESC' : 'ASC';
 
@@ -18,6 +29,27 @@ $result = $conn->query($sql);
 if (!$result) {
     die("Query failed: " . $conn->error);
 }
+
+$user_sql = "SELECT first_name, last_name FROM users WHERE id = ?";
+                
+$stmt = $conn->prepare($user_sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$user_result = $stmt->get_result();
+
+if ($user_result->num_rows > 0) {
+    $row = $user_result->fetch_assoc();
+    $first_name = $row['first_name'];
+    $last_name = $row['last_name'];
+    $_SESSION['first_name'] = $first_name; // Update the session
+    $_SESSION['last_name'] = $last_name; 
+} else {
+    $first_name = "Unknown";
+    $last_name = ""; // Set a default value
+    $_SESSION['first_name'] = $first_name;
+    $_SESSION['last_name'] = $last_name;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -202,7 +234,8 @@ if (!$result) {
     .events-section, .notifications-section {
         background-color: white;
         border-radius: 8px;
-        padding: 20px;
+        border: 2px solid #12753E;
+        padding: 30px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         font-family: 'Wesley Demo', serif;
     }
@@ -214,6 +247,8 @@ if (!$result) {
         display: flex;
         flex-direction: column;
         position: relative;
+        border: 2px solid #12753E;
+        padding: 30px;
     }
 
     /* Scrollbar Styling */
@@ -224,7 +259,7 @@ if (!$result) {
 
     .events-section::-webkit-scrollbar-thumb,
     .notifications-section::-webkit-scrollbar-thumb {
-        background: #95A613;
+        background: #555;
         border-radius: 4px;
     }
 
@@ -242,6 +277,7 @@ if (!$result) {
 
     .event, .notification {
         background-color: #d7f3e4;
+        border: 1px solid #12753E;
         border-radius: 5px;
         padding: 15px;
         margin-bottom: 15px;
@@ -250,16 +286,29 @@ if (!$result) {
 
     .event-content h3 {
         color: #12753E;
-        font-size: 16px;
+        font-size: 18px;
         margin-bottom: 5px;
-        font-family: Montserrat;
+        font-family: Montserrat ExtraBold;
     }
 
     .event-content p {
-        font-size: 13px;
+        font-size: 14px;
         color: inherit;
         font-family: Montserrat;
     }
+
+    .event-content span{
+        position: absolute;
+        bottom: 10%;
+        right: 2%;
+        background:rgb(119, 152, 135);
+        color:rgb(237, 249, 242);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-family: Tilt Warp;
+        font-size: 13px;   
+    }
+
     .notification p { 
         font-size: 14px;
         font-family: Montserrat;
@@ -292,7 +341,7 @@ if (!$result) {
         </div>
         <div class="user-profile">
             <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
-            <div class="username">Jess Constante</div>
+            <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
         </div>
     </div>
 
@@ -301,10 +350,10 @@ if (!$result) {
 	    	<img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
 	    	<p>Learning and Development</p>
 	    	<h1>EVENT MANAGEMENT SYSTEM</h1>
-    	</div><br><br><br><br><br><br><br>
+    	</div><br><br><br>
 
     	<div class="content-body">
-	    	<h1>Welcome, User!</h1>
+	    	<h1>Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</h1>
 	    	<hr><br>
 
             <div class="content-area">
@@ -319,6 +368,9 @@ if (!$result) {
                                     <h3><?php echo htmlspecialchars($event['title']); ?></h3>
                                     <p>Event Specification: <?php echo htmlspecialchars($event['event_specification']); ?></p>
                                     <p style="visibility: hidden;"><?php echo htmlspecialchars($event['start_datetime']); ?></p>
+                                    <?php if ($event["status"] === "Ongoing") { ?>
+                                            <span>Ongoing...</span>
+                                    <?php } ?>        
                                 </div>
                                 </a>
                             </div>

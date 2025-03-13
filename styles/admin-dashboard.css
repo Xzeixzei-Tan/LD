@@ -215,7 +215,13 @@ hr{
 
 .events-section::-webkit-scrollbar-thumb,
 .notifications-section::-webkit-scrollbar-thumb {
-    background: #2b3a8f;
+    background: #a8adc7;
+    border-radius: 4px;
+}
+
+.events-section::-webkit-scrollbar-thumb:active,
+.notifications-section::-webkit-scrollbar-thumb {
+    background: #4e5da9;
     border-radius: 4px;
 }
 
