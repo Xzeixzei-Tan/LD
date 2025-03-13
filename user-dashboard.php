@@ -1,6 +1,17 @@
 <?php
 require_once 'config.php';
 
+// Start the session
+session_start();
+
+$user_id = $_SESSION['user_id'];
+
+// Display session messages if any exist
+if (isset($_SESSION['message'])) {
+    echo '<div class="alert alert-info">' . $_SESSION['message'] . '</div>';
+    unset($_SESSION['message']); // Clear the message after displaying
+}
+
 // Set the default sort order to ASC (Soonest events first)
 $sortOrder = isset($_GET['sort']) && ($_GET['sort'] == 'DESC') ? 'DESC' : 'ASC';
 
@@ -18,6 +29,27 @@ $result = $conn->query($sql);
 if (!$result) {
     die("Query failed: " . $conn->error);
 }
+
+$user_sql = "SELECT first_name, last_name FROM users WHERE id = ?";
+                
+$stmt = $conn->prepare($user_sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$user_result = $stmt->get_result();
+
+if ($user_result->num_rows > 0) {
+    $row = $user_result->fetch_assoc();
+    $first_name = $row['first_name'];
+    $last_name = $row['last_name'];
+    $_SESSION['first_name'] = $first_name; // Update the session
+    $_SESSION['last_name'] = $last_name; 
+} else {
+    $first_name = "Unknown";
+    $last_name = ""; // Set a default value
+    $_SESSION['first_name'] = $first_name;
+    $_SESSION['last_name'] = $last_name;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -309,7 +341,7 @@ if (!$result) {
         </div>
         <div class="user-profile">
             <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
-            <div class="username">Jess Constante</div>
+            <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
         </div>
     </div>
 
@@ -321,7 +353,7 @@ if (!$result) {
     	</div><br><br><br>
 
     	<div class="content-body">
-	    	<h1>Welcome, User!</h1>
+	    	<h1>Welcome, <?php echo htmlspecialchars($_SESSION['first_name']); ?>!</h1>
 	    	<hr><br>
 
             <div class="content-area">

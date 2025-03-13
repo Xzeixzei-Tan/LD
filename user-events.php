@@ -47,6 +47,26 @@ if (!$result) {
     die("There was a problem loading the events. Please try again later.");
 }
 
+$user_sql = "SELECT first_name, last_name FROM users WHERE id = ?";
+                
+$stmt = $conn->prepare($user_sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$user_result = $stmt->get_result();
+
+if ($user_result->num_rows > 0) {
+    $row = $user_result->fetch_assoc();
+    $first_name = $row['first_name'];
+    $last_name = $row['last_name'];
+    $_SESSION['first_name'] = $first_name; // Update the session
+    $_SESSION['last_name'] = $last_name; 
+} else {
+    $first_name = "Unknown";
+    $last_name = ""; // Set a default value
+    $_SESSION['first_name'] = $first_name;
+    $_SESSION['last_name'] = $last_name;
+}
+
 // Separate events into registered and unregistered
 $registered_events = [];
 $unregistered_events = [];
@@ -585,7 +605,7 @@ html {
         </div>
         <div class="user-profile">
             <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
-            <div class="username">Jess Constante</div>
+            <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
         </div>
     </div>
 
