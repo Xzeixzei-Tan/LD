@@ -1,3 +1,4 @@
+// Function to toggle venue field visibility based on delivery mode
 function toggleVenueFieldVisibility() {
     const deliverySelect = document.getElementById('event-mode');
     const venueField = document.getElementById('venue-field');
@@ -8,6 +9,7 @@ function toggleVenueFieldVisibility() {
     }
 }
 
+// Function to toggle meal plan field visibility based on delivery mode
 function toggleMealPlanFieldVisibility() {
     const deliverySelect = document.getElementById('event-mode');
     const mealPlanField = document.getElementById('meal-plan-field');
@@ -18,6 +20,7 @@ function toggleMealPlanFieldVisibility() {
     }
 }
 
+// Function to toggle amount field for funding sources
 function toggleAmountField(funding) {
     let amountField = document.getElementById(funding + "-amount");
     if (document.querySelector(`input[value='${funding}']`).checked) {
@@ -27,6 +30,7 @@ function toggleAmountField(funding) {
     }
 }
 
+// Function to add speaker field
 function addSpeakerField() {
     const speakersContainer = document.getElementById('speakers-container');
     const speakerInputGroup = document.createElement('div');
@@ -50,12 +54,20 @@ function addSpeakerField() {
     speakersContainer.appendChild(speakerInputGroup);
 }
 
+// Function to calculate date range and create time inputs and meal plan options
 function calculateDateRange() {
     const startDateInput = document.getElementById('start-date');
     const endDateInput = document.getElementById('end-date');
     const dateRangeContainer = document.getElementById('date-range-container');
-    const sameTimeCheckboxContainer = document.getElementById('same-time-checkbox-container');
     const mealPlanContainer = document.getElementById('meal-plan-container');
+
+    // Create container for the same-time checkbox if it doesn't exist
+    let sameTimeCheckboxContainer = document.getElementById('same-time-checkbox-container');
+    if (!sameTimeCheckboxContainer) {
+        sameTimeCheckboxContainer = document.createElement('div');
+        sameTimeCheckboxContainer.id = 'same-time-checkbox-container';
+        dateRangeContainer.parentNode.insertBefore(sameTimeCheckboxContainer, dateRangeContainer.nextSibling);
+    }
 
     if (startDateInput && endDateInput && dateRangeContainer) {
         const startDate = new Date(startDateInput.value);
@@ -65,45 +77,57 @@ function calculateDateRange() {
             dateRangeContainer.innerHTML = ''; // Clear previous content
             mealPlanContainer.innerHTML = ''; // Clear previous meal plan content
 
-            let currentDate = startDate;
+            let currentDate = new Date(startDate);
             let dayCount = 1;
 
             while (currentDate <= endDate) {
                 const dateItem = document.createElement('div');
                 dateItem.className = 'date-item';
-                dateItem.innerHTML = `Day ${dayCount} - ${currentDate.toDateString()}`;
+                dateItem.innerHTML = `<strong>Day ${dayCount} - ${currentDate.toDateString()}</strong>`;
 
+                const timeContainer = document.createElement('div');
+                timeContainer.className = 'time-container';
+
+                const startTimeLabel = document.createElement('label');
+                startTimeLabel.textContent = 'Start Time: ';
                 const startTimeInput = document.createElement('input');
                 startTimeInput.type = 'time';
                 startTimeInput.name = `start-time-day-${dayCount}`;
                 startTimeInput.className = 'time-input';
+                startTimeLabel.appendChild(startTimeInput);
 
+                const endTimeLabel = document.createElement('label');
+                endTimeLabel.textContent = 'End Time: ';
                 const endTimeInput = document.createElement('input');
                 endTimeInput.type = 'time';
                 endTimeInput.name = `end-time-day-${dayCount}`;
                 endTimeInput.className = 'time-input';
+                endTimeLabel.appendChild(endTimeInput);
 
-                dateItem.appendChild(startTimeInput);
-                dateItem.appendChild(endTimeInput);
+                timeContainer.appendChild(startTimeLabel);
+                timeContainer.appendChild(endTimeLabel);
+                dateItem.appendChild(timeContainer);
                 dateRangeContainer.appendChild(dateItem);
 
                 // Create meal plan fields
                 const mealPlanItem = document.createElement('div');
-                mealPlanItem.className = 'meal-plan-item';
-                mealPlanItem.innerHTML = `<strong>Day ${dayCount} - ${currentDate.toDateString()}</strong>`;
+                mealPlanItem.className = 'meal-day';
+                mealPlanItem.innerHTML = `<h4>Day ${dayCount} - ${currentDate.toDateString()}</h4>`;
 
                 const mealTypes = ['breakfast', 'am-snack', 'lunch', 'pm-snack', 'dinner'];
                 mealTypes.forEach(mealType => {
+                    const mealLabel = document.createElement('label');
+
                     const mealCheckbox = document.createElement('input');
                     mealCheckbox.type = 'checkbox';
                     mealCheckbox.name = `meal-${mealType}-day-${dayCount}`;
-                    mealCheckbox.value = mealType;
+                    mealCheckbox.value = '1';
 
-                    const mealLabel = document.createElement('label');
-                    mealLabel.textContent = mealType.replace('-', ' ').toUpperCase();
                     mealLabel.appendChild(mealCheckbox);
+                    mealLabel.appendChild(document.createTextNode(` ${mealType.replace('-', ' ').toUpperCase()}`));
 
                     mealPlanItem.appendChild(mealLabel);
+                    mealPlanItem.appendChild(document.createElement('br'));
                 });
 
                 mealPlanContainer.appendChild(mealPlanItem);
@@ -112,18 +136,19 @@ function calculateDateRange() {
                 dayCount++;
             }
 
-            // Show the "set the same time for other days" checkbox after Day 1's time is entered
-            if (startDateInput.value && endDateInput.value) {
+            // Show the "set the same time for other days" checkbox if we have multiple days
+            if (dayCount > 2) {
+                sameTimeCheckboxContainer.innerHTML = '';  // Clear previous checkbox if any
+
                 const sameTimeCheckbox = document.createElement('input');
                 sameTimeCheckbox.type = 'checkbox';
                 sameTimeCheckbox.id = 'same-time-checkbox';
                 sameTimeCheckbox.name = 'same_time_for_others';
+
                 const label = document.createElement('label');
                 label.setAttribute('for', 'same-time-checkbox');
-                label.textContent = 'Set the same time for other days';
+                label.textContent = 'Set the same time for all days';
 
-                // Add checkbox to the container (ensure there's a container for the checkbox)
-                sameTimeCheckboxContainer.innerHTML = '';  // Clear previous checkbox if any
                 sameTimeCheckboxContainer.appendChild(sameTimeCheckbox);
                 sameTimeCheckboxContainer.appendChild(label);
 
@@ -137,103 +162,131 @@ function calculateDateRange() {
                             document.querySelector(`input[name="start-time-day-${i}"]`).value = day1StartTime;
                             document.querySelector(`input[name="end-time-day-${i}"]`).value = day1EndTime;
                         }
-                    } else {
-                        for (let i = 2; i < dayCount; i++) {
-                            document.querySelector(`input[name="start-time-day-${i}"]`).value = '';
-                            document.querySelector(`input[name="end-time-day-${i}"]`).value = '';
-                        }
                     }
                 });
+            } else {
+                sameTimeCheckboxContainer.innerHTML = '';
             }
         }
     }
 }
 
-function showSchoolPersonnel() {
-    document.getElementById('school-personnel').style.display = 'block';
-    document.getElementById('division-personnel').style.display = 'none';
-    document.getElementById('all-personnel').style.display = 'none';
-    setActiveButton('school-btn');
+// Function to validate date range
+function validateDateRange() {
+    const startDate = new Date(document.getElementById('start-date').value);
+    const endDate = new Date(document.getElementById('end-date').value);
+
+    if (startDate > endDate) {
+        alert('End date must be after start date');
+        document.getElementById('end-date').value = document.getElementById('start-date').value;
+    }
+
+    // Update date range and meal plan after validating dates
+    calculateDateRange();
+    toggleMealPlanFieldVisibility();
 }
 
-function showDivisionPersonnel() {
-    document.getElementById('school-personnel').style.display = 'none';
-    document.getElementById('division-personnel').style.display = 'block';
-    document.getElementById('all-personnel').style.display = 'none';
-    setActiveButton('division-btn');
+// Functions to toggle personnel display
+function togglePersonnelFields() {
+    const target = document.getElementById('target-personnel').value;
+    const schoolPersonnel = document.getElementById('school-personnel');
+    const divisionPersonnel = document.getElementById('division-personnel');
+
+    // Hide all first
+    schoolPersonnel.style.display = 'none';
+    divisionPersonnel.style.display = 'none';
+
+    // Show based on selection
+    if (target === 'School' || target === 'Both') {
+        schoolPersonnel.style.display = 'block';
+    }
+
+    if (target === 'Division' || target === 'Both') {
+        divisionPersonnel.style.display = 'block';
+    }
 }
 
-function showAllPersonnel() {
-    document.getElementById('school-personnel').style.display = 'none';
-    document.getElementById('division-personnel').style.display = 'none';
-    document.getElementById('all-personnel').style.display = 'block';
-    setActiveButton('all-btn');
-}
-
-function setActiveButton(buttonId) {
-    const buttons = document.querySelectorAll('.personnel-btn');
-    buttons.forEach(button => {
-        button.classList.remove('active');
-    });
-    document.getElementById(buttonId).classList.add('active');
-}
-
+// Function to select all division checkboxes
 function selectAllDivision() {
     const selectAllCheckbox = document.getElementById('select-all-division');
-    const checkboxes = document.querySelectorAll('#division-personnel input[type="checkbox"]:not(#select-all-division)');
-    checkboxes.forEach(checkbox => {
+    const divisionCheckboxes = document.querySelectorAll('.division-checkbox');
+
+    divisionCheckboxes.forEach(checkbox => {
         checkbox.checked = selectAllCheckbox.checked;
     });
 }
 
+// Function to update "Select All" checkbox state based on individual checkboxes
 function updateSelectAllDivision() {
     const selectAllCheckbox = document.getElementById('select-all-division');
-    const checkboxes = document.querySelectorAll('#division-personnel input[type="checkbox"]:not(#select-all-division)');
-    const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-    selectAllCheckbox.checked = allChecked;
-}
-
-function selectAllAll() {
-    const selectAllCheckbox = document.getElementById('select-all-all');
-    const checkboxes = document.querySelectorAll('#all-personnel input[type="checkbox"]:not(#select-all-all)');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = selectAllCheckbox.checked;
-    });
-}
-
-function updateSelectAllAll() {
-    const selectAllCheckbox = document.getElementById('select-all-all');
-    const checkboxes = document.querySelectorAll('#all-personnel input[type="checkbox"]:not(#select-all-all)');
+    const checkboxes = document.querySelectorAll('.division-checkbox');
     const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
     selectAllCheckbox.checked = allChecked;
 }
 
 // Call the functions on page load to set the initial state
 document.addEventListener('DOMContentLoaded', function () {
+
+    // Initialize toggle functions
     toggleVenueFieldVisibility();
     toggleMealPlanFieldVisibility();
+    togglePersonnelFields();
     calculateDateRange();
-    showSchoolPersonnel(); // Default to showing school personnel
 
-    // Add event listeners to individual checkboxes in the division personnel section
-    const divisionCheckboxes = document.querySelectorAll('#division-personnel input[type="checkbox"]:not(#select-all-division)');
+
+    // Add event listener for delivery/event-mode select change
+    document.getElementById('event-mode').addEventListener('change', function () {
+        toggleVenueFieldVisibility();
+        toggleMealPlanFieldVisibility();
+        calculateDateRange();
+    });
+
+    // Add event listeners for date fields
+    document.getElementById('start-date').addEventListener('change', validateDateRange);
+    document.getElementById('end-date').addEventListener('change', validateDateRange);
+
+    // Add event listener for target personnel dropdown
+    document.getElementById('target-personnel').addEventListener('change', togglePersonnelFields);
+
+    // Add event listeners to division checkboxes
+    const divisionCheckboxes = document.querySelectorAll('.division-checkbox');
     divisionCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', updateSelectAllDivision);
     });
 
-    // Add event listeners to individual checkboxes in the all personnel section
-    const allCheckboxes = document.querySelectorAll('#all-personnel input[type="checkbox"]:not(#select-all-all)');
-    allCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateSelectAllAll);
-    });
+    // Initialize form validation
+    const form = document.getElementById('create-event-form');
+    form.addEventListener('submit', function (event) {
+        const startDate = new Date(document.getElementById('start-date').value);
+        const endDate = new Date(document.getElementById('end-date').value);
 
-    // Add event listener to the delivery mode dropdown
-    document.getElementById('event-mode').addEventListener('change', function () {
-        toggleVenueFieldVisibility();
-        toggleMealPlanFieldVisibility();
+        if (startDate > endDate) {
+            alert('End date must be after start date');
+            event.preventDefault();
+            return false;
+        }
+
+        const targetPersonnel = document.getElementById('target-personnel').value;
+
+        // Also fix these capitalization issues in your validation
+        if (targetPersonnel === 'School' || targetPersonnel === 'Both') {
+            const schoolChecked = document.querySelectorAll('input[name="school_level[]"]:checked, input[name="type[]"]:checked, input[name="specialization[]"]:checked').length > 0;
+            if (!schoolChecked) {
+                alert('Please select at least one school personnel option.');
+                event.preventDefault();
+                return false;
+            }
+        }
+
+        if (targetPersonnel === 'Division' || targetPersonnel === 'Both') {
+            const divisionChecked = document.querySelectorAll('input[name="department[]"]:checked').length > 0;
+            if (!divisionChecked) {
+                alert('Please select at least one division department option.');
+                event.preventDefault();
+                return false;
+            }
+        }
+
+        return true;
     });
 });
-
-// Add event listeners to recalculate the date range when the dates change
-document.getElementById('start-date').addEventListener('change', calculateDateRange);
-document.getElementById('end-date').addEventListener('change', calculateDateRange);
