@@ -47,22 +47,22 @@ $insert_stmt = $conn->prepare($insert_sql);
 $insert_stmt->bind_param("ii", $user_id, $event_id);
 $result = $insert_stmt->execute();
 
-if ($result) {
+//if ($result) {
     
     // Optionally, insert a notification record for the user
-    $notification_message = "You have registered for an event.";
-    $notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read) VALUES (?, ?, NOW(), 0)";
+    //$notification_message = "You have registered for an event.";
+    //$notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read) VALUES (?, ?, NOW(), 0)";
     
-    if ($conn->prepare($notification_sql)) {
-        $notification_stmt = $conn->prepare($notification_sql);
-        $notification_stmt->bind_param("is", $user_id, $notification_message);
-        $notification_stmt->execute();
-        $notification_stmt->close();
-    }
-} else {
+    //if ($conn->prepare($notification_sql)) {
+    //    $notification_stmt = $conn->prepare($notification_sql);
+    //    $notification_stmt->bind_param("is", $user_id, $notification_message);
+    //    $notification_stmt->execute();
+    //    $notification_stmt->close();
+    //}
+//} else {
     // Failed registration
-    echo "<script>alert('Failed to register for this event. Please try again.'); window.location.href='user-events.php';</script>";
-}
+//    echo "<script>alert('Failed to register for this event. Please try again.'); window.location.href='user-events.php';</script>";
+//}
 
 // Close the statement and connection
 $insert_stmt->close();
