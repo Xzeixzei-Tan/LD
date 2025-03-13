@@ -202,7 +202,8 @@ if (!$result) {
     .events-section, .notifications-section {
         background-color: white;
         border-radius: 8px;
-        padding: 20px;
+        border: 2px solid #12753E;
+        padding: 30px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         font-family: 'Wesley Demo', serif;
     }
@@ -214,6 +215,8 @@ if (!$result) {
         display: flex;
         flex-direction: column;
         position: relative;
+        border: 2px solid #12753E;
+        padding: 30px;
     }
 
     /* Scrollbar Styling */
@@ -224,7 +227,7 @@ if (!$result) {
 
     .events-section::-webkit-scrollbar-thumb,
     .notifications-section::-webkit-scrollbar-thumb {
-        background: #95A613;
+        background: #555;
         border-radius: 4px;
     }
 
@@ -242,6 +245,7 @@ if (!$result) {
 
     .event, .notification {
         background-color: #d7f3e4;
+        border: 1px solid #12753E;
         border-radius: 5px;
         padding: 15px;
         margin-bottom: 15px;
@@ -250,16 +254,29 @@ if (!$result) {
 
     .event-content h3 {
         color: #12753E;
-        font-size: 16px;
+        font-size: 18px;
         margin-bottom: 5px;
-        font-family: Montserrat;
+        font-family: Montserrat ExtraBold;
     }
 
     .event-content p {
-        font-size: 13px;
+        font-size: 14px;
         color: inherit;
         font-family: Montserrat;
     }
+
+    .event-content span{
+        position: absolute;
+        bottom: 10%;
+        right: 2%;
+        background:rgb(119, 152, 135);
+        color:rgb(237, 249, 242);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-family: Tilt Warp;
+        font-size: 13px;   
+    }
+
     .notification p { 
         font-size: 14px;
         font-family: Montserrat;
@@ -301,7 +318,7 @@ if (!$result) {
 	    	<img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
 	    	<p>Learning and Development</p>
 	    	<h1>EVENT MANAGEMENT SYSTEM</h1>
-    	</div><br><br><br><br><br><br><br>
+    	</div><br><br><br>
 
     	<div class="content-body">
 	    	<h1>Welcome, User!</h1>
