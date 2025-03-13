@@ -357,7 +357,7 @@ $divResult = $divCount->get_result();
                 <a href="admin-dashboard.php"><i class="fas fa-home"></i>Home</a>
                 <a href="admin-events.php"><i class="fas fa-calendar-alt"></i>Events</a>
                 <a href="admin-users.php" class="active"><i class="fas fa-users"></i>Users</a>
-                <a href="admin-notification.php"><i class="fas fa-bell"></i>Notification</a> 
+                <a href="admin-notif.php"><i class="fas fa-bell"></i>Notification</a> 
             </div>
         </div>
 
