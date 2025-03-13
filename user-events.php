@@ -11,7 +11,7 @@ if (isset($_SESSION['message'])) {
 }
 
 // Get the user ID from session
-$user_id = 8;
+$user_id = $_SESSION['user_id'];
 
 // Check if an event ID is specified in the URL
 $selected_event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null;
@@ -27,7 +27,7 @@ $sql = "SELECT e.id, e.title, e.start_datetime, e.end_datetime, e.venue, e.event
                    WHEN NOW() < e.start_datetime THEN 'Upcoming'
                    ELSE 'Past'
                END AS status
-        FROM events e 
+        FROM events e  
         ORDER BY e.start_datetime DESC";
 $stmt = $conn->prepare($sql);
 
