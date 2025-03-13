@@ -845,29 +845,40 @@ document.getElementById('select-all').addEventListener('change', function() {
 });
 
 // Handle delete button clicks for individual users
-document.querySelectorAll('.delete-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        if (confirm('Are you sure you want to delete this user?')) {
-            const userId = this.getAttribute('data-id');
-            // Send AJAX request to delete user
-            fetch('delete_user.php?id=' + userId, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Remove row from table
-                    this.closest('tr').remove();
-                } else {
-                    alert('Error deleting user: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
+// Note: This requires adding delete buttons to each row in the PHP code
+function setupDeleteButtons() {
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to delete this user?')) {
+                const userId = this.getAttribute('data-id');
+                deleteUser(userId, this.closest('tr'));
+            }
+        });
     });
-});
+}
+
+// Function to delete a single user
+function deleteUser(userId, row) {
+    // Send AJAX request to delete user
+    fetch('delete_user.php?id=' + userId, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove row from table
+            row.remove();
+            alert('User deleted successfully.');
+        } else {
+            alert('Error deleting user: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while trying to delete the user.');
+    });
+}
 
 // Handle bulk delete button click
 document.getElementById('delete-selected').addEventListener('click', function() {
@@ -911,8 +922,15 @@ document.getElementById('delete-selected').addEventListener('click', function() 
         })
         .catch(error => {
             console.error('Error:', error);
+            alert('An error occurred while trying to delete the selected users.');
         });
     }
+});
+
+// Call setupDeleteButtons when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    checkSelectedCheckboxes(); // Check if any checkboxes are already selected
+    setupDeleteButtons(); // Set up delete buttons
 });
 
 // Get elements
