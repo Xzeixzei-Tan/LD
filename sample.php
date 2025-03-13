@@ -201,35 +201,11 @@ while ($row = $result->fetch_assoc()) {
         }
         
         .ongoing-label {
-            float: right;
-            
             color: white;
             padding: 3px 8px;
             border-radius: 4px;
             font-size: 0.8em;
             margin-left: 10px;
-        }
-        
-        .download-btn {
-            background-color: #2b3a8f;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        
-        .download-btn:hover {
-            background-color: #374ab6;
-        }
-        
-        .download-btn i {
-            margin-right: 8px;
         }
     </style>
 </head>
@@ -343,11 +319,6 @@ while ($row = $result->fetch_assoc()) {
                             <h4>Meal Plan:</h4>
                             <p id="detail-meal_plan"></p>
                         </div>
-                        <div class="detail-item">
-                            <button class="download-btn" onclick="downloadParticipantsList()" id="download-btn" style="display:none;">
-                                <i class="fas fa-download"></i> List of Registered Participants
-                            </button>
-                        </div>
                     </div>
                 </div>
                     <?php if ($viewArchived): ?>
@@ -457,27 +428,20 @@ function showDetails(eventData) {
         detailsSection.style.display = 'block';
         eventsSection.classList.add('shrink');
         currentEvent = eventData.id;
-        
+
         // Show/hide archive/unarchive buttons as appropriate
         const archiveBtn = document.getElementById('archive-btn');
-            archiveBtn.style.display = 'block';
         const unarchiveBtn = document.getElementById('unarchive-btn');
-        
+
         if (archiveBtn) {
+            archiveBtn.style.display = 'block';
             archiveBtn.setAttribute('data-id', eventData.id);
         }
-        
+
         if (unarchiveBtn) {
             unarchiveBtn.style.display = 'block';
             unarchiveBtn.setAttribute('data-id', eventData.id);
         }
-    }
-}
-
-function downloadParticipantsList() {
-    const eventId = document.getElementById('download-btn').getAttribute('data-id');
-    if (eventId) {
-        window.location.href = 'download_participants.php?event_id=' + eventId;
     }
 }
 

@@ -1,0 +1,634 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body,
+html {
+    height: 100%;
+}
+
+.sidebar {
+    position: fixed;
+    width: 250px;
+    height: 100vh;
+    background-color: #2b3a8f;
+    color: #ffffff;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sidebar .logo {
+    margin-bottom: 1rem;
+    margin-left: 5%;
+}
+
+hr {
+    border: 1px solid white;
+}
+
+.sidebar .menu {
+    margin-top: 50%;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 18rem;
+}
+
+.sidebar .menu a {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    border-radius: 5px;
+    transition: background 0.3s;
+    font-family: Tilt Warp Regular;
+    margin-bottom: .5rem;
+}
+
+.sidebar .menu a:hover,
+.sidebar .menu a.active {
+    background-color: white;
+    color: #2b3a8f;
+}
+
+.sidebar .menu a i {
+    margin-right: 0.5rem;
+}
+
+.content {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 4rem;
+    margin-left: 250px;
+}
+
+.content-header h1 {
+    font-size: 1.5rem;
+    color: #333333;
+    font-family: Wensley Demo;
+    margin-left: 32%;
+}
+
+.content-header p {
+    color: #999;
+    font-size: 1rem;
+    margin-top: -3%;
+    font-family: LT Cushion Light;
+    margin-left: 44%;
+}
+
+.content-header img {
+    float: left;
+    margin-left: 22%;
+    margin-top: -1%;
+    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
+}
+
+.content-body h1 {
+    font-family: Montserrat Extrabold;
+    font-size: 2rem;
+    padding: 10px;
+}
+
+.content-body hr {
+    border: 1px solid #95A613;
+}
+
+.form-container {
+    background-color: #f9f9f9;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.form-container h3 {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #95A613;
+    margin-bottom: 1.5rem;
+    font-family: Montserrat ExtraBold;
+}
+
+.form-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    font-family: Montserrat;
+    display: block;
+    font-weight: bold;
+    color: #4f5663;
+    margin-bottom: 0.5rem;
+}
+
+.form-group p {
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="datetime-local"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-family: Montserrat Light;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.radio-group {
+    margin: auto;
+    margin-left: 5%;
+}
+
+.special {
+    margin-left: 5%;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.radio-group label,
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+    font-weight: normal;
+    min-width: 100px;
+}
+
+.radio-group input,
+.checkbox-group input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+/* Responsive adjustments for the meal plan */
+@media (max-width: 768px) {
+    .meal-day {
+        flex-direction: column;
+    }
+
+    .meal-day span {
+        margin-bottom: 0.5rem;
+    }
+
+    .checkbox-group {
+        margin-left: 0;
+    }
+}
+
+/* For the date indicator */
+.date-indicator {
+    font-size: 0.85rem;
+    color: #4b5563;
+    font-style: italic;
+    margin-left: 4px;
+}
+
+
+.form-col {
+    flex: 1;
+    min-width: 250px;
+    margin-bottom: auto;
+    margin-right: 1rem;
+}
+
+.form-elig {
+    display: flex;
+    margin: auto;
+    margin-left: 5;
+}
+
+.meal-plan {
+    margin: auto;
+    background-color: rgb(215, 222, 247);
+    padding: 1rem;
+    border-radius: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.meal-day {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.meal-day:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.meal-day span {
+    font-weight: bold;
+    margin-right: 1rem;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+}
+
+.meal-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.meal-options label {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.submit-btn {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.submit-btn button {
+    background-color: #12753E;
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.submit-btn button:hover {
+    background-color: #15803d;
+}
+
+.section-title {
+    font-family: Montserrat ExtraBold;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .content {
+        margin-left: 250px;
+        padding: 2rem;
+    }
+
+    .content-header h1 {
+        margin-left: 20%;
+    }
+
+    .content-header p {
+        margin-left: 30%;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    .content {
+        margin-left: 200px;
+        padding: 1.5rem;
+    }
+
+    .content-header img {
+        margin-left: 10%;
+    }
+
+    .content-header h1 {
+        margin-left: 15%;
+    }
+
+    .content-header p {
+        margin-left: 25%;
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .form-col {
+        margin: auto;
+        width: 100%;
+        margin-left: 5%;
+    }
+}
+
+@media (max-width: 576px) {
+    .sidebar {
+        width: 70px;
+        padding: 1rem 0.5rem;
+    }
+
+    .sidebar .menu a span {
+        display: none;
+    }
+
+    .content {
+        margin-left: 70px;
+        padding: 1rem;
+    }
+
+    .content-header {
+        text-align: center;
+    }
+
+    .content-header img {
+        float: none;
+        margin: 0 auto 1rem;
+        display: block;
+    }
+
+    .content-header h1,
+    .content-header p {
+        margin-left: 0;
+    }
+}
+
+.certificate-template.dragover {
+    border-color: #16a34a;
+    background-color: #f0fdf4;
+}
+
+.file-preview {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    background-color: #f0f9ff;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.file-preview img {
+    max-width: 50px;
+    max-height: 50px;
+    margin-right: 1rem;
+}
+
+.dynamic-dates {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.add-date-btn {
+    background-color: #2b3a8f;
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(43, 58, 143, 0.2);
+    width: 100%;
+}
+
+.add-date-btn:hover {
+    background-color: #1e2a6f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(43, 58, 143, 0.3);
+}
+
+.add-date-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(43, 58, 143, 0.3);
+}
+
+.add-date-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(43, 58, 143, 0.2);
+}
+
+.add-date-btn i {
+    font-size: 1rem;
+}
+
+.remove-date-btn {
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.remove-date-btn:hover {
+    background-color: #b91c1c;
+    transform: scale(1.1);
+}
+
+.remove-date-btn i {
+    font-size: 0.75rem;
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.form-row .form-col {
+    margin-bottom: 10px;
+}
+
+.form-row .form-col button {
+    background-color: #2b3a8f;
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(43, 58, 143, 0.2);
+}
+
+.form-row .form-col button:hover {
+    background-color: #1e2a6f;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(43, 58, 143, 0.3);
+}
+
+.form-row .form-col button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(43, 58, 143, 0.3);
+}
+
+.form-row .form-col button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(43, 58, 143, 0.2);
+}
+
+/* New styles for the speaker input group */
+.speaker-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.add-speaker-btn {
+    background-color: #2b3a8f;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 1rem;
+    margin-top: -4%;
+    align-self: flex-end;
+}
+
+.add-speaker-btn:hover {
+    background-color: #1e2a6f;
+    transform: scale(1.1);
+}
+
+.add-speaker-btn i {
+    margin-bottom: 2%;
+    font-size: 0.875rem;
+}
+
+/* Date indicator for meal plan days */
+.date-indicator {
+    font-size: 0.85rem;
+    color: #4b5563;
+    font-style: italic;
+    margin-left: 4px;
+}
+
+.personnel-selection {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.personnel-btn {
+    flex: 1;
+    padding: 1rem;
+    border: 2px solid #2b3a8f;
+    background-color: white;
+    color: #2b3a8f;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.personnel-btn.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.personnel-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(43, 58, 143, 0.2);
+}
+
+.personnel-btn i {
+    font-size: 1.2rem;
+}
+
+/* Hidden sections */
+.school-personnel-sections {
+    display: block;
+}
+
+.hidden {
+    display: none;
+}
+
+.division-personnel-section {
+    display: block;
+
+}
+
+.school-personnel-sections,
+.division-personnel-section {
+    display: none;
+}
+
+.funding-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.amount-field {
+    margin-left: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.specify-field {
+    margin-left: 10px;
+}
+
+#date-range-container {
+    margin-top: 20px;
+}
+
+.day-column {
+    margin-bottom: 10px;
+}
+
+.day-column label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
