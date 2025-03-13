@@ -50,7 +50,7 @@ $notif_result = $conn->query($notif_query);
         <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
         <p>Learning and Development</p>
         <h1>EVENT MANAGEMENT SYSTEM</h1>
-    </div><br><br><br><br><br>
+    </div><br><br><br>
 
 
             <div class="content-body">
@@ -62,7 +62,7 @@ $notif_result = $conn->query($notif_query);
                         <h2>Events</h2>
                         <div class="sort-events">
                             <!-- Sort Button to Toggle Order -->
-                            <button id="sortButton" onclick="toggleSortOrder()">Sort Events: <?php echo $sortOrder === 'ASC' ? 'Asc' : 'Des'; ?></button>
+                            <button id="sortButton" onclick="toggleSortOrder()"><i class="fa fa-sort" aria-hidden="true"></i>Sort Events: <?php echo $sortOrder === 'ASC' ? 'Asc' : 'Des'; ?></button>
                         </div>
                         <?php while ($event = $result->fetch_assoc()) : ?>
                             <div class="event">

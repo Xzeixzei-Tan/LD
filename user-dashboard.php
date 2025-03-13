@@ -215,109 +215,166 @@ if ($user_result->num_rows > 0) {
         filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
     }
 
-    .content-body h1{
-    	font-size: 2rem;
-    	padding: 10px;
+    .content-body h1 {
+        font-size: 2.2rem;
+        padding: 10px;
         font-family: Montserrat ExtraBold;
-    }
-
-    .content-body hr{
-    	border: 1px solid #95A613;
-    }
-
-    .content-area {
-        display: flex;
-        padding: 10px 5px 30px;
-        gap: 30px;
-    }
-
-    .events-section, .notifications-section {
-        background-color: white;
-        border-radius: 8px;
-        border: 2px solid #12753E;
-        padding: 30px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        font-family: 'Wesley Demo', serif;
-    }
-
-    .events-section {
-        flex: 3;
-        max-height: 400px;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        border: 2px solid #12753E;
-        padding: 30px;
-    }
-
-    /* Scrollbar Styling */
-    .events-section::-webkit-scrollbar,
-    .notifications-section::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .events-section::-webkit-scrollbar-thumb,
-    .notifications-section::-webkit-scrollbar-thumb {
-        background: #555;
-        border-radius: 4px;
-    }
-
-    .notifications-section {
-        flex: 2;
-    }
-
-    .events-section h2, .notifications-section h2 {
-        font-size: 22px;
-        font-family: Montserrat ExtraBold;
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: #12753E;
-    }
-
-    .event, .notification {
-        background-color: #d7f3e4;
-        border: 1px solid #12753E;
-        border-radius: 5px;
-        padding: 15px;
-        margin-bottom: 15px;
-        position: relative;
-    }
-
-    .event-content h3 {
-        color: #12753E;
-        font-size: 18px;
-        margin-bottom: 5px;
-        font-family: Montserrat ExtraBold;
-    }
-
-    .event-content p {
-        font-size: 14px;
-        color: inherit;
-        font-family: Montserrat;
-    }
-
-    .event-content span{
-        position: absolute;
-        bottom: 10%;
-        right: 2%;
-        background:rgb(119, 152, 135);
-        color:rgb(237, 249, 242);
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-family: Tilt Warp;
-        font-size: 13px;   
-    }
-
-    .notification p { 
-        font-size: 14px;
-        font-family: Montserrat;
-    }
-
-    .events-btn{
-        text-decoration: none;
         color: black;
     }
+
+    .content-body hr {
+        width: 100%;
+        border: none;
+        height: 2px;
+        background-color: #95A613;
+        margin-bottom: 20px;
+    }
+
+    /* Updated Content Area Styling */
+.content-area {
+    display: flex;
+    padding: 20px 0 40px;
+    gap: 30px;
+}
+
+.events-section, .notifications-section {
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    padding: 25px;
+    box-shadow: 0 6px 16px rgba(18, 117, 62, 0.08);
+    font-family: 'Wesley Demo', serif;
+    transition: all 0.3s ease;
+}
+
+.events-section {
+    flex: 3;
+    max-height: 500px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.events-section:hover, .notifications-section:hover {
+    box-shadow: 0 8px 24px rgba(18, 117, 62, 0.12);
+}
+
+/* Scrollbar Styling */
+.events-section::-webkit-scrollbar,
+.notifications-section::-webkit-scrollbar {
+    width: 6px;
+}
+
+.events-section::-webkit-scrollbar-track,
+.notifications-section::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.events-section::-webkit-scrollbar-thumb,
+.notifications-section::-webkit-scrollbar-thumb {
+    background: #12753E;
+    border-radius: 10px;
+}
+
+.events-section::-webkit-scrollbar-thumb:hover,
+.notifications-section::-webkit-scrollbar-thumb:hover {
+    background: #0e5c31;
+}
+
+.notifications-section {
+    flex: 2;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.events-section h2, .notifications-section h2 {
+    font-size: 22px;
+    font-family: Montserrat ExtraBold;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #12753E;
+    position: relative;
+    border-bottom: 2px solid #f0f2fa;
+    padding-bottom: 10px;
+}
+
+.event, .notification {
+    background-color: #f8fcfa;
+    border-left: 4px solid #12753E;
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 20px;
+    position: relative;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.event:hover, .notification:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(18, 117, 62, 0.1);
+    background-color: #edf7f2;
+}
+
+.event-content h3 {
+    color: #12753E;
+    font-size: 18px;
+    margin-bottom: 8px;
+    font-family: Montserrat ExtraBold;
+}
+
+.event-content p {
+    font-size: 14px;
+    color: #555;
+    font-family: Montserrat;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+
+.event-content span {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: #12753E;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: Tilt Warp;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(18, 117, 62, 0.2);
+}
+
+.notification {
+    border-left: 4px solid #95A613;
+}
+
+.notification p {
+    font-size: 14px;
+    font-family: Montserrat;
+    color: #555;
+    line-height: 1.4;
+}
+
+.notification.important {
+    border-left: 4px solid #e74c3c;
+    background-color: #fef9f9;
+}
+
+.notification.important:hover {
+    background-color: #fdf3f2;
+}
+
+.events-btn {
+    text-decoration: none;
+    color: #333;
+    display: block;
+    height: 100%;
+    width: 100%;
+}
 
 </style>
 <body>
