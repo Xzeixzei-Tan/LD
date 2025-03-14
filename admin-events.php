@@ -106,7 +106,7 @@ function getSpecificParticipants($conn, $eligibleId, $target) {
             
             $participants[] = [
                 'level' => $row['school_level_name'],
-                'type' => $row['type_name'],
+                'type' => $row['type_name                '],            
                 'specialization' => !empty($specialization_names) ? implode(', ', $specialization_names) : 'N/A'
             ];
         }
