@@ -128,6 +128,58 @@ function getSpecificParticipants($conn, $eligibleId, $target) {
     return $participants;
 }
 
+// Function to get registered users for an event
+// Function to get registered users for an event
+function getRegisteredUsers($conn, $eventId) {
+    $users = [];
+    
+    $sql = "SELECT 
+                ru.id AS registration_id, 
+                ru.registration_date,
+                CONCAT(u.first_name, ' ', 
+                    CASE WHEN u.middle_name IS NOT NULL AND u.middle_name != '' THEN CONCAT(u.middle_name, ' ') ELSE '' END,
+                    u.last_name,
+                    CASE WHEN u.suffix IS NOT NULL AND u.suffix != '' THEN CONCAT(' ', u.suffix) ELSE '' END
+                ) AS name,
+                u.email,
+                u.contact_no AS phone,
+                cp.name AS position,
+                cp.classification_id
+            FROM registered_users ru
+            JOIN users u ON ru.user_id = u.id
+            LEFT JOIN users_lnd ul ON ru.user_id = ul.user_id
+            LEFT JOIN class_position cp ON ul.position_id = cp.id
+            WHERE ru.event_id = ?
+            ORDER BY ru.registration_date DESC";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $eventId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        // Create designation from position and classification if available
+        $designation = '';
+        if (!empty($row['position'])) {
+            $designation = $row['position'];
+            if (!empty($row['classification'])) {
+                $designation .= ' (' . $row['classification'] . ')';
+            }
+        }
+        
+        $users[] = [
+            'id' => $row['registration_id'],
+            'name' => $row['name'],
+            'email' => $row['email'],
+            'phone' => $row['phone'],
+            'designation' => $designation,
+            'registration_date' => $row['registration_date']
+        ];
+    }
+    
+    return $users;
+}
+
 // Prepare eligibleParticipantsData for each event
 $eventsData = [];
 while ($row = $result->fetch_assoc()) {
@@ -160,6 +212,14 @@ while ($row = $result->fetch_assoc()) {
     
     $row['processed_eligible_data'] = json_encode($eligibleData);
     $eventsData[] = $row;
+}
+
+// After fetching event data, add this code
+$eventsWithUsers = [];
+foreach ($eventsData as $event) {
+    // Get registered users for this event
+    $users = getRegisteredUsers($conn, $event['id']);
+    $eventsWithUsers[$event['id']] = $users;
 }
 ?>
 <!DOCTYPE html>
@@ -201,11 +261,35 @@ while ($row = $result->fetch_assoc()) {
         }
         
         .ongoing-label {
+            float: right;
+            
             color: white;
             padding: 3px 8px;
             border-radius: 4px;
             font-size: 0.8em;
             margin-left: 10px;
+        }
+        
+        .download-btn {
+            background-color: #2b3a8f;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .download-btn:hover {
+            background-color: #374ab6;
+        }
+        
+        .download-btn i {
+            margin-right: 8px;
         }
     </style>
 </head>
@@ -319,7 +403,32 @@ while ($row = $result->fetch_assoc()) {
                             <h4>Meal Plan:</h4>
                             <p id="detail-meal_plan"></p>
                         </div>
+                        <div class="detail-item">
+                            <button class="download-btn" onclick="downloadParticipantsList()" id="download-btn" style="display:none;">
+                                <i class="fas fa-download"></i> List of Registered Participants
+                            </button>
+                        </div>
                     </div>
+                <!-- Add this new section for registered users table -->
+                <div class="detail-item expanded-content" style="width: 100%;">
+                    <h4>Registered Users:</h4>
+                    <div id="registered-users-table-container" style="max-height: 300px; overflow-y: auto;">
+                        <table id="registered-users-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Name</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Email</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Phone</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Designation</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Registration Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="registered-users-table-body">
+                                <!-- Data will be populated via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 </div>
                     <?php if ($viewArchived): ?>
                     <div class="detail-item">
@@ -341,6 +450,8 @@ while ($row = $result->fetch_assoc()) {
 function showDetails(eventData) {
     const detailsSection = document.getElementById('details-section');
     const eventsSection = document.querySelector('.events-section');
+    // Get the registered users data that was passed from PHP
+    const registeredUsersData = <?php echo json_encode($eventsWithUsers); ?>;
 
     if (currentEvent === eventData.id) {
         detailsSection.style.display = 'none';
@@ -357,10 +468,36 @@ function showDetails(eventData) {
         document.getElementById('detail-user_count').textContent = eventData.user_count;
         document.getElementById('detail-funding_sources').textContent = eventData.funding_sources || "Not specified";
         document.getElementById('detail-speakers').textContent = eventData.speakers || "Not specified";
-
+        
+        // Update the registered users table directly with the data we already have
+        const tableBody = document.getElementById('registered-users-table-body');
+        tableBody.innerHTML = ''; // Clear previous content
+        
+        const users = registeredUsersData[eventData.id] || [];
+        
+        if (users.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
+        } else {
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                
+                // Format the registration date
+                const regDate = new Date(user.registration_date);
+                const formattedDate = regDate.toLocaleString();
+                
+                row.innerHTML = `
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.name}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.email}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.phone || 'N/A'}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.designation || 'N/A'}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${formattedDate}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
         // Process the eligible participants data
-        // Update the part in the showDetails function that displays eligible participants
-
         let participantDetails = '';
 
         try {
@@ -386,7 +523,7 @@ function showDetails(eventData) {
                         }
                     } 
                     else if (participant.target === 'Division') {
-                        participantDetails += `<strong>Deparment/Unit:</strong><br>`;
+                        participantDetails += `<strong>Department/Unit:</strong><br>`;
                         if (participant.specificParticipants && participant.specificParticipants.length > 0) {
                             participant.specificParticipants.forEach(division => {
                                 if (typeof division === 'object') {
@@ -416,6 +553,11 @@ function showDetails(eventData) {
 
         document.getElementById('detail-eligible_participants').innerHTML = participantDetails;
 
+        // Show download button and set event ID
+        const downloadBtn = document.getElementById('download-btn');
+        downloadBtn.style.display = 'block';
+        downloadBtn.setAttribute('data-id', eventData.id);
+
         // Display the meal plan information
         if (eventData.meal_days && eventData.meal_types) {
             const mealDays = eventData.meal_days.split(', ').join(', ');
@@ -428,20 +570,29 @@ function showDetails(eventData) {
         detailsSection.style.display = 'block';
         eventsSection.classList.add('shrink');
         currentEvent = eventData.id;
-
+        
         // Show/hide archive/unarchive buttons as appropriate
         const archiveBtn = document.getElementById('archive-btn');
-        const unarchiveBtn = document.getElementById('unarchive-btn');
-
         if (archiveBtn) {
             archiveBtn.style.display = 'block';
             archiveBtn.setAttribute('data-id', eventData.id);
         }
-
+        
+        const unarchiveBtn = document.getElementById('unarchive-btn');
         if (unarchiveBtn) {
             unarchiveBtn.style.display = 'block';
             unarchiveBtn.setAttribute('data-id', eventData.id);
         }
+    }
+}
+
+// Remove the fetchRegisteredUsers function as we're not using AJAX anymore
+// Instead, we're directly using the data passed from PHP
+
+function downloadParticipantsList() {
+    const eventId = document.getElementById('download-btn').getAttribute('data-id');
+    if (eventId) {
+        window.location.href = 'download_participants.php?event_id=' + eventId;
     }
 }
 
