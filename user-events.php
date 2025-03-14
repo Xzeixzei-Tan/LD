@@ -140,6 +140,7 @@ if ($selected_event_id) {
 
 body,
 html {
+    background: #f8f9fa;
     height: 100%;
 }
 
@@ -295,7 +296,7 @@ html {
     font-family: Montserrat ExtraBold;
     font-size: 2.2rem;
     padding: 10px;
-    color: #12753E;
+    color: black;
     letter-spacing: 0.5px;
 }
 
@@ -397,6 +398,20 @@ html {
     border-left: 4px solid transparent;
 }
 
+.event-dates {
+    font-size: 13px;
+    color: #777;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.event-dates i {
+    margin-right: 5px;
+    color: #12753E;
+}
+
 .events-section {
     background-color: white;
     border-radius: 12px;
@@ -464,7 +479,6 @@ html {
 }
 
 .status-badge {
-    background-color: #95A613;
     color: white;
     font-family: Montserrat Medium;
     font-size: 12px;
@@ -473,22 +487,58 @@ html {
     position: absolute;
     top: 20px;
     right: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
     font-weight: 600;
     letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: transform 0.2s ease;
+}
+
+.status-badge i {
+    margin-right: 5px;
+}
+
+.status-badge:hover {
+    transform: translateY(-2px);
 }
 
 /* Status-specific badges */
 .status-upcoming {
-    background-color: #3498db;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    animation: pulse-blue 2s infinite;
 }
 
 .status-ongoing {
-    background-color: #e74c3c;
+    background: #12753E;
+    animation: pulse-red 1.5s infinite;
 }
 
 .status-past {
-    background-color: #7f8c8d;
+    background: linear-gradient(135deg, #7f8c8d, #596a6b);
+}
+
+@keyframes pulse-blue {
+    0% {
+        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+    }
+}
+
+@keyframes pulse-red {
+    0% {
+        box-shadow: 0 0 0 0 rgba(18, 117, 62, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    }
 }
 
 /* Content area layout */
@@ -574,7 +624,8 @@ html {
     float: right;
     transition: transform 0.3s ease;
     background-color: #f2f9f6;
-    padding: 8px;
+    margin-top: -1%;
+    padding: 8px 10px;
     border-radius: 50%;
     color: #12753E;
 }
@@ -692,6 +743,10 @@ html {
     }
 }
 
+p{
+    font-family: Montserrat;
+}
+
 </style>
 </head>
 <body>
@@ -752,8 +807,16 @@ html {
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
                                 echo '<p>'. '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["specification"]) . '</p>';
-                                echo '<p>' . '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>';
-                                echo '<span class="status-badge status-' . strtolower($row["status"]) . '">' . htmlspecialchars($row["status"]) . '</span>';
+                                echo '<div class="event-dates">'.'<p>' . '<strong><i class="fas fa-calendar-day"></i>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>'. '</div>';
+                                echo '<span class="status-badge status-' . strtolower($row["status"]) . '">';
+                                if(strtolower($row["status"]) == "upcoming") {
+                                    echo '<i class="fas fa-hourglass-start"></i> ';
+                                } else if(strtolower($row["status"]) == "ongoing") {
+                                    echo '<i class="fas fa-circle"></i>';
+                                } else {
+                                    echo '<i class="fas fa-check-circle"></i> ';
+                                }
+                                echo htmlspecialchars($row["status"]) . '</span>';
                                 echo '</div></a>';
                                 echo '</div>';
                             }
@@ -776,6 +839,15 @@ html {
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
                                 echo '<p>' . '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["specification"]) . '</p>';
                                 echo '<p>'. '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>';
+                                echo '<span class="status-badge status-' . strtolower($row["status"]) . '">';
+                                if(strtolower($row["status"]) == "upcoming") {
+                                    echo '<i class="fas fa-hourglass-start"></i> ';
+                                } else if(strtolower($row["status"]) == "ongoing") {
+                                    echo '<i class="fas fa-circle"></i> ';
+                                } else {
+                                    echo '<i class="fas fa-check-circle"></i> ';
+                                }
+                                echo htmlspecialchars($row["status"]) . '</span>';
                                 echo '</div></a>';
                                 echo '</div>';
                             }

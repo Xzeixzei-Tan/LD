@@ -245,9 +245,11 @@ if ($user_result->num_rows > 0) {
     box-shadow: 0 6px 16px rgba(18, 117, 62, 0.08);
     font-family: 'Wesley Demo', serif;
     transition: all 0.3s ease;
+    max-height: fit-content;
 }
 
 .events-section {
+    width: 50%;
     flex: 3;
     max-height: 500px;
     overflow-y: auto;
@@ -305,7 +307,6 @@ if ($user_result->num_rows > 0) {
     border-left: 4px solid #12753E;
     border-radius: 8px;
     padding: 18px;
-    margin-bottom: 20px;
     position: relative;
     transition: all 0.2s ease;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
@@ -327,14 +328,18 @@ if ($user_result->num_rows > 0) {
 .event-content p {
     font-size: 14px;
     color: #555;
-    font-family: Montserrat;
+    font-family: Montserrat Medium;
     line-height: 1.4;
-    margin-bottom: 6px;
+}
+
+.event-content p strong {
+    font-family: Montserrat;
+    color:rgb(84, 95, 89);
 }
 
 .event-content span {
     position: absolute;
-    bottom: 15px;
+    bottom: 10px;
     right: 15px;
     background: #12753E;
     color: white;
@@ -348,13 +353,67 @@ if ($user_result->num_rows > 0) {
     box-shadow: 0 2px 4px rgba(18, 117, 62, 0.2);
 }
 
+.event-content span {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: Tilt Warp;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Status-specific styling */
+.event-content span.ongoing {
+    background: #12753E;
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.event-content span.upcoming {
+    background: #95A613;
+    color: white;
+}
+
+/* Add a pulse animation for ongoing events */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(18, 117, 62, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(18, 117, 62, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(18, 117, 62, 0);
+    }
+}
+
+.event-dates {
+    font-size: 13px;
+    color: #777;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.event-dates i {
+    margin-right: 5px;
+    color: #12753E;
+}
+
 .notification {
     border-left: 4px solid #95A613;
+    margin-bottom: 15px;
 }
 
 .notification p {
     font-size: 14px;
-    font-family: Montserrat;
+    font-family: Montserrat Medium;
     color: #555;
     line-height: 1.4;
 }
@@ -372,7 +431,7 @@ if ($user_result->num_rows > 0) {
     text-decoration: none;
     color: #333;
     display: block;
-    height: 100%;
+    height: fit-content;
     width: 100%;
 }
 
@@ -415,26 +474,31 @@ if ($user_result->num_rows > 0) {
 
             <div class="content-area">
                 <div class="events-section">
-                    <h2>Events</h2>
-                    <div class="event-featured">
-                        <div class="event-content">
-                        <?php while ($event = $result->fetch_assoc()) : ?>    
-                            <div class="event">
-                                <a class="events-btn" href="user-events.php?event_id=<?php echo urlencode($event['id']); ?>">
-                                <div class="event-content">
-                                    <h3><?php echo htmlspecialchars($event['title']); ?></h3>
-                                    <p>Event Specification: <?php echo htmlspecialchars($event['specification']); ?></p>
-                                    <p style="visibility: hidden;"><?php echo htmlspecialchars($event['start_date']); ?></p>
-                                    <?php if ($event["status"] === "Ongoing") { ?>
-                                            <span>Ongoing...</span>
-                                    <?php } ?>        
+                <?php while ($event = $result->fetch_assoc()) : ?> 
+                    <h2>Events</h2>   
+                        <div class="event">
+                            <a class="events-btn" href="user-events.php?event_id=<?php echo urlencode($event['id']); ?>">
+                            <div class="event-content">
+                                <h3><?php echo htmlspecialchars($event['title']); ?></h3>
+                                <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['specification']); ?></p>
+                                <div class="event-dates">
+                                    <i class="fas fa-calendar-day"></i>
+                                    <?php 
+                                        $start_date = new DateTime($event['start_date']);
+                                        $end_date = new DateTime($event['end_date']);
+                                        echo $start_date->format('M d') . ' - ' . $end_date->format('M d, Y'); 
+                                    ?>
                                 </div>
-                                </a>
+                                <?php if ($event["status"] === "Ongoing") { ?>
+                                    <span class="ongoing"><i class="fas fa-circle"></i> Ongoing</span>
+                                <?php } else { ?>
+                                    <span class="upcoming"><i class="fas fa-hourglass-start"></i> Upcoming</span>
+                                <?php } ?>        
                             </div>
-                        <?php endwhile; ?>    
+                            </a>
                         </div>
+                    <?php endwhile; ?>
                     </div>
-                </div>
                 <div class="notifications-section">
                     <h2>Notifications</h2>
                     <div class="notification important">
