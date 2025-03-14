@@ -4,24 +4,33 @@ require_once 'config.php';
 // Set the default sort order to ASC (Soonest events first)
 $sortOrder = isset($_GET['sort']) && ($_GET['sort'] == 'DESC') ? 'DESC' : 'ASC';
 
+// Check if an event ID is specified in the URL
+$selected_event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null;
+
+$selected_event = null;
+
 // Fetch upcoming and ongoing events from the database
-$sql = "SELECT id, title, event_specification, start_datetime, end_datetime,
+$sql = "SELECT id, title, specification, start_date, end_date,
         CASE 
-            WHEN NOW() BETWEEN start_datetime AND end_datetime THEN 'Ongoing'
+            WHEN NOW() BETWEEN start_date AND end_date THEN 'Ongoing'
             ELSE 'Upcoming'
         END AS status
-        FROM events 
-        WHERE end_datetime >= NOW()
-        ORDER BY start_datetime $sortOrder";
+        FROM events
+        WHERE end_date >= NOW()
+        ORDER BY start_date $sortOrder";
 $result = $conn->query($sql);
 
 if (!$result) {
     die("Query failed: " . $conn->error);
 }
-
+    
 // Fetch notifications for admin
-$notif_query = "SELECT message, created_at, is_read FROM notifications WHERE notification_type = 'admin' ORDER BY created_at DESC";
+$notif_query = "SELECT message, created_at, is_read, notification_subtype, event_id FROM notifications WHERE notification_type = 'admin' ORDER BY created_at DESC";
 $notif_result = $conn->query($notif_query);
+
+if (!$notif_result) {
+    die("Notification query failed: " . $conn->error);
+}
 ?>
 
 <!DOCTYPE html>
@@ -50,7 +59,7 @@ $notif_result = $conn->query($notif_query);
         <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
         <p>Learning and Development</p>
         <h1>EVENT MANAGEMENT SYSTEM</h1>
-    </div><br><br><br><br><br>
+    </div><br><br><br>
 
 
             <div class="content-body">
@@ -62,14 +71,14 @@ $notif_result = $conn->query($notif_query);
                         <h2>Events</h2>
                         <div class="sort-events">
                             <!-- Sort Button to Toggle Order -->
-                            <button id="sortButton" onclick="toggleSortOrder()">Sort Events: <?php echo $sortOrder === 'ASC' ? 'Asc' : 'Des'; ?></button>
+                            <button id="sortButton" onclick="toggleSortOrder()"><i class="fa fa-sort" aria-hidden="true"></i>Sort Events: <?php echo $sortOrder === 'ASC' ? 'Asc' : 'Des'; ?></button>
                         </div>
                         <?php while ($event = $result->fetch_assoc()) : ?>
                             <div class="event">
                                 <div class="event-content">
                                     <h3><?php echo htmlspecialchars($event['title']); ?></h3>
-                                    <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['event_specification']); ?></p>
-                                    <p><strong>Start Date:</strong> <?php echo htmlspecialchars($event['start_datetime']); ?></p>
+                                    <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['specification']); ?></p>
+                                    <p><strong>Start Date:</strong> <?php echo htmlspecialchars($event['start_date']); ?></p>
                                     <?php if ($event['status'] === 'Ongoing') : ?>
                                         <span class="ongoing-label">Ongoing</span>
                                     <?php endif; ?>
@@ -79,21 +88,23 @@ $notif_result = $conn->query($notif_query);
                     </div>
 
                     <!-- Notifications Section -->
-                    <div class="notifications-section">
-                        <h2>Notifications</h2>
-                        <?php while ($notif = $notif_result->fetch_assoc()): ?>
-                        <div class="notification important">
-                            <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="select_quiz.php">
-                                <div class="notification-content">
-                                    <p><?php echo htmlspecialchars($notif['message']); ?></p>
-                                    <br><small><?php echo $notif['created_at']; ?></small>
-                                <?php endwhile; ?>    
-                                </div>
-                            </a>
-                        </div>
-                        <!-- More notifications here -->
-                    </div>
-                </div>
+                        <div class="notifications-section">
+                            <h2>Notifications</h2>
+                            <?php while ($notif = $notif_result->fetch_assoc()): ?>
+                            <div class="notification important">
+                                <?php if (!empty($notif['event_id']) && $notif['notification_subtype'] == 'admin_event_registration'): ?>
+                                    <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="admin-events.php?event_id=<?php echo urlencode($notif['event_id']); ?>">
+                                <?php else: ?>
+                                    <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="admin-events.php?event_id=<?php echo urlencode($notif['event_id']); ?>">
+                                <?php endif; ?>
+                                    <div class="notification-content">
+                                        <p><?php echo htmlspecialchars($notif['message']); ?></p>
+                                        <br><small><?php echo $notif['created_at']; ?></small>    
+                                    </div>
+                                </a>
+                            </div>
+                        <?php endwhile; ?>
+                    </div>          
             </div>
         </div>
     </div>
@@ -117,5 +128,6 @@ $notif_result = $conn->query($notif_query);
         document.getElementById('sortButton').textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
     });
 </script>
+
 </body>
 </html>

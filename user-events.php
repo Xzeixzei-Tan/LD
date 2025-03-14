@@ -20,15 +20,15 @@ $selected_event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'unregistered';
 
 // Fetch all events from the database
-$sql = "SELECT e.id, e.title, e.start_datetime, e.end_datetime, e.venue, e.event_specification, e.delivery, e.organizer_name,
+$sql = "SELECT e.id, e.title, e.start_date, e.end_date, e.venue, e.specification, e.delivery, e.proponent,
                (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered,
                CASE 
-                   WHEN NOW() BETWEEN e.start_datetime AND e.end_datetime THEN 'Ongoing'
-                   WHEN NOW() < e.start_datetime THEN 'Upcoming'
+                   WHEN NOW() BETWEEN e.start_date AND e.end_date THEN 'Ongoing'
+                   WHEN NOW() < e.start_date THEN 'Upcoming'
                    ELSE 'Past'
                END AS status
         FROM events e  
-        ORDER BY e.start_datetime DESC";
+        ORDER BY e.start_date DESC";
 $stmt = $conn->prepare($sql);
 
 // Check if the prepare statement was successful
@@ -109,7 +109,7 @@ if ($selected_event_id) {
     $stmt->close();
     
     // Fetch speakers for the selected event
-    $speakers_sql = "SELECT speaker_name FROM speakers WHERE event_id = ?";
+    $speakers_sql = "SELECT name FROM speakers WHERE event_id = ?";
     $stmt = $conn->prepare($speakers_sql);
     $stmt->bind_param("i", $selected_event_id);
     $stmt->execute();
@@ -117,7 +117,7 @@ if ($selected_event_id) {
     
     if ($speakers_result) {
         while ($speaker = $speakers_result->fetch_assoc()) {
-            $speakers[] = $speaker['speaker_name'];
+            $speakers[] = $speaker['name'];
         }
     }
     $stmt->close();
@@ -140,9 +140,11 @@ if ($selected_event_id) {
 
 body,
 html {
+    background: #f8f9fa;
     height: 100%;
 }
 
+/* Sidebar styles - unchanged */
 .sidebar {
     width: 230px;
     height: 100vh;
@@ -212,7 +214,6 @@ html {
     height: 100%;
     width: 100%;
     color: white;
-
 }
 
 .user-avatar img{
@@ -238,7 +239,7 @@ html {
     background-color: #ecf0f1;
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments for sidebar */
 @media (max-width: 768px) {
     .sidebar {
         width: 70px;
@@ -257,13 +258,17 @@ html {
         justify-content: center;
     }
 }
+
+/* Content area - improved */
 .content {
     flex: 1;
-    background-color: #ffffff;
+    background-color: #f8f9fa;
     padding: 4rem;
     margin-left: 17%;
+    font-family: Arial, sans-serif;
 }
 
+/* Header styles - unchanged */
 .content-header h1 {
     font-size: 1.5rem;
     color: #333333;
@@ -286,273 +291,66 @@ html {
     filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
 }
 
+/* Content body - improved */
 .content-body h1 {
     font-family: Montserrat ExtraBold;
-    font-size: 2rem;
+    font-size: 2.2rem;
     padding: 10px;
-    color: ##12753E;
+    color: black;
+    letter-spacing: 0.5px;
 }
 
 .content-body hr {
     border: 1px solid #95A613;
+    margin-bottom: 30px;
 }
 
-.create-btn {
-    float: right;
-    bottom: 1%;
-    right: 3%;
-    padding: 11px 15px;
-    font-family: Montserrat;
-    font-weight: bold;
-    font-size: 13px;
-    color: white;
-    text-decoration: none;
-    background-color: #12753E;
-    border-radius: 5px;
-}
-
-.content-area {
-    display: flex;
-    justify-content: space-between;
-}
-
-.events-section {
-    background-color: white;
-    border-radius: 8px;
-    padding: 30px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    font-family: 'Wesley Demo', serif;
-    flex: 1;
-    min-width: 300px;
-}
-
-.events-section {
-    flex-basis: 100%;
-    transition: flex-basis 0.3s;
-}
-
-.event.selected {
-    background: #12753E;
-}
-
-.event.selected h3 {
-    color: white;
-}
-
-.event.selected p {
-    color: rgb(231, 231, 231);
-}
-
-#details-section {
-    display: none;
-    flex-basis: 30%;
-    margin-left: 20px;
-    background-color: white;
-    padding: 30px;
-    border-radius: 8px;
-    border: 2px solid #12753E;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    max-height: fit-content;
-}
-
-.events-section.shrink {
-    flex-basis: 70%;
-}
-
-.details-section h2 {
-    margin-top: 0;
-    font-family: Montserrat Extrabold;
-    font-weight: bold;
-    margin-bottom: 2%;
-}
-
-#detail-title {
-    font-family: Montserrat Extrabold;
-    color: #12753E;
-}
-
-.details-section .detail-item {
-    margin-bottom: 15px;
-}
-
-.details-section .detail-item h3 {
-    margin: 0;
-    font-size: 1em;
-    font-family: Montserrat;
-    color: #12753E;
-}
-
-.details-section .detail-item p {
-    margin: 5px 0 0;
-    color: #000000;
-    font-size: .8em;
-    font-family: Montserrat Medium
-}
-
-.events-section h2 {
-    font-size: 22px;
-    font-family: Montserrat ExtraBold;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: #333;
-}
-
-.event {
-    background-color: #d7f3e4;
-    border-radius: 5px;
-    padding: 20px;
-    margin-bottom: 15px;
-    position: relative;
-    cursor: pointer;
-}
-
-.event-content h3 {
-    font-size: 18px;
-    margin-bottom: 5px;
-    font-family: Montserrat ExtraBold;
-    color: #12753E;
-}
-
-.event-content p {
-    font-size: 14px;
-    color: #585858;
-    font-family: Montserrat;
-}
-
-.event-content p strong{
-    font-size: 13px;
-    font-family: Montserrat Medium;
-}
-
-.notification p {
-    font-size: 14px;
-    font-family: Montserrat;
-}
-
-.events-btn {
-    text-decoration: none;
-    color: black;
-    display: block;
-}
-
-.content-area { 
-    display: flex; 
-    justify-content: space-between; 
-}
-.details-section { 
-    display: none; 
-    flex-basis: 30%; 
-    margin-left: 20px; 
-    background-color: #f9f9f9; 
-    padding: 20px; 
-    border-radius: 8px; 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
-}
-.events-section { 
-    flex-basis: 100%; 
-    transition: flex-basis 0.3s; 
-}
-.events-section.shrink { 
-    flex-basis: 70%; 
-}
-
-#detail-title {
-    font-size: 24px;
-    font-family: Montserrat Extrabold;
-    margin-bottom: 10px;
-    color: #12753E;
-}
-
-.details-section h2 { 
-    margin-top: 3%; 
-    margin-bottom: 2%;
-}
-.details-section hr{
-    margin-bottom: 2%;
-}
-.details-section .detail-item { 
-    margin-bottom: 15px; 
-}
-
-.details-section .detail-item h4 {
-    font-family: Montserrat;
-    font-size: 18px;
-    margin-bottom: 5px;
-}
-
-.details-section .detail-item p { 
-    font-family: Montserrat Medium;
-    font-size: 16px; 
-    color: #555;
-}
-
-.detail-items{
-    display: flex;
-}
-
-.detail-items-1{
-    margin-top: 2%;
-}
-
-.detail-items-2{
-    margin-left: 30%;
-    margin-top: 2%;
-}
-.expand-btn { 
-    cursor: pointer; 
-    float: right; 
-    transition: transform 0.3s ease;
-}
-.expand { 
-    flex-basis: 100% !important; 
-}
-.hidden { 
-    display: none; 
-}
-
-/* New styles for expanded content */
-.expanded-content {
-    display: none;
-}
-
-.details-section.expand .expanded-content {
-    display: block;
-}
-
-.details-section {
-    transition: all 0.3s ease;
-}
-
-.details-section.expand .expand-btn {
-    transform: rotate(180deg);
-}
-
-/* Tabs styles */
+/* Tabs redesign */
 .tabs {
     display: flex;
     border-bottom: 2px solid #e0e0e0;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    gap: 10px;
 }
 
 .tab {
-    padding: 10px 20px;
+    padding: 12px 25px;
     background-color: #f5f5f5;
     border: none;
-    border-radius: 5px 5px 0 0;
-    margin-right: 5px;
+    border-radius: 8px 8px 0 0;
     cursor: pointer;
     font-family: Montserrat;
     font-weight: 600;
+    font-size: 15px;
     color: #555;
     transition: all 0.3s ease;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+}
+
+.tab:hover {
+    background-color: #e8f5ef;
 }
 
 .tab.active {
     background-color: #12753E;
     color: white;
     font-weight: bold;
+    box-shadow: 0 -2px 8px rgba(18,117,62,0.2);
 }
 
+.badge {
+    background-color: #95A613;
+    color: white;
+    border-radius: 50%;
+    padding: 3px 8px;
+    font-size: 0.8em;
+    font-weight: bold;
+    font-family: Montserrat;
+    margin-left: 8px;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+}
+
+/* Tab content */
 .tab-content {
     display: none;
 }
@@ -561,26 +359,392 @@ html {
     display: block;
 }
 
-.badge {
-    background-color: #95A613;
-    color: white;
-    border-radius: 50%;
-    padding: 2px 8px;
-    font-size: 0.8em;
+/* Events section redesign */
+.events-section {
+    background-color: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    font-family: 'Wesley Demo', serif;
+    flex: 1;
+    min-width: 300px;
+    transition: all 0.3s ease;
+}
+
+.events-section.shrink {
+    flex-basis: 70%;
+}
+
+.events-section h2 {
+    font-size: 24px;
+    font-family: Montserrat ExtraBold;
+    font-weight: bold;
+    margin-bottom: 25px;
+    color: #333;
+    border-left: 4px solid #12753E;
+    padding-left: 15px;
+}
+
+/* Event items redesign */
+.event {
+    background-color:rgb(245, 245, 245);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 18px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    border-left: 4px solid transparent;
+}
+
+.event-dates {
+    font-size: 13px;
+    color: #777;
+    margin-top: 5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.event-dates i {
+    margin-right: 5px;
+    color: #12753E;
+}
+
+.events-section {
+    background-color: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    font-family: 'Wesley Demo', serif;
+    flex: 1;
+    min-width: 30%;
+    max-height: fit-content;
+    border: 0;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.events-section {
+    flex-basis: 100%;
+    transition: flex-basis 0.3s, transform 0.3s;
+}
+
+.event.selected {
+    background:rgb(218, 238, 227);
+    border-left: 5px solid #12753E;
+    transform: translateX(5px);
+}
+
+.event.selected h3 {
+    color: #12753E;
+}
+
+.event.selected p {
+    color: #445;
+}
+
+.event:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(43, 58, 143, 0.1);
+    border-left: 5px solid #12753E;
+}
+
+.events-btn {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.event-content h3 {
+    font-size: 19px;
+    margin-bottom: 10px;
+    font-family: Montserrat ExtraBold;
+    color: #12753E;
+    transition: color 0.3s ease;
+}
+
+.event-content p {
+    font-size: 14px;
+    color: #585858;
+    font-family: Montserrat Medium;
+    line-height: 1.5;
+}
+
+.event-content p strong {
+    font-weight: bold;
     font-family: Montserrat;
-    margin-left: 5px;
+    color: #444;
 }
 
 .status-badge {
-    background-color:rgb(142, 159, 8);
     color: white;
     font-family: Montserrat Medium;
     font-size: 12px;
-    padding: 5px 15px;
-    border-radius: 12px;
+    padding: 6px 15px;
+    border-radius: 20px;
     position: absolute;
-    top: 10%;
-    right: 2%;
+    top: 20px;
+    right: 20px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: transform 0.2s ease;
+}
+
+.status-badge i {
+    margin-right: 5px;
+}
+
+.status-badge:hover {
+    transform: translateY(-2px);
+}
+
+/* Status-specific badges */
+.status-upcoming {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    animation: pulse-blue 2s infinite;
+}
+
+.status-ongoing {
+    background: #12753E;
+    animation: pulse-red 1.5s infinite;
+}
+
+.status-past {
+    background: linear-gradient(135deg, #7f8c8d, #596a6b);
+}
+
+@keyframes pulse-blue {
+    0% {
+        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
+    }
+}
+
+@keyframes pulse-red {
+    0% {
+        box-shadow: 0 0 0 0 rgba(18, 117, 62, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
+    }
+}
+
+/* Content area layout */
+.content-area { 
+    display: flex; 
+    justify-content: space-between; 
+}
+
+/* Details section redesign */
+.details-section, #details-section {
+    display: none;
+    flex-basis: 30%;
+    margin-left: 20px;
+    margin-top: 2%;
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    max-height: fit-content;
+    transition: all 0.3s ease;
+}
+
+#detail-title {
+    font-size: 24px;
+    font-family: Montserrat Extrabold;
+    margin-bottom: 15px;
+    color: #12753E;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.details-section h2 { 
+    margin-top: 0;
+    font-family: Montserrat Extrabold;
+    font-weight: bold;
+    margin-bottom: 2%;
+    font-size: 22px;
+    color: #333;
+}
+
+.details-section hr {
+    border: 1px solid #f0f0f0;
+    margin-bottom: 20px;
+}
+
+.detail-items {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.detail-items-1 {
+    margin-top: 2%;
+}
+
+.detail-items-2 {
+    margin-left: 20%;
+    margin-top: 2%;
+}
+
+.details-section .detail-item {
+    margin-bottom: 20px;
+}
+
+.details-section .detail-item h4 {
+    margin: 0;
+    font-size: 16px;
+    font-family: Montserrat;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.details-section .detail-item p {
+    margin: 5px 0 0;
+    color: #12753E;
+    font-size: 15px;
+    font-family: Montserrat Medium;
+    font-weight: 600;
+}
+
+.expand-btn {
+    cursor: pointer;
+    float: right;
+    transition: transform 0.3s ease;
+    background-color: #f2f9f6;
+    margin-top: -1%;
+    padding: 8px 10px;
+    border-radius: 50%;
+    color: #12753E;
+}
+
+.expand-btn:hover {
+    background-color: #12753E;
+    color: white;
+}
+
+/* Expanded content */
+.expanded-content {
+    display: none;
+}
+
+.details-section.expand .expanded-content {
+    display: block;
+}
+
+.details-section.expand .expand-btn {
+    transform: rotate(180deg);
+}
+
+/* Register/Unregister button */
+.create-btn {
+    float: right;
+    padding: 12px 22px;
+    font-family: Montserrat;
+    font-weight: bold;
+    font-size: 14px;
+    color: white;
+    text-decoration: none;
+    background-color:rgb(17, 118, 62);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(18,117,62,0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.create-btn:hover {
+    background-color: #0e5c31;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(18,117,62,0.3);
+}
+
+/* Expand/collapse helpers */
+.expand { 
+    flex-basis: 100% !important; 
+}
+
+.hidden { 
+    display: none; 
+}
+
+/* Alert message styling */
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-family: Montserrat;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* Notification styling */
+.notification p {
+    font-size: 14px;
+    font-family: Montserrat;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .detail-items-2 {
+        margin-left: 0;
+    }
+    
+    .detail-items {
+        flex-direction: column;
+    }
+    
+    .content {
+        margin-left: 80px;
+        padding: 2rem;
+    }
+    
+    .content-header h1 {
+        margin-left: 20%;
+    }
+    
+    .content-header p {
+        margin-left: 30%;
+    }
+    
+    .content-header img {
+        margin-left: 10%;
+    }
+}
+
+@media (max-width: 768px) {
+    .content-area {
+        flex-direction: column;
+    }
+    
+    .events-section.shrink {
+        flex-basis: 100%;
+    }
+    
+    .details-section, #details-section {
+        margin-left: 0;
+        margin-top: 20px;
+    }
+}
+
+p{
+    font-family: Montserrat;
 }
 
 </style>
@@ -642,9 +806,17 @@ html {
                                 echo '<a class="events-btn" href="user-events.php?event_id=' . urlencode($row['id']) . '&tab=registered">';
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                                echo '<p>'. '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["event_specification"]) . '</p>';
-                                echo '<p>' . '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
-                                echo '<span class="status-badge status-' . strtolower($row["status"]) . '">' . htmlspecialchars($row["status"]) . '</span>';
+                                echo '<p>'. '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["specification"]) . '</p>';
+                                echo '<div class="event-dates">'.'<p>' . '<strong><i class="fas fa-calendar-day"></i>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>'. '</div>';
+                                echo '<span class="status-badge status-' . strtolower($row["status"]) . '">';
+                                if(strtolower($row["status"]) == "upcoming") {
+                                    echo '<i class="fas fa-hourglass-start"></i> ';
+                                } else if(strtolower($row["status"]) == "ongoing") {
+                                    echo '<i class="fas fa-circle"></i>';
+                                } else {
+                                    echo '<i class="fas fa-check-circle"></i> ';
+                                }
+                                echo htmlspecialchars($row["status"]) . '</span>';
                                 echo '</div></a>';
                                 echo '</div>';
                             }
@@ -665,8 +837,17 @@ html {
                                 echo '<a class="events-btn" href="user-events.php?event_id=' . urlencode($row['id']) . '&tab=unregistered">';
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                                echo '<p>' . '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["event_specification"]) . '</p>';
-                                echo '<p>'. '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
+                                echo '<p>' . '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["specification"]) . '</p>';
+                                echo '<p>'. '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>';
+                                echo '<span class="status-badge status-' . strtolower($row["status"]) . '">';
+                                if(strtolower($row["status"]) == "upcoming") {
+                                    echo '<i class="fas fa-hourglass-start"></i> ';
+                                } else if(strtolower($row["status"]) == "ongoing") {
+                                    echo '<i class="fas fa-circle"></i> ';
+                                } else {
+                                    echo '<i class="fas fa-check-circle"></i> ';
+                                }
+                                echo htmlspecialchars($row["status"]) . '</span>';
                                 echo '</div></a>';
                                 echo '</div>';
                             }
@@ -697,22 +878,22 @@ html {
 
                             <div class="detail-item expanded-content">
                                 <h4>Event Specification:</h4>
-                                <p id="detail-specification"><?php echo htmlspecialchars($selected_event["event_specification"]); ?></p>
+                                <p id="detail-specification"><?php echo htmlspecialchars($selected_event["specification"]); ?></p>
                             </div>
 
                             <div class="detail-item">
                                 <h4>Start:</h4>
-                                <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_datetime"]); ?></p>
+                                <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_date"]); ?></p>
                             </div>
                             <div class="detail-item">
                                 <h4>End:</h4>
-                                <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_datetime"]); ?></p>
+                                <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_date"]); ?></p>
                             </div>
                         </div>
                         <div class="detail-items-2">
                             <div class="detail-item expanded-content">
                                 <h4>Organizer:</h4>
-                                <p id="detail-organizer"><?php echo htmlspecialchars($selected_event["organizer_name"] ?? "Not specified"); ?></p>
+                                <p id="detail-organizer"><?php echo htmlspecialchars($selected_event["proponent"] ?? "Not specified"); ?></p>
                             </div>
 
                             <div class="detail-item expanded-content">
@@ -733,7 +914,7 @@ html {
                     <?php if (!$is_registered): ?>
                     <a class="create-btn" href="register.php?event_id=<?php echo urlencode($selected_event['id']); ?>">Register</a>
                     <?php else: ?>
-                    <a class="create-btn" href="unregister.php?event_id=<?php echo urlencode($selected_event['id']); ?>" style="background-color: #95A613; border-style: none; cursor: pointer;" onclick="return confirm('Are you sure you want to unregister from this event?');">Unregister</a>
+                    <a class="create-btn" href="unregister.php?event_id=<?php echo urlencode($selected_event['id']); ?>" style="background-color:rgb(117, 130, 14); border-style: none; cursor: pointer;" onclick="return confirm('Are you sure you want to unregister from this event?');">Unregister</a>
                     <?php endif; ?>
                     <?php else: ?>
                     <div class="detail-item">
@@ -794,7 +975,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() {
             selectedEvent.style.transition = 'background-color 0.5s';
             const originalBackground = selectedEvent.style.backgroundColor;
-            selectedEvent.style.backgroundColor = '#95A613'; // Flash with a different color
+            selectedEvent.style.backgroundColor = '#20cd6d'; // Flash with a different color
             
             setTimeout(function() {
                 selectedEvent.style.backgroundColor = originalBackground;

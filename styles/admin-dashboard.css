@@ -4,8 +4,9 @@
     box-sizing: border-box;
     font-family: Arial, sans-serif;
 }
-
-body, html {
+     
+body,
+html {
     height: 100%;
 }
 
@@ -23,10 +24,10 @@ body, html {
 
 .sidebar .logo {
     margin-bottom: 1rem;
-    margin-left: 3%;
+    margin-left: 5%;
 }
 
-hr{
+hr {
     border: 1px solid white;
 }
 
@@ -38,6 +39,7 @@ hr{
 }
 
 .sidebar .menu a {
+    font-family: 'Tilt Warp';
     color: #ffffff;
     text-decoration: none;
     padding: 1rem;
@@ -50,7 +52,8 @@ hr{
     margin-bottom: .5rem;
 }
 
-.sidebar .menu a:hover, .sidebar .menu a.active {
+.sidebar .menu a:hover,
+.sidebar .menu a.active {
     background-color: white;
     color: #2b3a8f;
 }
@@ -59,27 +62,34 @@ hr{
     margin-right: 0.5rem;
 }
 
-.profile {
+.sidebar .menu a.archive-link {
+    font-family: 'Tilt Warp';
+    color: #ffffff;
     text-decoration: none;
-    margin-top: 2%;
-    margin-bottom: 7%;
-    margin-left: 1.3rem;
-    color: white;
-    font-family: Tilt Warp;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
     font-size: 1rem;
+    border-radius: 5px;
+    transition: background 0.3s;
+    margin-bottom: .5rem;
 }
 
-.profile i{
-    font-size: 18px;
-    margin-right: 1rem;
+.sidebar .menu a.archive-link:hover,
+.sidebar .menu a.archive-link.active {
+    background-color: white;
+    color: #2b3a8f;
+}
+
+.sidebar .menu a.archive-link i {
+    margin-right: 0.5rem;
 }
 
 .content {
     flex: 1;
-    background-color: #ffffff;
+    background-color: #f5f7ff;
     padding: 4rem;
-    margin-left: 250px;
-    overflow-y: auto;
+    margin-left: 17%;
 }
 
 .content-header h1 {
@@ -106,79 +116,104 @@ hr{
 
 .content-body h1 {
     font-family: Montserrat ExtraBold;
-    font-size: 2rem;
+    font-size: 2.2rem;
     padding: 10px;
+    color: black;
+    letter-spacing: -0.5px;
+    margin-bottom: 5px;
 }
 
 .content-body hr {
-    border: 1px solid #95A613;
+    border: none;
+    height: 3px;
+    background-color: #95A613;
+    width: 100%;
+    margin-left: 10px;
+    margin-bottom: 30px;
 }
 
+/* Content Area Layout Enhancement */
 .content-area {
     display: flex;
     gap: 30px;
     align-items: flex-start;
     flex-wrap: wrap;
     width: 100%;
+    padding: 10px;
 }
 
-/* Fix for Events Section */
+/* Events Section Enhancement */
 .events-section {
     background-color: white;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 30px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(43, 58, 143, 0.1);
     font-family: 'Wensley Demo', serif;
     flex: 3;
-    max-height: 400px;
-    /* Ensures it does not expand indefinitely */
+    max-height: 500px;
     overflow-y: auto;
-    /* Enables scrolling */
     display: flex;
     flex-direction: column;
     position: relative;
-    /* Add this line */
+    border: 1px solid #f0f2fa;
 }
 
-.notifications-section {
-    background-color: white;
-    border-radius: 8px;
-    /* Adjust this value as needed */
-    padding: 20px;
-    /* Adjust this value as needed */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    font-family: 'Wensley Demo', serif;
-    /* Adjust this value as needed */
-    flex: 2;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.notifications-section p{
-    font-family: Montserrat;
-    font-size: 15px;
-}
-
-.events-section h2,
-.notifications-section h2 {
-    font-size: 22px;
+.events-section h2 {
+    font-size: 24px;
     font-family: Montserrat ExtraBold;
     font-weight: bold;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     color: #2b3a8f;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f2fa;
 }
 
+/* Sort Button Enhancement */
+#sortButton {
+    font-family: Tilt Warp;
+    background-color: white;
+    color: #12753E;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border: 2px solid #12753E;
+    border-radius: 8px;
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    box-shadow: 0 2px 5px rgba(18, 117, 62, 0.3);
+    transition: all 0.2s ease;
+}
+
+#sortButton i{
+    margin-right: 5px;
+}
+
+#sortButton:hover {
+    background-color: #26b767;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(18, 117, 62, 0.4);
+}
+
+/* Event Cards Enhancement */
 .event {
-    background-color: rgb(215, 222, 247);
-    border-radius: 5px;
-    padding: 15px;
-    margin-bottom: 10px;
+    background-color: #f4f6fc;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 15px;
     display: flex;
     flex-direction: column;
     word-wrap: break-word;
+    border-left: 4px solid #2b3a8f;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-/* Fix for Overflowing Content */
+.event:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(43, 58, 143, 0.15);
+}
+
 .event-content {
     display: flex;
     flex-direction: column;
@@ -190,24 +225,110 @@ hr{
 }
 
 .event-content h3 {
-    font-size: 16px;
+    font-size: 18px;
     margin-bottom: 13px;
     font-family: Montserrat Extrabold;
     overflow-wrap: break-word;
+    color: #2b3a8f;
 }
 
 .event-content p {
-    font-size: 13px;
-    color: #2b3a8f;
-    font-family: Montserrat;
+    font-size: 14px;
+    color: #505a84;
+    font-family: Montserrat Medium;
     overflow-wrap: break-word;
+    margin-bottom: 8px;
+    line-height: 1.5;
 }
 
-.event-content p strong{
+.event-content p strong {
     font-family: Montserrat;
+    color: #2b3a8f;
 }
 
-/* Scrollbar Styling */
+.ongoing-label {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: Montserrat;
+    font-weight: Bold;
+    color: white;
+    background-color: #95A613;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    align-self: flex-start;
+}
+
+/* Notifications Section Enhancement */
+.notifications-section {
+    background-color: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(43, 58, 143, 0.1);
+    font-family: 'Wensley Demo', serif;
+    flex: 2;
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #f0f2fa;
+}
+
+.notifications-section h2 {
+    font-size: 24px;
+    font-family: Montserrat ExtraBold;
+    font-weight: bold;
+    margin-bottom: 25px;
+    color: #2b3a8f;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f2fa;
+}
+
+.notification {
+    margin-bottom: 15px;
+}
+
+.notification a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background-color: #f4f6fc;
+    border-radius: 10px;
+    padding: 18px;
+    border-left: 4px solid #0d7033;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 10px;
+}
+
+.notification a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(34, 101, 17, 0.15);
+}
+
+.notification-content p {
+    font-family: Montserrat;
+    font-size: 14px;
+    color: #505a84;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.notification-content small {
+    color: #95a5a6;
+    font-size: 12px;
+    font-family: Montserrat;
+    font-style: italic;
+}
+
+.notification a.unread {
+    background-color: #f2faf5;
+    border-left: 4px solid #0d7033;
+}
+
+.notification a.read {
+    opacity: 0.8;
+    border-left: 4px solid #bdc3c7;
+}
+
+/* Enhanced Scrollbar Styling */
 .events-section::-webkit-scrollbar,
 .notifications-section::-webkit-scrollbar {
     width: 8px;
@@ -216,39 +337,29 @@ hr{
 .events-section::-webkit-scrollbar-thumb,
 .notifications-section::-webkit-scrollbar-thumb {
     background: #a8adc7;
-    border-radius: 4px;
+    border-radius: 10px;
+}
+
+.events-section::-webkit-scrollbar-track,
+.notifications-section::-webkit-scrollbar-track {
+    background: #f0f2fa;
+    border-radius: 10px;
 }
 
 .events-section::-webkit-scrollbar-thumb:active,
-.notifications-section::-webkit-scrollbar-thumb {
-    background: #4e5da9;
-    border-radius: 4px;
+.notifications-section::-webkit-scrollbar-thumb:hover {
+    background: #2b3a8f;
 }
 
-.ongoing-label{
-    margin-top: 10px;
-    font-family: Montserrat;
-    font-weight: Bold;
-    color:#95A613;
-}
-
-/* Sort Button Styling */
-#sortButton {
-    font-family: Tilt Warp;
-    background-color: #12753E;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 5px;
-    position: absolute;
-    /* Add this line */
-    top: 20px;
-    /* Adjust this value as needed */
-    right: 20px;
-    /* Adjust this value as needed */
-}
-
-#sortButton:hover {
-    background-color: #26b767;
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .content-area {
+        flex-direction: column;
+    }
+    
+    .events-section,
+    .notifications-section {
+        width: 100%;
+        flex: none;
+    }
 }

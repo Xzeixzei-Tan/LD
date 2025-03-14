@@ -58,6 +58,34 @@ if ($stmt->execute()) {
     $lndStmt->bind_param("iisi", $userId, $positionId, $classification, $affiliationId);
 
     if ($lndStmt->execute()) {
+        // Create notifications
+        
+        // 1. Notification for the user who just signed up
+        $userMessage = "Welcome to the platform! Your account has been created successfully.";
+        $currentDateTime = date("Y-m-d H:i:s");
+        $userNotificationType = "user";
+        $userNotificationSubtype = "signup";
+        
+        $userNotificationSql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype) 
+                               VALUES (?, ?, ?, 0, ?, ?)";
+        $userNotificationStmt = $conn->prepare($userNotificationSql);
+        $userNotificationStmt->bind_param("issss", $userId, $userMessage, $currentDateTime, $userNotificationType, $userNotificationSubtype);
+        $userNotificationStmt->execute();
+        $userNotificationStmt->close();
+        
+        // 2. Notification for admin about new user signup
+        $fullName = $firstName . ' ' . $lastName;
+        $adminMessage = "New user {$fullName} has signed up on the platform.";
+        $adminNotificationType = "admin";
+        $adminNotificationSubtype = "new_user_signup";
+        
+        $adminNotificationSql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype) 
+                                VALUES (NULL, ?, ?, 0, ?, ?)";
+        $adminNotificationStmt = $conn->prepare($adminNotificationSql);
+        $adminNotificationStmt->bind_param("ssss", $adminMessage, $currentDateTime, $adminNotificationType, $adminNotificationSubtype);
+        $adminNotificationStmt->execute();
+        $adminNotificationStmt->close();
+        
         echo "<script>alert('Signed Up Successfully!'); window.location.href='login.php';</script>";
     } else {
         echo "Error: " . $lndStmt->error;
