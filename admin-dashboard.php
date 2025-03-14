@@ -5,14 +5,14 @@ require_once 'config.php';
 $sortOrder = isset($_GET['sort']) && ($_GET['sort'] == 'DESC') ? 'DESC' : 'ASC';
 
 // Fetch upcoming and ongoing events from the database
-$sql = "SELECT id, title, event_specification, start_datetime, end_datetime,
+$sql = "SELECT id, title, specification, start_date, end_date,
         CASE 
-            WHEN NOW() BETWEEN start_datetime AND end_datetime THEN 'Ongoing'
+            WHEN NOW() BETWEEN start_date AND end_date THEN 'Ongoing'
             ELSE 'Upcoming'
         END AS status
         FROM events
-        WHERE end_datetime >= NOW()
-        ORDER BY start_datetime $sortOrder";
+        WHERE end_date >= NOW()
+        ORDER BY start_date $sortOrder";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -69,7 +69,7 @@ $notif_result = $conn->query($notif_query);
                                 <div class="event-content">
                                     <h3><?php echo htmlspecialchars($event['title']); ?></h3>
                                     <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['event_specification']); ?></p>
-                                    <p><strong>Start Date:</strong> <?php echo htmlspecialchars($event['start_datetime']); ?></p>
+                                    <p><strong>Start Date:</strong> <?php echo htmlspecialchars($event['start_date']); ?></p>
                                     <?php if ($event['status'] === 'Ongoing') : ?>
                                         <span class="ongoing-label">Ongoing</span>
                                     <?php endif; ?>
