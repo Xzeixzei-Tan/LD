@@ -106,7 +106,7 @@ function getSpecificParticipants($conn, $eligibleId, $target) {
             
             $participants[] = [
                 'level' => $row['school_level_name'],
-                'type' => $row['type_name                '],            
+                'type' => $row['type_name'],            
                 'specialization' => !empty($specialization_names) ? implode(', ', $specialization_names) : 'N/A'
             ];
         }
@@ -231,6 +231,35 @@ while ($row = $result->fetch_assoc()) {
         .download-btn i {
             margin-right: 8px;
         }
+
+        .highlighted {
+            border: 2px solid #4CAF50 !important;
+            background-color: rgba(76, 175, 80, 0.1) !important;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.6) !important;
+            transition: all 0.3s ease;
+            transform: scale(1.02);
+        }
+
+        /* Add this to your existing CSS styling */
+        .event.highlighted {
+            background-color: #f0f7d4; /* Light green-yellow background */
+            border: 2px solid #95A613; /* Thicker border with accent color */
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16); /* Slight shadow for elevation */
+        }
+
+        .event.highlighted .event-content h3 {
+            color: #95A613; /* Match the border color for the title */
+            font-weight: bold;
+        }
+
+        .event.highlighted::before {
+            content: "★"; /* Star icon */
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+            color: #95A613;
+        }
     </style>
 </head>
 <body>
@@ -278,7 +307,6 @@ while ($row = $result->fetch_assoc()) {
                                 echo '<span>Ongoing...</span>';
                             }
                             echo '</div>';
-                            echo '<a class="update-btn" href="admin-create_events.php?id=' . $row["id"] . '">Update</a>';
                             echo '</div></a>';
                         }
                     } else {
@@ -348,6 +376,11 @@ while ($row = $result->fetch_assoc()) {
                                 <i class="fas fa-download"></i> List of Registered Participants
                             </button>
                         </div>
+                        <!--
+                        <div class="detail-item">
+                            <a id="update-btn" href="admin-create_events.php?id=<?php// echo $row["id"]; ?>">Update</a>
+                        </div>   
+                        -->
                     </div>
                 </div>
                     <?php if ($viewArchived): ?>
@@ -358,6 +391,7 @@ while ($row = $result->fetch_assoc()) {
                     <div class="detail-item">
                         <button onclick="archiveEvent()" id="archive-btn" style="display:none;">Archive Event</button>
                     </div>
+
                     <?php endif; ?>
                 </div>
             </div>
@@ -496,11 +530,15 @@ function unarchiveEvent() {
 }
 
 function selectEvent(event) {
+    // Remove highlighted class from all events
     document.querySelectorAll('.event').forEach(div => {
         div.classList.remove('selected');
+        div.closest('.events-btn').classList.remove('highlighted');
     });
 
+    // Add highlighted class to clicked event
     event.currentTarget.classList.add('selected');
+    event.currentTarget.closest('.events-btn').classList.add('highlighted');
 }
 
 function toggleExpand() {
@@ -531,6 +569,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 </script>
+
+<?php
+// Add this near the end of your admin-events.php file, right before </body>
+
+// Check if an event_id was passed in the URL
+$selected_event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null;
+
+// JavaScript to automatically show details for the selected event
+if ($selected_event_id) {
+    echo '<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Find the event data for the selected event
+        let foundEvent = null;
+        const eventsData = ' . json_encode($eventsData) . ';
+        
+        for (let i = 0; i < eventsData.length; i++) {
+            if (eventsData[i].id == ' . $selected_event_id . ') {
+                foundEvent = eventsData[i];
+                break;
+            }
+        }
+        
+        // If we found the event, show its details
+        if (foundEvent) {
+            showDetails(foundEvent);
+            
+            // Optional: scroll to the event in the list and highlight it
+            const eventElements = document.querySelectorAll(".events-btn");
+            for (let i = 0; i < eventElements.length; i++) {
+                const onclick = eventElements[i].getAttribute("onclick");
+                if (onclick && onclick.includes(\'"id":' . $selected_event_id . '\')) {
+                    eventElements[i].scrollIntoView({ behavior: "smooth", block: "center" });
+                    eventElements[i].classList.add("highlighted"); // You may need to add this CSS class
+                    break;
+                }
+            }
+        }
+    });
+    </script>';
+}
+?>
 </body>
 </html>
 <?php

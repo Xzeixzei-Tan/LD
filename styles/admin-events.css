@@ -145,6 +145,8 @@ hr {
     transition: all 0.3s ease;
 }
 
+
+
 .create-btn:hover {
     background-color: #0e6433;
     transform: translateY(-2px);
@@ -435,7 +437,7 @@ hr {
     display: none;
 }
 
-#archive-btn {
+#archive-btn, #update-btn {
     float: right;
     font-family: Tilt Warp;
     background-color: #2b3a8f;
@@ -448,6 +450,7 @@ hr {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px rgba(43, 58, 143, 0.2);
+    text-decoration: none;
 }
 
 #archive-btn:hover {

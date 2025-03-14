@@ -4,6 +4,11 @@ require_once 'config.php';
 // Set the default sort order to ASC (Soonest events first)
 $sortOrder = isset($_GET['sort']) && ($_GET['sort'] == 'DESC') ? 'DESC' : 'ASC';
 
+// Check if an event ID is specified in the URL
+$selected_event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null;
+
+$selected_event = null;
+
 // Fetch upcoming and ongoing events from the database
 $sql = "SELECT id, title, specification, start_date, end_date,
         CASE 
@@ -20,8 +25,12 @@ if (!$result) {
 }
     
 // Fetch notifications for admin
-$notif_query = "SELECT message, created_at, is_read FROM notifications WHERE notification_type = 'admin' ORDER BY created_at DESC";
+$notif_query = "SELECT message, created_at, is_read, notification_subtype, event_id FROM notifications WHERE notification_type = 'admin' ORDER BY created_at DESC";
 $notif_result = $conn->query($notif_query);
+
+if (!$notif_result) {
+    die("Notification query failed: " . $conn->error);
+}
 ?>
 
 <!DOCTYPE html>
@@ -79,21 +88,23 @@ $notif_result = $conn->query($notif_query);
                     </div>
 
                     <!-- Notifications Section -->
-                    <div class="notifications-section">
-                        <h2>Notifications</h2>
-                        <?php while ($notif = $notif_result->fetch_assoc()): ?>
-                        <div class="notification important">
-                            <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="select_quiz.php">
-                                <div class="notification-content">
-                                    <p><?php echo htmlspecialchars($notif['message']); ?></p>
-                                    <br><small><?php echo $notif['created_at']; ?></small>    
-                                </div>
-                            </a>
-                        </div>
+                        <div class="notifications-section">
+                            <h2>Notifications</h2>
+                            <?php while ($notif = $notif_result->fetch_assoc()): ?>
+                            <div class="notification important">
+                                <?php if (!empty($notif['event_id']) && $notif['notification_subtype'] == 'admin_event_registration'): ?>
+                                    <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="admin-events.php?event_id=<?php echo urlencode($notif['event_id']); ?>">
+                                <?php else: ?>
+                                    <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="admin-events.php?event_id=<?php echo urlencode($notif['event_id']); ?>">
+                                <?php endif; ?>
+                                    <div class="notification-content">
+                                        <p><?php echo htmlspecialchars($notif['message']); ?></p>
+                                        <br><small><?php echo $notif['created_at']; ?></small>    
+                                    </div>
+                                </a>
+                            </div>
                         <?php endwhile; ?>
-                        <!-- More notifications here -->
-                    </div>
-                </div>
+                    </div>          
             </div>
         </div>
     </div>
@@ -117,5 +128,6 @@ $notif_result = $conn->query($notif_query);
         document.getElementById('sortButton').textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
     });
 </script>
+
 </body>
 </html>

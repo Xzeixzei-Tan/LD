@@ -71,22 +71,24 @@ $result = $insert_stmt->execute();
 
 if ($result) {
     // Create notification for the user
-    $user_notification_message = "User " . $first_name . " has registered for event: " . $title;
-    $user_notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type) VALUES (?, ?, NOW(), 0, 'admin')";
-    $user_notification_stmt = $conn->prepare($user_notification_sql);
-    $user_notification_stmt->bind_param("is", $user_id, $user_notification_message);
-    $user_notification_stmt->execute();
-    $user_notification_stmt->close();
+    $admin_notification_message = "User " . $first_name . " has registered for event: " . $title;
+    $admin_notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, event_id) VALUES (?, ?, NOW(), 0, 'admin', ?)";
+    $admin_notification_stmt = $conn->prepare($admin_notification_sql);
+    $admin_notification_stmt->bind_param("isi", $user_id, $admin_notification_message, $event_id);
+    $admin_notification_stmt->execute();
+    $admin_notification_stmt->close();
     
     // Create notification for the admin
     // Since your admin doesn't have an account, we'll use NULL for user_id and set admin_id to NULL as well
     // but mark the notification_type as 'admin' so it shows up in the admin interface
-    //$admin_notification_message = "User " . $first_name . " has registered for event: " . $title;
-    //$admin_notification_sql = "INSERT INTO notifications (user_id, admin_id, message, created_at, is_read, notification_type) VALUES (NULL, NULL, ?, NOW(), 0, 'user')";
-    //$admin_notification_stmt = $conn->prepare($admin_notification_sql);
-    //$admin_notification_stmt->bind_param("s", $admin_notification_message);
-    //$admin_notification_stmt->execute();
-    //$admin_notification_stmt->close();
+    // Create notification for the user
+    // Create notification for the user
+    $user_notification_message = "You have successfully registered for event: " . $title;
+    $user_notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype) VALUES (?, ?, NOW(), 0, 'user', 'event_registration')";
+    $user_notification_stmt = $conn->prepare($user_notification_sql);
+    $user_notification_stmt->bind_param("is", $user_id, $user_notification_message);
+    $user_notification_stmt->execute();
+    $user_notification_stmt->close();
 } else {
     // Failed registration
     echo "<script>alert('Failed to register for this event. Please try again.'); window.location.href='user-events.php';</script>";
