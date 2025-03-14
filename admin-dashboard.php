@@ -18,7 +18,7 @@ $result = $conn->query($sql);
 if (!$result) {
     die("Query failed: " . $conn->error);
 }
-
+    
 // Fetch notifications for admin
 $notif_query = "SELECT message, created_at, is_read FROM notifications WHERE notification_type = 'admin' ORDER BY created_at DESC";
 $notif_result = $conn->query($notif_query);
