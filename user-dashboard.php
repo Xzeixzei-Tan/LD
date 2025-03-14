@@ -360,7 +360,7 @@ if ($user_result->num_rows > 0) {
 }
 
 .notification.important {
-    border-left: 4px solid #e74c3c;
+    border-left: 4px solidrgb(218, 60, 42);
     background-color: #fef9f9;
 }
 

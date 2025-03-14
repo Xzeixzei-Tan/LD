@@ -10,7 +10,7 @@ $sql = "SELECT id, title, event_specification, start_datetime, end_datetime,
             WHEN NOW() BETWEEN start_datetime AND end_datetime THEN 'Ongoing'
             ELSE 'Upcoming'
         END AS status
-        FROM events 
+        FROM events
         WHERE end_datetime >= NOW()
         ORDER BY start_datetime $sortOrder";
 $result = $conn->query($sql);
