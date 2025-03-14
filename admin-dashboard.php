@@ -86,11 +86,11 @@ $notif_result = $conn->query($notif_query);
                             <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="select_quiz.php">
                                 <div class="notification-content">
                                     <p><?php echo htmlspecialchars($notif['message']); ?></p>
-                                    <br><small><?php echo $notif['created_at']; ?></small>
-                                <?php endwhile; ?>    
+                                    <br><small><?php echo $notif['created_at']; ?></small>    
                                 </div>
                             </a>
                         </div>
+                        <?php endwhile; ?>
                         <!-- More notifications here -->
                     </div>
                 </div>
