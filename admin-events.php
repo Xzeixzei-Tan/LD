@@ -17,7 +17,7 @@ $baseSQL = "SELECT
             e.id, e.title, e.specification, e.delivery, 
             e.start_date, e.end_date, e.venue, e.archived,
             (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id) AS user_count,
-            GROUP_CONCAT(DISTINCT fs.source SEPARATOR ', ') AS funding_sources,
+            GROUP_CONCAT(DISTINCT CONCAT(fs.source, ' -  ₱', FORMAT(fs.amount, 2), '') SEPARATOR ', ') AS funding_sources,
             GROUP_CONCAT(DISTINCT s.name SEPARATOR ', ') AS speakers,  
             GROUP_CONCAT(DISTINCT 
                 CASE 
@@ -29,8 +29,8 @@ $baseSQL = "SELECT
             GROUP_CONCAT(DISTINCT 
                 CONCAT(ep.id, ':', ep.target, ':')
                 SEPARATOR '||') AS eligible_participants_data,
-            GROUP_CONCAT(DISTINCT mp.day SEPARATOR ', ') AS meal_days, 
-            GROUP_CONCAT(DISTINCT mp.meal_type SEPARATOR ', ') AS meal_types,
+            GROUP_CONCAT(DISTINCT CONCAT(mp.day_date, ':', mp.meal_types) SEPARATOR '||') AS meal_plan_data,
+            GROUP_CONCAT(DISTINCT mp.meal_types SEPARATOR ', ') AS meal_types,
             CASE 
                 WHEN NOW() BETWEEN e.start_date AND e.end_date THEN 'Ongoing'
                 WHEN e.archived = 1 THEN 'Archived'
@@ -106,7 +106,7 @@ function getSpecificParticipants($conn, $eligibleId, $target) {
             
             $participants[] = [
                 'level' => $row['school_level_name'],
-                'type' => $row['type_name                '],            
+                'type' => $row['type_name'],
                 'specialization' => !empty($specialization_names) ? implode(', ', $specialization_names) : 'N/A'
             ];
         }
@@ -126,6 +126,57 @@ function getSpecificParticipants($conn, $eligibleId, $target) {
     }
     
     return $participants;
+}
+
+// Function to get registered users for an event
+function getRegisteredUsers($conn, $eventId) {
+    $users = [];
+    
+    $sql = "SELECT 
+                ru.id AS registration_id, 
+                ru.registration_date,
+                CONCAT(u.first_name, ' ', 
+                    CASE WHEN u.middle_name IS NOT NULL AND u.middle_name != '' THEN CONCAT(u.middle_name, ' ') ELSE '' END,
+                    u.last_name,
+                    CASE WHEN u.suffix IS NOT NULL AND u.suffix != '' THEN CONCAT(' ', u.suffix) ELSE '' END
+                ) AS name,
+                u.email,
+                u.contact_no AS phone,
+                cp.name AS position,
+                cp.classification_id
+            FROM registered_users ru
+            JOIN users u ON ru.user_id = u.id
+            LEFT JOIN users_lnd ul ON ru.user_id = ul.user_id
+            LEFT JOIN class_position cp ON ul.position_id = cp.id
+            WHERE ru.event_id = ?
+            ORDER BY ru.registration_date DESC";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $eventId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        // Create designation from position and classification if available
+        $designation = '';
+        if (!empty($row['position'])) {
+            $designation = $row['position'];
+            if (!empty($row['classification'])) {
+                $designation .= ' (' . $row['classification'] . ')';
+            }
+        }
+        
+        $users[] = [
+            'id' => $row['registration_id'],
+            'name' => $row['name'],
+            'email' => $row['email'],
+            'phone' => $row['phone'],
+            'designation' => $designation,
+            'registration_date' => $row['registration_date']
+        ];
+    }
+    
+    return $users;
 }
 
 // Prepare eligibleParticipantsData for each event
@@ -160,6 +211,14 @@ while ($row = $result->fetch_assoc()) {
     
     $row['processed_eligible_data'] = json_encode($eligibleData);
     $eventsData[] = $row;
+}
+
+// After fetching event data, add this code
+$eventsWithUsers = [];
+foreach ($eventsData as $event) {
+    // Get registered users for this event
+    $users = getRegisteredUsers($conn, $event['id']);
+    $eventsWithUsers[$event['id']] = $users;
 }
 ?>
 <!DOCTYPE html>
@@ -349,6 +408,26 @@ while ($row = $result->fetch_assoc()) {
                             </button>
                         </div>
                     </div>
+                <!-- Add this new section for registered users table -->
+                <div class="detail-item-3 expanded-content" style="width: 100%;">
+                    <h4>Registered Users:</h4>
+                    <div id="registered-users-table-container" style="max-height: 300px; overflow-y: auto;">
+                        <table id="registered-users-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Name</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Email</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Phone</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Designation</th>
+                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Registration Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="registered-users-table-body">
+                                <!-- Data will be populated via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 </div>
                     <?php if ($viewArchived): ?>
                     <div class="detail-item">
@@ -361,6 +440,7 @@ while ($row = $result->fetch_assoc()) {
                     <?php endif; ?>
                 </div>
             </div>
+            </div>
         </div>
     </div>
 </div>
@@ -370,6 +450,7 @@ while ($row = $result->fetch_assoc()) {
 function showDetails(eventData) {
     const detailsSection = document.getElementById('details-section');
     const eventsSection = document.querySelector('.events-section');
+    const registeredUsersData = <?php echo json_encode($eventsWithUsers); ?>;
 
     if (currentEvent === eventData.id) {
         detailsSection.style.display = 'none';
@@ -386,7 +467,10 @@ function showDetails(eventData) {
         document.getElementById('detail-user_count').textContent = eventData.user_count;
         document.getElementById('detail-funding_sources').textContent = eventData.funding_sources || "Not specified";
         document.getElementById('detail-speakers').textContent = eventData.speakers || "Not specified";
-
+        
+        
+        // Fetch registered users for this event
+        fetchRegisteredUsers(eventData.id);
         // Process the eligible participants data
         // Update the part in the showDetails function that displays eligible participants
 
@@ -443,13 +527,54 @@ function showDetails(eventData) {
             participantDetails = "Error displaying participant data";
         }
 
+        // Now update the registered users table
+        const tableBody = document.getElementById('registered-users-table-body');
+        tableBody.innerHTML = ''; // Clear previous content
+        
+        const users = registeredUsersData[eventData.id] || [];
+        
+        if (users.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
+        } else {
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                
+                // Format the registration date
+                const regDate = new Date(user.registration_date);
+                const formattedDate = regDate.toLocaleString();
+                
+                row.innerHTML = `
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.name}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.email}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.phone || 'N/A'}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.designation || 'N/A'}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${formattedDate}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Show download button and set event ID
+        const downloadBtn = document.getElementById('download-btn');
+        downloadBtn.style.display = 'block';
+        downloadBtn.setAttribute('data-id', eventData.id);
+
         document.getElementById('detail-eligible_participants').innerHTML = participantDetails;
 
         // Display the meal plan information
-        if (eventData.meal_days && eventData.meal_types) {
-            const mealDays = eventData.meal_days.split(', ').join(', ');
-            const mealTypes = eventData.meal_types.split(', ').join(', ');
-            document.getElementById('detail-meal_plan').textContent = `${mealDays}: ${mealTypes}`;
+        if (eventData.meal_plan_data) {
+            const mealPlanItems = eventData.meal_plan_data.split('||');
+            let mealPlanText = '';
+            
+            mealPlanItems.forEach(item => {
+                // Each item is in the format "date:meal_types"
+                if (item && item.includes(':')) {
+                    mealPlanText += `${item.replace(':', ': ')}<br>`;
+                }
+            });
+            
+            document.getElementById('detail-meal_plan').innerHTML = mealPlanText;
         } else {
             document.getElementById('detail-meal_plan').textContent = "Not specified";
         }
@@ -472,6 +597,50 @@ function showDetails(eventData) {
             unarchiveBtn.setAttribute('data-id', eventData.id);
         }
     }
+}
+
+function fetchRegisteredUsers(eventId) {
+    // Show loading indicator
+    document.getElementById('registered-users-table-body').innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading...</td></tr>';
+    
+    // Fetch registered users using AJAX
+    fetch('get_registered_users.php?event_id=' + eventId)
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('registered-users-table-body');
+            
+            // Clear loading indicator
+            tableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
+                return;
+            }
+            
+            // Populate table with user data
+            data.forEach(user => {
+                const row = document.createElement('tr');
+                
+                // Format the registration date
+                const regDate = new Date(user.registration_date);
+                const formattedDate = regDate.toLocaleString();
+                
+                row.innerHTML = `
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.name}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.email}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.phone || 'N/A'}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${user.designation || 'N/A'}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">${formattedDate}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching registered users:', error);
+            document.getElementById('registered-users-table-body').innerHTML = 
+                '<tr><td colspan="5" style="text-align: center;">Error loading registered users</td></tr>';
+        });
 }
 
 function downloadParticipantsList() {

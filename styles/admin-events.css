@@ -223,10 +223,10 @@ hr {
 .details-section h2 {
     margin-top: 15px;
     margin-bottom: 15px;
-    font-family: Montserrat ;
+    font-family: Montserrat;
 }
 
-.details-section hr{
+.details-section hr {
     margin-bottom: 15px;
 }
 
@@ -249,20 +249,28 @@ hr {
 
 .details-section .detail-item p {
     font-family: Montserrat Medium;
-    font-size: 16px; 
+    font-size: 16px;
     color: #555;
 }
 
-.detail-items{
+.detail-item-0 {
     display: flex;
 }
 
-.detail-items-1{
+.detail-items {
+    display: flex;
+}
+
+.detail-items-1 {
     margin-top: 2%;
 }
 
-.detail-items-2{
+.detail-items-2 {
     margin-left: 30%;
+    margin-top: 2%;
+}
+
+.detail-item-3 {
     margin-top: 2%;
 }
 
@@ -313,25 +321,25 @@ hr {
     margin-bottom: 10px;
 }
 
-.event-content p strong{
+.event-content p strong {
     font-weight: bold;
     font-family: Montserrat;
 }
 
-.event-content span{
+.event-content span {
     position: absolute;
     background-color: #7e85af;
     color: white;
     font-family: Tilt Warp;
-    font-size: 13px;   
+    font-size: 13px;
     bottom: 10%;
     right: 2%;
     padding: 6px 14px;
     border-radius: 20px;
-    
+
 }
 
-.event-content span .archived{
+.event-content span .archived {
     background-color: white !important;
 }
 
@@ -359,16 +367,13 @@ hr {
     display: none;
 }
 
-#archive-btn{
-    float: right;
+#archive-btn {
+    display: absolute;
+    top: -5%;
     font-family: Tilt Warp;
     background-color: #2b3a8f;
     color: white;
     padding: 12px;
     border: 2px solid #2b3a8f;
     border-radius: 5px;
-    margin-top: 20px;
-    margin-bottom: 10px;
 }
-
-

@@ -61,6 +61,23 @@ if ($row = $result->fetch_assoc()) {
     $departmentOptions = str_getcsv($matches[1], ",", "'");
 }
 
+// Fetch meal plan data if event ID is available
+// This would typically be used when editing an existing event
+$mealTypesArray = [];
+if (isset($_GET['id'])) {
+    $eventId = (int)$_GET['id'];
+    $result = $conn->query("SELECT * FROM meal_plan WHERE event_id = $eventId");
+    while ($row = $result->fetch_assoc()) {
+        // Get the raw JSON value and remove quotes
+        $jsonValue = json_decode($row['meal_types']);
+        
+        // If the JSON value is a string, split it into an array
+        $mealTypesArray = explode(', ', $jsonValue);
+        
+        // Now you can work with $mealTypesArray as a normal PHP array
+    }
+}
+
 $successMessage = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -82,6 +99,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $eventId = $stmt->insert_id;
     $stmt->close();
 
+    // Insert event days into the event_days table
+    if (isset($_POST['event_days']) && is_array($_POST['event_days'])) {
+        foreach ($_POST['event_days'] as $dayNumber => $dayData) {
+            if (isset($dayData['date']) && !empty($dayData['date'])) {
+                $dayDate = $dayData['date'];
+                $startTime = isset($dayData['start_time']) ? $dayData['start_time'] : '08:00';
+                $endTime = isset($dayData['end_time']) ? $dayData['end_time'] : '17:00';
+                
+                $stmt = $conn->prepare("INSERT INTO event_days (event_id, day_date, day_number, start_time, end_time) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("isiss", $eventId, $dayDate, $dayNumber, $startTime, $endTime);
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+    }
+
     // Insert funding sources into the funding_sources table
     if (isset($_POST['funding_source'])) {
         foreach ($_POST['funding_source'] as $source) {
@@ -94,14 +127,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Insert meal plans into the meal_plan table
-    foreach ($_POST as $key => $value) {
-        if (preg_match('/^meal-(.+)-day-(\d+)$/', $key, $matches)) {
-            $mealType = $matches[1];
-            $day = $matches[2];
-            $stmt = $conn->prepare("INSERT INTO meal_plan (event_id, day, meal_type) VALUES (?, ?, ?)");
-            $stmt->bind_param("iis", $eventId, $day, $mealType);
-            $stmt->execute();
-            $stmt->close();
+    // Insert meal plans into the meal_plan table
+    if (isset($_POST['meal_plan']) && is_array($_POST['meal_plan'])) {
+        foreach ($_POST['meal_plan'] as $dayNumber => $meals) {
+            if (isset($_POST['event_days'][$dayNumber]['date']) && !empty($meals)) {
+                $dayDate = $_POST['event_days'][$dayNumber]['date'];
+                
+                // Create a simple comma-separated string of meal types
+                $mealTypesString = implode(', ', $meals);
+                
+                // Insert the meal plan record
+                $stmt = $conn->prepare("INSERT INTO meal_plan (event_id, day_date, meal_types) VALUES (?, ?, ?)");
+                $stmt->bind_param("iss", $eventId, $dayDate, $mealTypesString);
+                $stmt->execute();
+                $stmt->close();
+            }
         }
     }
 
@@ -197,6 +237,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+        
+        .event-day {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .time-inputs {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .time-inputs input {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -263,7 +320,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <?= ucfirst(str_replace('-', ' ', $option)) ?>
                                         </label>
                                         <div id="<?= $option ?>-amount" class="amount-field" style="display: none;">
-                                            <label>Amount:</label>
+                                        <label>Amount:</label>
                                             <input type="number" name="<?= $option ?>_amount" placeholder="Enter amount">
                                         </div>
                                     </div><br>
@@ -273,22 +330,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="form-row">
                                 <div class="form-col">
                                     <label for="start-date">Start Date:</label>
-                                    <input type="date" id="start-date" name="start-date" required>
+                                    <input type="date" id="start-date" name="start-date" required onchange="generateDayFields()">
                                 </div>
 
                                 <div class="form-col">
                                     <label for="end-date">End Date:</label>
-                                    <input type="date" id="end-date" name="end-date" required>
+                                    <input type="date" id="end-date" name="end-date" required onchange="generateDayFields()">
                                 </div>
                             </div>
-                            <div id="date-range-container" required></div>
+                            
+                            <!-- Event Days Section -->
+                            <div class="section-title">Event Days Schedule</div>
+                            <div id="event-days-container"></div>
                         </div>
 
-                        <!-- Add this inside your form where appropriate -->
-                        <div id="meal-plan-field" style="display: none;">
-                            <label>Meal Plan</label>
-                            <div id="meal-plan-container"></div>
-                        </div>
+                        <!-- INSERT MEAL PLAN SECTION HERE -->
+                        <?php
+                        // Meal Plan section of your form
+                        echo '<div class="form-group">';
+                        echo '<div class="section-title">Meal Plan</div>';
+                        echo '<div id="meal-plan-container">';
+                        // Only generate this if start and end dates are set
+                        if (!empty($_POST['start-date']) && !empty($_POST['end-date'])) {
+                            $startDate = new DateTime($_POST['start-date']);
+                            $endDate = new DateTime($_POST['end-date']);
+                            $dayDiff = $endDate->diff($startDate)->days + 1;
+                            
+                            for ($i = 1; $i <= $dayDiff; $i++) {
+                                $currentDate = clone $startDate;
+                                $currentDate->modify('+' . ($i - 1) . ' days');
+                                $dateString = $currentDate->format('Y-m-d');
+                                
+                                echo '<div class="meal-day">';
+                                echo '<h4>Meals for Day ' . $i . ' - ' . $dateString . '</h4>';
+                                echo '<div class="checkbox-subgroup">';
+                                
+                                $mealOptions = ['Breakfast', 'AM Snack', 'Lunch', 'PM Snack', 'Dinner'];
+                                foreach ($mealOptions as $meal) {
+                                    echo '<label>';
+                                    echo '<input type="checkbox" name="meal_plan[' . $i . '][]" value="' . $meal . '"> ' . $meal;
+                                    echo '</label>';
+                                }
+                                
+                                echo '</div>';
+                                echo '</div>';
+                            }
+                        }
+                        echo '</div>';
+                        echo '</div>';
+                        ?>
 
                         <!-- Organizers & Trainers -->
                         <div class="form-group">
@@ -365,5 +455,153 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
+
+    <script>
+        // Function to toggle amount field visibility
+        function toggleAmountField(source) {
+            const amountField = document.getElementById(source + '-amount');
+            const checkbox = document.querySelector(`input[name="funding_source[]"][value="${source}"]`);
+            if (checkbox.checked) {
+                amountField.style.display = 'block';
+            } else {
+                amountField.style.display = 'none';
+            }
+        }
+
+        // Function to add speaker field
+        function addSpeakerField() {
+            const container = document.getElementById('speakers-container');
+            const newGroup = document.createElement('div');
+            newGroup.className = 'speaker-input-group';
+            newGroup.innerHTML = `
+                <input type="text" name="speaker[]" placeholder="Enter speaker/resource person">
+                <button type="button" class="remove-speaker-btn" onclick="removeSpeakerField(this)">
+                    <i class="fas fa-minus"></i>
+                </button>
+            `;
+            container.appendChild(newGroup);
+        }
+
+        // Function to remove speaker field
+        function removeSpeakerField(button) {
+            const group = button.parentElement;
+            group.remove();
+        }
+
+        // Function to select all division checkboxes
+        function selectAllDivision() {
+            const selectAll = document.getElementById('select-all-division');
+            const checkboxes = document.querySelectorAll('.division-checkbox');
+            checkboxes.forEach((checkbox) => {
+                checkbox.checked = selectAll.checked;
+            });
+        }
+
+        // Function to toggle target personnel sections
+        document.getElementById('target-personnel').addEventListener('change', function() {
+            const target = this.value;
+            const schoolSection = document.getElementById('school-personnel');
+            const divisionSection = document.getElementById('division-personnel');
+            
+            schoolSection.style.display = (target === 'School' || target === 'Both') ? 'block' : 'none';
+            divisionSection.style.display = (target === 'Division' || target === 'Both') ? 'block' : 'none';
+        });
+
+        // Function to toggle venue field based on delivery mode
+        document.getElementById('event-mode').addEventListener('change', function() {
+            const venueField = document.getElementById('venue-field');
+            if (this.value === 'online') {
+                venueField.style.display = 'none';
+                venueField.querySelector('input').required = false;
+            } else {
+                venueField.style.display = 'block';
+                venueField.querySelector('input').required = true;
+            }
+        });
+
+        // Function to generate day fields based on start and end dates
+        function generateDayFields() {
+            const startDate = new Date(document.getElementById('start-date').value);
+            const endDate = new Date(document.getElementById('end-date').value);
+            
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                return;
+            }
+            
+            const dayDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+            const eventDaysContainer = document.getElementById('event-days-container');
+            const mealPlanContainer = document.getElementById('meal-plan-container');
+            
+            eventDaysContainer.innerHTML = '';
+            mealPlanContainer.innerHTML = '';
+            
+            if (dayDiff <= 0) {
+                alert('End date should be after start date');
+                return;
+            }
+            
+            for (let i = 0; i < dayDiff; i++) {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + i);
+                const dateString = currentDate.toISOString().split('T')[0];
+                const dayNumber = i + 1;
+                
+                // Create event day field
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'event-day';
+                dayDiv.innerHTML = `
+                    <h4>Day ${dayNumber} - ${dateString}</h4>
+                    <input type="hidden" name="event_days[${dayNumber}][date]" value="${dateString}">
+                    <div class="time-inputs">
+                        <div>
+                            <label>Start Time:</label>
+                            <input type="time" name="event_days[${dayNumber}][start_time]" value="08:00">
+                        </div>
+                        <div>
+                            <label>End Time:</label>
+                            <input type="time" name="event_days[${dayNumber}][end_time]" value="17:00">
+                        </div>
+                    </div>
+                `;
+                eventDaysContainer.appendChild(dayDiv);
+                
+                // Create meal plan field for this day
+                const mealDiv = document.createElement('div');
+                mealDiv.className = 'meal-day';
+                mealDiv.innerHTML = `
+                    <h4>Meals for Day ${dayNumber} - ${dateString}</h4>
+                    <div class="checkbox-subgroup">
+                        <label><input type="checkbox" name="meal_plan[${dayNumber}][]" value="Breakfast"> Breakfast</label>
+                        <label><input type="checkbox" name="meal_plan[${dayNumber}][]" value="AM Snack"> AM Snack</label>
+                        <label><input type="checkbox" name="meal_plan[${dayNumber}][]" value="Lunch"> Lunch</label>
+                        <label><input type="checkbox" name="meal_plan[${dayNumber}][]" value="PM Snack"> PM Snack</label>
+                        <label><input type="checkbox" name="meal_plan[${dayNumber}][]" value="Dinner"> Dinner</label>
+                    </div>
+                `;
+                mealPlanContainer.appendChild(mealDiv);
+            }
+        }
+
+        // Initialize form elements on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if delivery mode is online to hide venue field
+            const deliverySelect = document.getElementById('event-mode');
+            if (deliverySelect.value === 'online') {
+                document.getElementById('venue-field').style.display = 'none';
+            }
+            
+            // Check target personnel selection
+            const targetSelect = document.getElementById('target-personnel');
+            if (targetSelect.value === 'School' || targetSelect.value === 'Both') {
+                document.getElementById('school-personnel').style.display = 'block';
+            }
+            if (targetSelect.value === 'Division' || targetSelect.value === 'Both') {
+                document.getElementById('division-personnel').style.display = 'block';
+            }
+            
+            // Generate day fields if dates are already set
+            generateDayFields();
+        });
+    </script>
 </body>
 </html>

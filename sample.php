@@ -13,11 +13,12 @@ $conn->query($updateArchivedSQL);
 $viewArchived = isset($_GET['view']) && $_GET['view'] === 'archived';
 
 // Base SQL query to fetch event details
+// In your SQL query, make sure the event_days_data portion is included:
 $baseSQL = "SELECT 
             e.id, e.title, e.specification, e.delivery, 
             e.start_date, e.end_date, e.venue, e.archived,
             (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id) AS user_count,
-            GROUP_CONCAT(DISTINCT fs.source SEPARATOR ', ') AS funding_sources,
+            GROUP_CONCAT(DISTINCT CONCAT(fs.source, ' -  ₱', FORMAT(fs.amount, 2), '') SEPARATOR ', ') AS funding_sources,
             GROUP_CONCAT(DISTINCT s.name SEPARATOR ', ') AS speakers,  
             GROUP_CONCAT(DISTINCT 
                 CASE 
@@ -29,8 +30,13 @@ $baseSQL = "SELECT
             GROUP_CONCAT(DISTINCT 
                 CONCAT(ep.id, ':', ep.target, ':')
                 SEPARATOR '||') AS eligible_participants_data,
-            GROUP_CONCAT(DISTINCT mp.day SEPARATOR ', ') AS meal_days, 
-            GROUP_CONCAT(DISTINCT mp.meal_type SEPARATOR ', ') AS meal_types,
+            GROUP_CONCAT(DISTINCT CONCAT(mp.day_date, ':', mp.meal_types) SEPARATOR '||') AS meal_plan_data,
+            GROUP_CONCAT(DISTINCT mp.meal_types SEPARATOR ', ') AS meal_types,
+            GROUP_CONCAT(DISTINCT 
+                CONCAT(ed.day_number, ':', DATE_FORMAT(ed.day_date, '%Y-%m-%d'), ':', 
+                       TIME_FORMAT(ed.start_time, '%H:%i'), ':', 
+                       TIME_FORMAT(ed.end_time, '%H:%i'))
+                SEPARATOR '||') AS event_days_data,
             CASE 
                 WHEN NOW() BETWEEN e.start_date AND e.end_date THEN 'Ongoing'
                 WHEN e.archived = 1 THEN 'Archived'
@@ -40,7 +46,8 @@ $baseSQL = "SELECT
         LEFT JOIN funding_sources fs ON e.id = fs.event_id
         LEFT JOIN speakers s ON e.id = s.event_id
         LEFT JOIN eligible_participants ep ON e.id = ep.event_id
-        LEFT JOIN meal_plan mp ON e.id = mp.event_id";
+        LEFT JOIN meal_plan mp ON e.id = mp.event_id
+        LEFT JOIN event_days ed ON e.id = ed.event_id";
 
 // Add the WHERE clause based on whether we're viewing archived events
 if ($viewArchived) {
@@ -57,10 +64,31 @@ if (!$result) {
     die("Query failed: " . $conn->error);
 }
 
+// Function to format the event days data into a readable format
+function formatEventDaysData($eventDaysData) {
+    if (empty($eventDaysData)) {
+        return "No specific days information available";
+    }
+    
+    $daysArray = explode('||', $eventDaysData);
+    $formattedDays = [];
+    
+    foreach ($daysArray as $day) {
+        $parts = explode(':', $day);
+        if (count($parts) >= 4) {
+            $dayNumber = $parts[0];
+            $dayDate = date('F j, Y', strtotime($parts[1])); // Format: Month Day, Year
+            $startTime = date('g:i A', strtotime($parts[2])); // Format: 12-hour with AM/PM
+            $endTime = date('g:i A', strtotime($parts[3])); // Format: 12-hour with AM/PM
+            
+            $formattedDays[] = "Day $dayNumber ($dayDate): $startTime - $endTime";
+        }
+    }
+    
+    return implode('<br>', $formattedDays);
+}
+
 // Function to get specific participants for an eligible participant ID
-// Function to get specific participants for an eligible participant ID
-// Function to get specific participants for an eligible participant ID
-// Modified function to handle comma-separated specialization values
 function getSpecificParticipants($conn, $eligibleId, $target) {
     $participants = [];
     
@@ -128,7 +156,6 @@ function getSpecificParticipants($conn, $eligibleId, $target) {
     return $participants;
 }
 
-// Function to get registered users for an event
 // Function to get registered users for an event
 function getRegisteredUsers($conn, $eventId) {
     $users = [];
@@ -213,6 +240,16 @@ while ($row = $result->fetch_assoc()) {
     $row['processed_eligible_data'] = json_encode($eligibleData);
     $eventsData[] = $row;
 }
+
+// Format the event days data for each event
+foreach ($eventsData as &$event) {
+    if (isset($event['event_days_data'])) {
+        $event['formatted_event_days'] = formatEventDaysData($event['event_days_data']);
+    } else {
+        $event['formatted_event_days'] = "No specific days information available";
+    }
+}
+unset($event); // Break the reference to the last element
 
 // After fetching event data, add this code
 $eventsWithUsers = [];
@@ -351,8 +388,21 @@ foreach ($eventsData as $event) {
                     ?>
                 </div>
                 <div class="details-section" id="details-section">
+                    <div class="details-section-header">
                     <h2>Details</h2>
+                    <?php if ($viewArchived): ?>
+                    <div class="detail-item">
+                        <button onclick="unarchiveEvent()" id="unarchive-btn" style="display:none;">Unarchive Event</button>
+                    </div>
+                    <?php else: ?>
+                    <div class="detail-item">
+                        <button onclick="archiveEvent()" id="archive-btn" style="display:none;">Archive Event</button>
+                    </div>
+                    <?php endif; ?>
+                    </div>
                     <hr>
+
+
                     <h3 id="detail-title"></h3>
                     <button class="expand-btn" onclick="toggleExpand()"><i class="fas fa-expand"></i></button>
                 <div class="detail-items">
@@ -372,6 +422,10 @@ foreach ($eventsData as $event) {
                         <div class="detail-item">
                             <h4>End:</h4>
                             <p id="detail-end"></p>
+                        </div>
+                        <div class="detail-item">
+                            <h4>Event Schedule:</h4>
+                            <p id="detail-event-days"></p>
                         </div>
                         <div class="detail-item">
                             <h4>Status:</h4>
@@ -409,7 +463,10 @@ foreach ($eventsData as $event) {
                             </button>
                         </div>
                     </div>
+                </div>
+
                 <!-- Add this new section for registered users table -->
+                 
                 <div class="detail-item expanded-content" style="width: 100%;">
                     <h4>Registered Users:</h4>
                     <div id="registered-users-table-container" style="max-height: 300px; overflow-y: auto;">
@@ -430,15 +487,6 @@ foreach ($eventsData as $event) {
                     </div>
                 </div>
                 </div>
-                    <?php if ($viewArchived): ?>
-                    <div class="detail-item">
-                        <button onclick="unarchiveEvent()" id="unarchive-btn" style="display:none;">Unarchive Event</button>
-                    </div>
-                    <?php else: ?>
-                    <div class="detail-item">
-                        <button onclick="archiveEvent()" id="archive-btn" style="display:none;">Archive Event</button>
-                    </div>
-                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -447,38 +495,180 @@ foreach ($eventsData as $event) {
 <script>
     let currentEvent = null;
 
-function showDetails(eventData) {
-    const detailsSection = document.getElementById('details-section');
-    const eventsSection = document.querySelector('.events-section');
-    // Get the registered users data that was passed from PHP
-    const registeredUsersData = <?php echo json_encode($eventsWithUsers); ?>;
+    function showDetails(eventData) {
+        const detailsSection = document.getElementById('details-section');
+        const eventsSection = document.querySelector('.events-section');
+        const registeredUsersData = <?php echo json_encode($eventsWithUsers); ?>;
 
-    if (currentEvent === eventData.id) {
-        detailsSection.style.display = 'none';
-        eventsSection.classList.remove('shrink');
-        currentEvent = null;
-    } else {
-        document.getElementById('detail-title').textContent = eventData.title;
-        document.getElementById('detail-event_specification').textContent = eventData.specification;
-        document.getElementById('detail-delivery').textContent = eventData.delivery;
-        document.getElementById('detail-start').textContent = eventData.start_date;
-        document.getElementById('detail-end').textContent = eventData.end_date;
-        document.getElementById('detail-status').textContent = eventData.status;
-        document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
-        document.getElementById('detail-user_count').textContent = eventData.user_count;
-        document.getElementById('detail-funding_sources').textContent = eventData.funding_sources || "Not specified";
-        document.getElementById('detail-speakers').textContent = eventData.speakers || "Not specified";
-        
-        // Update the registered users table directly with the data we already have
-        const tableBody = document.getElementById('registered-users-table-body');
-        tableBody.innerHTML = ''; // Clear previous content
-        
-        const users = registeredUsersData[eventData.id] || [];
-        
-        if (users.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
+        if (currentEvent === eventData.id) {
+            detailsSection.style.display = 'none';
+            eventsSection.classList.remove('shrink');
+            currentEvent = null;
         } else {
-            users.forEach(user => {
+            document.getElementById('detail-title').textContent = eventData.title;
+            document.getElementById('detail-event_specification').textContent = eventData.specification;
+            document.getElementById('detail-delivery').textContent = eventData.delivery;
+            document.getElementById('detail-start').textContent = eventData.start_date;
+            document.getElementById('detail-end').textContent = eventData.end_date;
+            // In your showDetails function:
+            document.getElementById('detail-event-days').innerHTML = eventData.formatted_event_days || "No specific days information available";
+            document.getElementById('detail-status').textContent = eventData.status;
+            document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
+            document.getElementById('detail-user_count').textContent = eventData.user_count;
+            document.getElementById('detail-funding_sources').textContent = eventData.funding_sources || "Not specified";
+            document.getElementById('detail-speakers').textContent = eventData.speakers || "Not specified";
+            
+            
+            // Fetch registered users for this event
+            fetchRegisteredUsers(eventData.id);
+            // Process the eligible participants data
+            // Update the part in the showDetails function that displays eligible participants
+
+            let participantDetails = '';
+
+            try {
+                if (eventData.processed_eligible_data) {
+                    const eligibleData = JSON.parse(eventData.processed_eligible_data);
+
+                    eligibleData.forEach(participant => {
+                        if (participant.target === 'School') {
+                            participantDetails += `<strong>School:</strong><br>`;
+                            if (participant.specificParticipants && participant.specificParticipants.length > 0) {
+                                participant.specificParticipants.forEach(school => {
+                                    if (typeof school === 'object') {
+                                        // Modified to display the actual names fetched from the database
+                                        participantDetails += ` Level: ${school.level || 'N/A'} <br> Type: ${school.type || 'N/A'} <br> Specialization: ${school.specialization || 'N/A'}<br>`;
+                                    } else {
+                                        // Fallback for legacy data structure
+                                        participantDetails += `- ${school}<br>`;
+                                    }
+                                });
+                                participantDetails += `<br>`;
+                            } else {
+                                participantDetails += '<em>All Schools</em><br><br>';
+                            }
+                        } 
+                        else if (participant.target === 'Division') {
+                            participantDetails += `<strong>Deparment/Unit:</strong><br>`;
+                            if (participant.specificParticipants && participant.specificParticipants.length > 0) {
+                                participant.specificParticipants.forEach(division => {
+                                    if (typeof division === 'object') {
+                                        // Modified to display division object properties if they exist
+                                        const divisionProps = Object.entries(division)
+                                            .map(([key, value]) => `${key ? key : ''}${value || 'N/A'}`)
+                                            .join(', ');
+                                        participantDetails += ` ${divisionProps}<br>`;
+                                    } else {
+                                        // Fallback for string values
+                                        participantDetails += `: ${division}<br>`;
+                                    }
+                                });
+                                participantDetails += `<br>`;
+                            } else {
+                                participantDetails += '<em>All Departments/Units</em><br><br>';
+                            }
+                        } else if (participant.target === 'all') {
+                            participantDetails += `<strong>All Personnel</strong><br><br>`;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error parsing eligible participants data:", error);
+                participantDetails = "Error displaying participant data";
+            }
+
+            // Now update the registered users table
+            const tableBody = document.getElementById('registered-users-table-body');
+            tableBody.innerHTML = ''; // Clear previous content
+            
+            const users = registeredUsersData[eventData.id] || [];
+            
+            if (users.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
+            } else {
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    
+                    // Format the registration date
+                    const regDate = new Date(user.registration_date);
+                    const formattedDate = regDate.toLocaleString();
+                    
+                    row.innerHTML = `
+                        <td style="border: 1px solid #ddd; padding: 8px;">${user.name}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${user.email}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${user.phone || 'N/A'}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${user.designation || 'N/A'}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${formattedDate}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            }
+            
+            // Show download button and set event ID
+            const downloadBtn = document.getElementById('download-btn');
+            downloadBtn.style.display = 'block';
+            downloadBtn.setAttribute('data-id', eventData.id);
+
+            document.getElementById('detail-eligible_participants').innerHTML = participantDetails;
+
+            // Display the meal plan information
+            if (eventData.meal_plan_data) {
+                const mealPlanItems = eventData.meal_plan_data.split('||');
+                let mealPlanText = '';
+                
+                mealPlanItems.forEach(item => {
+                    // Each item is in the format "date:meal_types"
+                    if (item && item.includes(':')) {
+                        mealPlanText += `${item.replace(':', ': ')}<br>`;
+                    }
+                });
+                
+                document.getElementById('detail-meal_plan').innerHTML = mealPlanText;
+            } else {
+                document.getElementById('detail-meal_plan').textContent = "Not specified";
+            }
+
+            detailsSection.style.display = 'block';
+            eventsSection.classList.add('shrink');
+            currentEvent = eventData.id;
+            
+            // Show/hide archive/unarchive buttons as appropriate
+            const archiveBtn = document.getElementById('archive-btn');
+                archiveBtn.style.display = 'block';
+            const unarchiveBtn = document.getElementById('unarchive-btn');
+            
+            if (archiveBtn) {
+                archiveBtn.setAttribute('data-id', eventData.id);
+            }
+            
+            if (unarchiveBtn) {
+                unarchiveBtn.style.display = 'block';
+                unarchiveBtn.setAttribute('data-id', eventData.id);
+            }
+        }
+    }
+
+function fetchRegisteredUsers(eventId) {
+    // Show loading indicator
+    document.getElementById('registered-users-table-body').innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading...</td></tr>';
+    
+    // Fetch registered users using AJAX
+    fetch('get_registered_users.php?event_id=' + eventId)
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('registered-users-table-body');
+            
+            // Clear loading indicator
+            tableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
+                return;
+            }
+            
+            // Populate table with user data
+            data.forEach(user => {
                 const row = document.createElement('tr');
                 
                 // Format the registration date
@@ -495,99 +685,13 @@ function showDetails(eventData) {
                 
                 tableBody.appendChild(row);
             });
-        }
-        
-        // Process the eligible participants data
-        let participantDetails = '';
-
-        try {
-            if (eventData.processed_eligible_data) {
-                const eligibleData = JSON.parse(eventData.processed_eligible_data);
-
-                eligibleData.forEach(participant => {
-                    if (participant.target === 'School') {
-                        participantDetails += `<strong>School:</strong><br>`;
-                        if (participant.specificParticipants && participant.specificParticipants.length > 0) {
-                            participant.specificParticipants.forEach(school => {
-                                if (typeof school === 'object') {
-                                    // Modified to display the actual names fetched from the database
-                                    participantDetails += ` Level: ${school.level || 'N/A'} <br> Type: ${school.type || 'N/A'} <br> Specialization: ${school.specialization || 'N/A'}<br>`;
-                                } else {
-                                    // Fallback for legacy data structure
-                                    participantDetails += `- ${school}<br>`;
-                                }
-                            });
-                            participantDetails += `<br>`;
-                        } else {
-                            participantDetails += '<em>All Schools</em><br><br>';
-                        }
-                    } 
-                    else if (participant.target === 'Division') {
-                        participantDetails += `<strong>Department/Unit:</strong><br>`;
-                        if (participant.specificParticipants && participant.specificParticipants.length > 0) {
-                            participant.specificParticipants.forEach(division => {
-                                if (typeof division === 'object') {
-                                    // Modified to display division object properties if they exist
-                                    const divisionProps = Object.entries(division)
-                                        .map(([key, value]) => `${key ? key : ''}${value || 'N/A'}`)
-                                        .join(', ');
-                                    participantDetails += ` ${divisionProps}<br>`;
-                                } else {
-                                    // Fallback for string values
-                                    participantDetails += `: ${division}<br>`;
-                                }
-                            });
-                            participantDetails += `<br>`;
-                        } else {
-                            participantDetails += '<em>All Departments/Units</em><br><br>';
-                        }
-                    } else if (participant.target === 'all') {
-                        participantDetails += `<strong>All Personnel</strong><br><br>`;
-                    }
-                });
-            }
-        } catch (error) {
-            console.error("Error parsing eligible participants data:", error);
-            participantDetails = "Error displaying participant data";
-        }
-
-        document.getElementById('detail-eligible_participants').innerHTML = participantDetails;
-
-        // Show download button and set event ID
-        const downloadBtn = document.getElementById('download-btn');
-        downloadBtn.style.display = 'block';
-        downloadBtn.setAttribute('data-id', eventData.id);
-
-        // Display the meal plan information
-        if (eventData.meal_days && eventData.meal_types) {
-            const mealDays = eventData.meal_days.split(', ').join(', ');
-            const mealTypes = eventData.meal_types.split(', ').join(', ');
-            document.getElementById('detail-meal_plan').textContent = `${mealDays}: ${mealTypes}`;
-        } else {
-            document.getElementById('detail-meal_plan').textContent = "Not specified";
-        }
-
-        detailsSection.style.display = 'block';
-        eventsSection.classList.add('shrink');
-        currentEvent = eventData.id;
-        
-        // Show/hide archive/unarchive buttons as appropriate
-        const archiveBtn = document.getElementById('archive-btn');
-        if (archiveBtn) {
-            archiveBtn.style.display = 'block';
-            archiveBtn.setAttribute('data-id', eventData.id);
-        }
-        
-        const unarchiveBtn = document.getElementById('unarchive-btn');
-        if (unarchiveBtn) {
-            unarchiveBtn.style.display = 'block';
-            unarchiveBtn.setAttribute('data-id', eventData.id);
-        }
-    }
+        })
+        .catch(error => {
+            console.error('Error fetching registered users:', error);
+            document.getElementById('registered-users-table-body').innerHTML = 
+                '<tr><td colspan="5" style="text-align: center;">Error loading registered users</td></tr>';
+        });
 }
-
-// Remove the fetchRegisteredUsers function as we're not using AJAX anymore
-// Instead, we're directly using the data passed from PHP
 
 function downloadParticipantsList() {
     const eventId = document.getElementById('download-btn').getAttribute('data-id');

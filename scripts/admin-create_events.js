@@ -2,31 +2,38 @@
 function toggleVenueFieldVisibility() {
     const deliverySelect = document.getElementById('event-mode');
     const venueField = document.getElementById('venue-field');
+
     if (deliverySelect.value === 'online') {
         venueField.style.display = 'none';
+        // Clear the venue field when it's hidden
+        document.querySelector('input[name="venue"]').removeAttribute('required');
     } else {
         venueField.style.display = 'block';
+        // Make the venue field required when it's visible
+        document.querySelector('input[name="venue"]').setAttribute('required', '');
     }
 }
 
 // Function to toggle meal plan field visibility based on delivery mode
 function toggleMealPlanFieldVisibility() {
     const deliverySelect = document.getElementById('event-mode');
-    const mealPlanField = document.getElementById('meal-plan-field');
+    const mealPlanSection = document.getElementById('meal-plan-section');
+
     if (deliverySelect.value === 'online') {
-        mealPlanField.style.display = 'none';
+        mealPlanSection.style.display = 'none';
     } else {
-        mealPlanField.style.display = 'block';
+        mealPlanSection.style.display = 'block';
     }
 }
 
-// Function to toggle amount field for funding sources
-function toggleAmountField(funding) {
-    let amountField = document.getElementById(funding + "-amount");
-    if (document.querySelector(`input[value='${funding}']`).checked) {
-        amountField.style.display = "block";
+// Function to toggle amount field visibility
+function toggleAmountField(source) {
+    const amountField = document.getElementById(source + '-amount');
+    const checkbox = document.querySelector(`input[name="funding_source[]"][value="${source}"]`);
+    if (checkbox.checked) {
+        amountField.style.display = 'block';
     } else {
-        amountField.style.display = "none";
+        amountField.style.display = 'none';
     }
 }
 
@@ -121,7 +128,7 @@ function calculateDateRange() {
                     const mealCheckbox = document.createElement('input');
                     mealCheckbox.type = 'checkbox';
                     mealCheckbox.name = `meal-${mealType}-day-${dayCount}`;
-                    mealCheckbox.value = '1';
+                    mealCheckbox.value = 'on';  // Changed from '1' to 'on' to match the PHP expected value
 
                     mealLabel.appendChild(mealCheckbox);
                     mealLabel.appendChild(document.createTextNode(` ${mealType.replace('-', ' ').toUpperCase()}`));
@@ -167,7 +174,74 @@ function calculateDateRange() {
             } else {
                 sameTimeCheckboxContainer.innerHTML = '';
             }
+
+            // After generating the meal plan, check if we should show it
+            toggleMealPlanFieldVisibility();
         }
+    }
+}
+
+// Function to generate event days - alias for calculateDateRange for backward compatibility
+// Function to generate day fields based on start and end dates
+function generateDayFields() {
+    const startDate = new Date(document.getElementById('start-date').value);
+    const endDate = new Date(document.getElementById('end-date').value);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        return;
+    }
+
+    const dayDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+    const eventDaysContainer = document.getElementById('event-days-container');
+    const mealPlanContainer = document.getElementById('meal-plan-container');
+
+    eventDaysContainer.innerHTML = '';
+    mealPlanContainer.innerHTML = '';
+
+    if (dayDiff <= 0) {
+        alert('End date should be after start date');
+        return;
+    }
+
+    for (let i = 0; i < dayDiff; i++) {
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + i);
+        const dateString = currentDate.toISOString().split('T')[0];
+        const dayNumber = i + 1;
+
+        // Create event day field
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'event-day';
+        dayDiv.innerHTML = `
+            <h4>Day ${dayNumber} - ${dateString}</h4>
+            <input type="hidden" name="event_days[${dayNumber}][date]" value="${dateString}">
+            <div class="time-inputs">
+                <div>
+                    <label>Start Time:</label>
+                    <input type="time" name="event_days[${dayNumber}][start_time]" value="08:00">
+                </div>
+                <div>
+                    <label>End Time:</label>
+                    <input type="time" name="event_days[${dayNumber}][end_time]" value="17:00">
+                </div>
+            </div>
+        `;
+        eventDaysContainer.appendChild(dayDiv);
+
+        // Create meal plan field for this day
+        const mealDiv = document.createElement('div');
+        mealDiv.className = 'meal-day';
+        mealDiv.innerHTML = `
+            <h4>Meals for Day ${dayNumber} - ${dateString}</h4>
+            <div class="checkbox-subgroup">
+                <label><input type="checkbox" name="meal_plan[${dayNumber}][]" value="Breakfast"> Breakfast</label>
+                <label><input type="checkbox" name="meal_plan[${dayNumber}][]" value="AM Snack"> AM Snack</label>
+                <label><input type="checkbox" name="meal_plan[${dayNumber}][]" value="Lunch"> Lunch</label>
+                <label><input type="checkbox" name="meal_plan[${dayNumber}][]" value="PM Snack"> PM Snack</label>
+                <label><input type="checkbox" name="meal_plan[${dayNumber}][]" value="Dinner"> Dinner</label>
+            </div>
+        `;
+        mealPlanContainer.appendChild(mealDiv);
     }
 }
 
@@ -183,7 +257,6 @@ function validateDateRange() {
 
     // Update date range and meal plan after validating dates
     calculateDateRange();
-    toggleMealPlanFieldVisibility();
 }
 
 // Functions to toggle personnel display
@@ -226,16 +299,25 @@ function updateSelectAllDivision() {
 
 // Call the functions on page load to set the initial state
 document.addEventListener('DOMContentLoaded', function () {
-
     // Initialize toggle functions
-    toggleVenueFieldVisibility();
-    toggleMealPlanFieldVisibility();
+    const eventModeSelect = document.getElementById('event-mode');
+
+    // Set initial event mode value handling
+    if (eventModeSelect.value === '') {
+        // If no value is selected, both sections should be visible until a specific option is selected
+        document.getElementById('venue-field').style.display = 'block';
+        document.getElementById('meal-plan-section').style.display = 'none'; // Hide meal plan initially
+    } else {
+        // Apply toggles based on current selection
+        toggleVenueFieldVisibility();
+        toggleMealPlanFieldVisibility();
+    }
+
     togglePersonnelFields();
     calculateDateRange();
 
-
     // Add event listener for delivery/event-mode select change
-    document.getElementById('event-mode').addEventListener('change', function () {
+    eventModeSelect.addEventListener('change', function () {
         toggleVenueFieldVisibility();
         toggleMealPlanFieldVisibility();
         calculateDateRange();
