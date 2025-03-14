@@ -20,15 +20,15 @@ $selected_event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'unregistered';
 
 // Fetch all events from the database
-$sql = "SELECT e.id, e.title, e.start_datetime, e.end_datetime, e.venue, e.event_specification, e.delivery, e.organizer_name,
+$sql = "SELECT e.id, e.title, e.start_date, e.end_date, e.venue, e.specification, e.delivery, e.proponent,
                (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered,
                CASE 
-                   WHEN NOW() BETWEEN e.start_datetime AND e.end_datetime THEN 'Ongoing'
-                   WHEN NOW() < e.start_datetime THEN 'Upcoming'
+                   WHEN NOW() BETWEEN e.start_date AND e.end_date THEN 'Ongoing'
+                   WHEN NOW() < e.start_date THEN 'Upcoming'
                    ELSE 'Past'
                END AS status
         FROM events e  
-        ORDER BY e.start_datetime DESC";
+        ORDER BY e.start_date DESC";
 $stmt = $conn->prepare($sql);
 
 // Check if the prepare statement was successful
@@ -109,7 +109,7 @@ if ($selected_event_id) {
     $stmt->close();
     
     // Fetch speakers for the selected event
-    $speakers_sql = "SELECT speaker_name FROM speakers WHERE event_id = ?";
+    $speakers_sql = "SELECT name FROM speakers WHERE event_id = ?";
     $stmt = $conn->prepare($speakers_sql);
     $stmt->bind_param("i", $selected_event_id);
     $stmt->execute();
@@ -117,7 +117,7 @@ if ($selected_event_id) {
     
     if ($speakers_result) {
         while ($speaker = $speakers_result->fetch_assoc()) {
-            $speakers[] = $speaker['speaker_name'];
+            $speakers[] = $speaker['name'];
         }
     }
     $stmt->close();
@@ -751,8 +751,8 @@ html {
                                 echo '<a class="events-btn" href="user-events.php?event_id=' . urlencode($row['id']) . '&tab=registered">';
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                                echo '<p>'. '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["event_specification"]) . '</p>';
-                                echo '<p>' . '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
+                                echo '<p>'. '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["specification"]) . '</p>';
+                                echo '<p>' . '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>';
                                 echo '<span class="status-badge status-' . strtolower($row["status"]) . '">' . htmlspecialchars($row["status"]) . '</span>';
                                 echo '</div></a>';
                                 echo '</div>';
@@ -774,8 +774,8 @@ html {
                                 echo '<a class="events-btn" href="user-events.php?event_id=' . urlencode($row['id']) . '&tab=unregistered">';
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                                echo '<p>' . '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["event_specification"]) . '</p>';
-                                echo '<p>'. '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_datetime"])) . '</p>';
+                                echo '<p>' . '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["specification"]) . '</p>';
+                                echo '<p>'. '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>';
                                 echo '</div></a>';
                                 echo '</div>';
                             }
@@ -806,22 +806,22 @@ html {
 
                             <div class="detail-item expanded-content">
                                 <h4>Event Specification:</h4>
-                                <p id="detail-specification"><?php echo htmlspecialchars($selected_event["event_specification"]); ?></p>
+                                <p id="detail-specification"><?php echo htmlspecialchars($selected_event["specification"]); ?></p>
                             </div>
 
                             <div class="detail-item">
                                 <h4>Start:</h4>
-                                <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_datetime"]); ?></p>
+                                <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_date"]); ?></p>
                             </div>
                             <div class="detail-item">
                                 <h4>End:</h4>
-                                <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_datetime"]); ?></p>
+                                <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_date"]); ?></p>
                             </div>
                         </div>
                         <div class="detail-items-2">
                             <div class="detail-item expanded-content">
                                 <h4>Organizer:</h4>
-                                <p id="detail-organizer"><?php echo htmlspecialchars($selected_event["organizer_name"] ?? "Not specified"); ?></p>
+                                <p id="detail-organizer"><?php echo htmlspecialchars($selected_event["proponent"] ?? "Not specified"); ?></p>
                             </div>
 
                             <div class="detail-item expanded-content">

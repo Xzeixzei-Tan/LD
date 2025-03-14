@@ -16,14 +16,14 @@ if (isset($_SESSION['message'])) {
 $sortOrder = isset($_GET['sort']) && ($_GET['sort'] == 'DESC') ? 'DESC' : 'ASC';
 
 // Fetch upcoming and ongoing events from the database
-$sql = "SELECT id, title, event_specification, start_datetime, end_datetime,
+$sql = "SELECT id, title, specification, start_date, end_date,
         CASE 
-            WHEN NOW() BETWEEN start_datetime AND end_datetime THEN 'Ongoing'
+            WHEN NOW() BETWEEN start_date AND end_date THEN 'Ongoing'
             ELSE 'Upcoming'
         END AS status
         FROM events 
-        WHERE end_datetime >= NOW()
-        ORDER BY start_datetime $sortOrder";
+        WHERE end_date >= NOW()
+        ORDER BY start_date $sortOrder";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -423,8 +423,8 @@ if ($user_result->num_rows > 0) {
                                 <a class="events-btn" href="user-events.php?event_id=<?php echo urlencode($event['id']); ?>">
                                 <div class="event-content">
                                     <h3><?php echo htmlspecialchars($event['title']); ?></h3>
-                                    <p>Event Specification: <?php echo htmlspecialchars($event['event_specification']); ?></p>
-                                    <p style="visibility: hidden;"><?php echo htmlspecialchars($event['start_datetime']); ?></p>
+                                    <p>Event Specification: <?php echo htmlspecialchars($event['specification']); ?></p>
+                                    <p style="visibility: hidden;"><?php echo htmlspecialchars($event['start_date']); ?></p>
                                     <?php if ($event["status"] === "Ongoing") { ?>
                                             <span>Ongoing...</span>
                                     <?php } ?>        
