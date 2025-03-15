@@ -78,10 +78,19 @@ if (!$notif_result) {
                                 <div class="event-content">
                                     <h3><?php echo htmlspecialchars($event['title']); ?></h3>
                                     <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['specification']); ?></p>
-                                    <p><strong>Start Date:</strong> <?php echo htmlspecialchars($event['start_date']); ?></p>
-                                    <?php if ($event['status'] === 'Ongoing') : ?>
-                                        <span class="ongoing-label">Ongoing</span>
-                                    <?php endif; ?>
+                                    <div class="event-dates">
+                                    <i class="fas fa-calendar-day"></i>
+                                    <?php 
+                                        $start_date = new DateTime($event['start_date']);
+                                        $end_date = new DateTime($event['end_date']);
+                                        echo $start_date->format('M d') . ' - ' . $end_date->format('M d, Y'); 
+                                    ?>
+                                </div>
+                                <?php if ($event["status"] === "Ongoing") { ?>
+                                    <span class="ongoing"><i class="fas fa-circle"></i> Ongoing</span>
+                                <?php } else { ?>
+                                    <span class="upcoming"><i class="fas fa-hourglass-start"></i> Upcoming</span>
+                                <?php } ?>  
                                 </div>
                             </div>
                         <?php endwhile; ?>

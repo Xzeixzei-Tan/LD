@@ -4,7 +4,7 @@
     box-sizing: border-box;
     font-family: Arial, sans-serif;
 }
-     
+
 body,
 html {
     height: 100%;
@@ -185,7 +185,7 @@ hr {
     transition: all 0.2s ease;
 }
 
-#sortButton i{
+#sortButton i {
     margin-right: 5px;
 }
 
@@ -198,20 +198,32 @@ hr {
 
 /* Event Cards Enhancement */
 .event {
-    background-color: #f4f6fc;
-    border-radius: 10px;
+    background-color: #f8fcfa;
+    border-left: 4px solid #12753E;
+    border-radius: 8px;
     padding: 18px;
+    position: relative;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
     margin-bottom: 15px;
-    display: flex;
-    flex-direction: column;
-    word-wrap: break-word;
-    border-left: 4px solid #2b3a8f;
-    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .event:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(43, 58, 143, 0.15);
+}
+
+.event-dates {
+    font-size: 13px;
+    color: #777;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.event-dates i {
+    margin-right: 5px;
+    color: #2b3a8f;
 }
 
 .event-content {
@@ -225,7 +237,7 @@ hr {
 }
 
 .event-content h3 {
-    font-size: 18px;
+    font-size: 20px;
     margin-bottom: 13px;
     font-family: Montserrat Extrabold;
     overflow-wrap: break-word;
@@ -356,10 +368,51 @@ hr {
     .content-area {
         flex-direction: column;
     }
-    
+
     .events-section,
     .notifications-section {
         width: 100%;
         flex: none;
+    }
+}
+
+/* Status-specific styling */
+.event-content span {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: Tilt Warp;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.event-content span.ongoing {
+    background: #12753E;
+    color: white;
+    animation: pulse 2s infinite;
+}
+
+.event-content span.upcoming {
+    background: #95A613;
+    color: white;
+}
+
+/* Add a pulse animation for ongoing events */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(18, 117, 62, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(18, 117, 62, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(18, 117, 62, 0);
     }
 }

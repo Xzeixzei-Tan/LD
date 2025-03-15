@@ -246,6 +246,7 @@ if ($user_result->num_rows > 0) {
     font-family: 'Wesley Demo', serif;
     transition: all 0.3s ease;
     max-height: fit-content;
+    
 }
 
 .events-section {
@@ -310,6 +311,7 @@ if ($user_result->num_rows > 0) {
     position: relative;
     transition: all 0.2s ease;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    margin-bottom: 15px;
 }
 
 .event:hover, .notification:hover {
@@ -474,8 +476,8 @@ if ($user_result->num_rows > 0) {
 
             <div class="content-area">
                 <div class="events-section">
-                <?php while ($event = $result->fetch_assoc()) : ?> 
-                    <h2>Events</h2>   
+                <h2>Events</h2>
+                <?php while ($event = $result->fetch_assoc()) : ?>    
                         <div class="event">
                             <a class="events-btn" href="user-events.php?event_id=<?php echo urlencode($event['id']); ?>">
                             <div class="event-content">
