@@ -133,7 +133,7 @@ if (!$notif_result) {
     // Update the sort order label and button text on page load
     document.addEventListener('DOMContentLoaded', function() {
         const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
-        document.getElementById('sortOrderLabel').textContent = currentSortOrder === 'ASC' ? 'Ascending' : 'Descending';
+        document.getElementById('sortOrder').textContent = currentSortOrder === 'ASC' ? 'Ascending' : 'Descending';
         document.getElementById('sortButton').textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
     });
 </script>

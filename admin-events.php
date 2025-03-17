@@ -756,48 +756,31 @@ document.addEventListener('DOMContentLoaded', () => {
         div.addEventListener('click', selectEvent);
     });
 });
-</script>
 
-<?php
-// Add this near the end of your admin-events.php file, right before </body>
 
-// Check if an event_id was passed in the URL
-$selected_event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null;
-
-// JavaScript to automatically show details for the selected event
-if ($selected_event_id) {
-    echo '<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Find the event data for the selected event
-        let foundEvent = null;
-        const eventsData = ' . json_encode($eventsData) . ';
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if an event_id is in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('event_id');
+    
+    if (eventId) {
+        // Find the event with the matching ID
+        const events = <?php echo json_encode($eventsData); ?>;
+        const event = events.find(e => e.id == eventId);
         
-        for (let i = 0; i < eventsData.length; i++) {
-            if (eventsData[i].id == ' . $selected_event_id . ') {
-                foundEvent = eventsData[i];
-                break;
-            }
-        }
-        
-        // If we found the event, show its details
-        if (foundEvent) {
-            showDetails(foundEvent);
+        if (event) {
+            // Show the details for this event
+            showDetails(event);
             
-            // Optional: scroll to the event in the list and highlight it
-            const eventElements = document.querySelectorAll(".events-btn");
-            for (let i = 0; i < eventElements.length; i++) {
-                const onclick = eventElements[i].getAttribute("onclick");
-                if (onclick && onclick.includes(\'"id":' . $selected_event_id . '\')) {
-                    eventElements[i].scrollIntoView({ behavior: "smooth", block: "center" });
-                    eventElements[i].classList.add("highlighted"); // You may need to add this CSS class
-                    break;
-                }
+            // Scroll to the event in the list
+            const eventElement = document.querySelector(`.events-btn[onclick*='"id":${eventId}']`);
+            if (eventElement) {
+                eventElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
-    });
-    </script>';
-}
-?>
+    }
+});
+</script>
 
 </body>
 </html>
