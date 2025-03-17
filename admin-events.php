@@ -74,14 +74,23 @@ function formatEventDaysData($eventDaysData) {
     $formattedDays = [];
     
     foreach ($daysArray as $day) {
-        $parts = explode(':', $day);
-        if (count($parts) >= 4) {
-            $dayNumber = $parts[0];
-            $dayDate = date('F j, Y', strtotime($parts[1])); // Format: Month Day, Year
-            $startTime = date('g:i A', strtotime($parts[2])); // Format: 12-hour with AM/PM
-            $endTime = date('g:i A', strtotime($parts[3])); // Format: 12-hour with AM/PM
+        // Use a regular expression to extract the parts
+        if (preg_match('/^(\d+):(\d{4}-\d{2}-\d{2}):(\d{2}):(\d{2}):(\d{2}):(\d{2})$/', $day, $matches)) {
+            $dayNumber = $matches[1];
+            $dayDate = $matches[2];
+            $startHour = $matches[3];
+            $startMinute = $matches[4];
+            $endHour = $matches[5];
+            $endMinute = $matches[6];
             
-            $formattedDays[] = "Day $dayNumber ($dayDate): $startTime - $endTime";
+            // Format the date and times
+            $formattedDate = date('F j, Y', strtotime($dayDate));
+            
+            // Format the times
+            $startTime = date('g:i A', strtotime("2000-01-01 $startHour:$startMinute"));
+            $endTime = date('g:i A', strtotime("2000-01-01 $endHour:$endMinute"));
+            
+            $formattedDays[] = "Day $dayNumber ($formattedDate): $startTime - $endTime";
         }
     }
     
@@ -445,10 +454,6 @@ foreach ($eventsData as $event) {
                     </div>
                     <div class="detail-items-2 expanded-content">
                         <div class="detail-item">
-                            <h4>Registered Users:</h4>
-                            <p id="detail-user_count"></p>
-                        </div>
-                        <div class="detail-item">
                             <h4>Funding Sources:</h4>
                             <p id="detail-funding_sources"></p>
                         </div>
@@ -476,6 +481,8 @@ foreach ($eventsData as $event) {
                  
                 <div class="detail-item expanded-content" style="width: 100%;">
                     <h4>Registered Users:</h4>
+                    <p id="detail-user_count"></p>
+
                     <div id="registered-users-table-container" style="max-height: 300px; overflow-y: auto;">
                         <table id="registered-users-table" style="width: 100%; border-collapse: collapse;">
                             <thead>
@@ -758,28 +765,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if an event_id is in the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('event_id');
-    
-    if (eventId) {
-        // Find the event with the matching ID
-        const events = <?php echo json_encode($eventsData); ?>;
-        const event = events.find(e => e.id == eventId);
-        
-        if (event) {
-            // Show the details for this event
-            showDetails(event);
-            
-            // Scroll to the event in the list
-            const eventElement = document.querySelector(`.events-btn[onclick*='"id":${eventId}']`);
-            if (eventElement) {
-                eventElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
-    }
-});
 </script>
 
 </body>
