@@ -764,6 +764,40 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if an event_id is in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('event_id');
+    
+    if (eventId) {
+        // Find the event with the matching ID
+        const events = <?php echo json_encode($eventsData); ?>;
+        const event = events.find(e => e.id == eventId);
+        
+        if (event) {
+            // Show the details for this event
+            showDetails(event);
+            
+            // Find all event buttons
+            const eventElements = document.querySelectorAll('.events-btn');
+            
+            // Loop through each event button to find the one with the matching ID
+            eventElements.forEach(function(element) {
+                // Get the onclick attribute content
+                const onclickAttr = element.getAttribute('onclick');
+                
+                // If this element has the matching event ID in its onclick attribute
+                if (onclickAttr && onclickAttr.indexOf(`"id":${eventId}`) !== -1) {
+                    // Scroll to this element
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Optional: Add a highlight class
+                    element.classList.add('highlighted-event');
+                }
+            });
+        }
+    }
+});
 
 </script>
 
