@@ -534,6 +534,11 @@ foreach ($eventsData as $event) {
     const eventsSection = document.querySelector('.events-section');
     const registeredUsersData = <?php echo json_encode($eventsWithUsers); ?>;
 
+    // Show distribute certificate button and set event ID
+    const distributeBtn = document.getElementById('distribute-btn');
+    distributeBtn.style.display = 'block';
+    distributeBtn.setAttribute('data-id', eventData.id);
+
     if (currentEvent === eventData.id) {
         detailsSection.style.display = 'none';
         eventsSection.classList.remove('shrink');
