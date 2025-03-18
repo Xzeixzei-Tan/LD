@@ -50,6 +50,16 @@ if ($user_result->num_rows > 0) {
     $_SESSION['last_name'] = $last_name;
 }
 
+// Fetch notifications for admin
+$notif_query = "SELECT id, message, created_at, is_read, notification_subtype, event_id 
+                FROM notifications 
+                WHERE notification_type = 'user' 
+                ORDER BY created_at DESC";
+$notif_result = $conn->query($notif_query);
+
+if (!$notif_result) {
+    die("Notification query failed: " . $conn->error);
+}
 ?>
 
 <!DOCTYPE html>
@@ -413,11 +423,46 @@ if ($user_result->num_rows > 0) {
     margin-bottom: 15px;
 }
 
+/* New Styles for Read Notifications */
+.notification .read {
+    opacity: 0.7;
+}
+
+.notification.read {
+    border-left: 4px solid #ccc;
+    background-color: #f0f0f0;
+}
+
+.notification.read:hover {
+    background-color: #e8e8e8;
+}
+
+.notification.read p {
+    color: #888;
+}
+
+.notification.read small {
+    color: #aaa;
+}
+
 .notification p {
     font-size: 14px;
     font-family: Montserrat Medium;
     color: #555;
     line-height: 1.4;
+}
+
+
+#events-btn.read {
+    color: #888;
+}
+
+.notification-content {
+    transition: all 0.2s ease;
+}
+
+.notification.read .notification-content {
+    opacity: 0.7;
 }
 
 .notification.important {
@@ -501,32 +546,35 @@ if ($user_result->num_rows > 0) {
                         </div>
                     <?php endwhile; ?>
                     </div>
-                <div class="notifications-section">
-                    <h2>Notifications</h2>
-                    <div class="notification important">
-                        <a class="events-btn" href="select_quiz.php">
-                        <div class="notification-content">
-                            <p>Your certificate from "Sample Event" is here. Download it now.</p>
-                        </div></a>
+                    <div class="notifications-section">
+                        <h2>Notifications</h2>
+                        <?php while ($notif = $notif_result->fetch_assoc()): ?>
+                            <div class="notification <?php echo $notif['is_read'] ? 'read' : 'important'; ?>">
+                                <?php 
+                                // Determine the redirect URL based on notification type
+                                if (!empty($notif['event_id']) && $notif['notification_subtype'] == 'certificate') {
+                                    $redirect_url = "user-notif.php?event_id=" . urlencode($notif['event_id']);
+                                } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'new_event') {
+                                    $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                                } else {
+                                    $redirect_url = "user-notification.php?event_id=" . urlencode($notif['event_id']);
+                                }
+                                
+                                // You need to make sure your query also fetches the notification ID
+                                $notification_id = $notif['id']; // Add id to your SELECT statement if not already included
+                                ?>
+                                
+                                <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" 
+                                   href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                    <div class="notification-content">
+                                        <p><?php echo htmlspecialchars($notif['message']); ?></p>
+                                        <br><small><?php echo $notif['created_at']; ?></small>    
+                                    </div>
+                                </a>
+                            </div>
+                        <?php endwhile; ?>
                     </div>
-
-                    <div class="notification">
-                        <div class="notification-content">
-                            <p>Sample event notification</p>
-                        </div>
-                    </div>
-
-                    <div class="notification">
-                        <div class="notification-content">
-                            <p>Sample event notification</p>
-                        </div>
-                    </div>
-
-                    <div class="notification">
-                        <div class="notification-content">
-                            <p>Sample event notification</p>
-                        </div>
-                    </div>
+                </div>
                 </div>
             </div>
     	</div>

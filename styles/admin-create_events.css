@@ -124,14 +124,27 @@ hr {
 
 .form-group {
     margin-bottom: 1.5rem;
+    font-family: Montserrat;
 }
 
-.form-group label {
-    font-family: Montserrat;
+.form-group h4 {
+    font-family: Montserrat Medium;
     display: block;
     font-weight: bold;
     color: #4f5663;
+    margin-bottom: 0.2rem;
+    margin-top: 5px;
+}
+
+.form-group label{
+    font-family: Montserrat;
+    display: block;
+    color: #4f5663;
     margin-bottom: 0.5rem;
+}
+
+.form-group option {
+    font-family: Montserrat Medium;
 }
 
 .form-group p {
@@ -165,6 +178,7 @@ hr {
 .special {
     margin-left: 5%;
 }
+
 
 .checkbox-group {
     display: flex;
@@ -291,6 +305,7 @@ hr {
     font-size: 1.1rem;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
+    color: black;
 }
 
 /* Responsive adjustments */

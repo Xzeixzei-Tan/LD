@@ -192,6 +192,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    $user_notification_message = "New event created. Click for more info: " . $title;
+    $user_notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype, event_id) VALUES (?, ?, NOW(), 0, 'user', 'new_event', ?)";
+    $user_notification_stmt = $conn->prepare($user_notification_sql);
+    $user_notification_stmt->bind_param("isi", $user_id, $user_notification_message, $eventId);
+    $user_notification_stmt->execute();
+    $user_notification_stmt->close();
+
     // Set success message
     $successMessage = "Event created successfully!";
     
