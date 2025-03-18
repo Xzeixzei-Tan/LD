@@ -10,8 +10,50 @@ if (isset($_SESSION['message'])) {
     unset($_SESSION['message']); // Clear the message after displaying
 }
 
+// Get event information if event_id is provided
+$event_title = "Sample Event"; // Default value
+$certificate_filename = "Certificate.pdf"; // Default value
+$certificate_path = ""; // Initialize certificate path
+
+if (isset($_GET['event_id'])) {
+    $event_id = $_GET['event_id'];
+    
+    // Fetch event details
+    $event_sql = "SELECT title FROM events WHERE id = ?";
+    $stmt = $conn->prepare($event_sql);
+    $stmt->bind_param("i", $event_id);
+    $stmt->execute();
+    $event_result = $stmt->get_result();
+    
+    if ($event_result->num_rows > 0) {
+        $event_row = $event_result->fetch_assoc();
+        $event_title = $event_row['title'];
+        
+        // IMPORTANT: Fetch the actual certificate path from the database
+        $cert_sql = "SELECT certificate_path FROM certificates WHERE event_id = ? AND user_id = ?";
+        $cert_stmt = $conn->prepare($cert_sql);
+        $cert_stmt->bind_param("ii", $event_id, $user_id);
+        $cert_stmt->execute();
+        $cert_result = $cert_stmt->get_result();
+        
+        if ($cert_result->num_rows > 0) {
+            $cert_row = $cert_result->fetch_assoc();
+            $certificate_path = $cert_row['certificate_path'];
+            
+            // Extract filename from the path for display purposes
+            $path_parts = pathinfo($certificate_path);
+            $certificate_filename = $path_parts['basename'];
+        } else {
+            // Default certificate path if record doesn't exist
+            // Format based on your folder naming convention (event_name rather than event_id)
+            $certificate_filename = "Certificate_" . $event_title . "_" . $user_id . ".pdf";
+            $certificate_path = "certificates/" . $event_title . "/" . $certificate_filename;
+        }
+    }
+}
+
+// Get user information
 $user_sql = "SELECT first_name, last_name FROM users WHERE id = ?";
-                
 $stmt = $conn->prepare($user_sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -30,18 +72,34 @@ if ($user_result->num_rows > 0) {
     $_SESSION['last_name'] = $last_name;
 }
 
+// Check if the certificate file exists and handle file extension issue (.pdf vs .docx)
+if (!empty($certificate_path)) {
+    // Try both .pdf and .docx versions of the file
+    $pdf_path = str_replace('.pdf', '.pdf', $certificate_path); // Keep as PDF
+    $docx_path = str_replace('.pdf', '.docx', $certificate_path); // Try DOCX instead
+    
+    if (file_exists($docx_path)) {
+        // If the DOCX version exists, use that
+        $certificate_path = $docx_path;
+        $certificate_filename = str_replace('.pdf', '.docx', $certificate_filename);
+    } elseif (file_exists($pdf_path)) {
+        // If the PDF version exists, use that
+        $certificate_path = $pdf_path;
+    }
+}
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-	<title>Dashboard-Template</title>
-</head>
-<style type="text/css">
-	* {
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="">
+    <title>Notifications - Event Management System</title>
+    <style type="text/css">
+    /* CSS remains unchanged */
+    * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
@@ -196,13 +254,13 @@ if ($user_result->num_rows > 0) {
     }
 
     .content-body h1{
-    	font-family: Montserrat;
-    	font-size: 2rem;
-    	padding: 10px;
+        font-family: Montserrat;
+        font-size: 2rem;
+        padding: 10px;
     }
 
     .content-body hr{
-    	border: 1px solid #95A613;
+        border: 1px solid #95A613;
     }
 
     .cards {
@@ -213,8 +271,8 @@ if ($user_result->num_rows > 0) {
     }
 
     .card {
-    	margin: auto;
-    	margin-bottom: 2%;
+        margin: auto;
+        margin-bottom: 2%;
         background-color: #F4F4F4;
         padding: 1.5rem;
         border-radius: 10px;
@@ -278,64 +336,65 @@ if ($user_result->num_rows > 0) {
             margin-top: 10px;
             margin-left: 15px;
         }
-
-</style>
+    </style>
+</head>
 <body>
-
-	<div class="container">
+    <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
-        <div class="sidebar-content">
-            <a href="user-dashboard.php" class="menu-item">
-                <span class="menu-icon"><i class="fas fa-home mr-3"></i></span>
-                <span class="menu-text">Home</span>
-            </a>
-            <a href="user-events.php" class="menu-item">
-                <span class="menu-icon"><i class="fas fa-calendar-alt mr-3"></i></span>
-                <span class="menu-text">Events</span>
-            </a>
-            <a href="user-notif.php" class="menu-item active">
-                <span class="menu-icon"><i class="fas fa-bell mr-3"></i></span>
-                <span class="menu-text">Notification</span>
-            </a>
-
-            <!-- Add more menu items as needed -->
-        </div>
-        <div class="user-profile">
-            <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
-            <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
-        </div>
+            <div class="sidebar-content">
+                <a href="user-dashboard.php" class="menu-item">
+                    <span class="menu-icon"><i class="fas fa-home mr-3"></i></span>
+                    <span class="menu-text">Home</span>
+                </a>
+                <a href="user-events.php" class="menu-item">
+                    <span class="menu-icon"><i class="fas fa-calendar-alt mr-3"></i></span>
+                    <span class="menu-text">Events</span>
+                </a>
+                <a href="user-notif.php" class="menu-item active">
+                    <span class="menu-icon"><i class="fas fa-bell mr-3"></i></span>
+                    <span class="menu-text">Notification</span>
+                </a>
+            </div>
+            <div class="user-profile">
+                <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
+                <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
+            </div>
         </div>
     </div>
 
     <div class="content">
-    	<div class="content-header">
-	    	<img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
-	    	<p>Learning and Development</p>
-	    	<h1>EVENT MANAGEMENT SYSTEM</h1>
-    	</div><br><br><br><br><br>
+        <div class="content-header">
+            <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
+            <p>Learning and Development</p>
+            <h1>EVENT MANAGEMENT SYSTEM</h1>
+        </div><br><br><br><br><br>
 
         <div class="content-body">
-        <h1>Notifications</h1>
-        <hr><br>
+            <h1>Notifications</h1>
+            <hr><br>
 
-        <div class="notification-card">
-            <div class="notification-content">
-                <br>
-                <div class="notification-title">Your certificate from "Sample Event" is now available to download.</div>
-                <div class="notification-instruction">Click the PDF file to download.</div>
-            </div>
-            
-            <div class="pdf-preview">
-                <div class="pdf-icon"><br>
-                    <a href="Sample.pdf">
-                        <img src="styles/photos/PDF.png">
-                    </a>
-                    <div class="pdf-filename"><a href="Sample.pdf">Certificate.pdf</a></div>
+            <div class="notification-card">
+                <div class="notification-content">
+                    <br>
+                    <div class="notification-title">Your certificate from "<?php echo htmlspecialchars($event_title); ?>" is now available to download.</div>
+                    <div class="notification-instruction">Click the file to download your certificate.</div>
+                </div>
+                
+                <div class="pdf-preview">
+                    <div class="pdf-icon"><br>
+                        <a href="<?php echo !empty($certificate_path) ? htmlspecialchars($certificate_path) : 'Sample.pdf'; ?>" download>
+                            <img src="styles/photos/PDF.png">
+                        </a>
+                        <div class="pdf-filename">
+                            <a href="<?php echo !empty($certificate_path) ? htmlspecialchars($certificate_path) : 'Sample.pdf'; ?>" download>
+                                Certificate of Participation
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </body>
 </html>
