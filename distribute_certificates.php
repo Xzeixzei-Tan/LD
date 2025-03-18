@@ -141,9 +141,9 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
         <title>Certificate of Participation</title>
         <style>
             body {
-                font-family: Arial, sans-serif;
+                font-family: Bookman Old Style;
                 text-align: center;
-                margin: 0;
+                margin: auto;
                 padding: 0;
                 width: 1100px; /* Landscape A4 width */
                 height: 800px; /* Landscape A4 height */
@@ -160,75 +160,92 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
                 position: relative;
             }
             .header {
-                margin-top: 20px;
                 font-size: 16px;
                 line-height: 1.4;
             }
-            .title {
-                font-size: 36px;
+
+            .header-1 {
+                margin-top: 10px;
+                font-size: 20px;
+                font-family: Old English Text MT;
+                line-height: 1.4;
+            }
+
+            .header-2 {
+                font-size: 31px;
+                font-family: Old English Text MT;
+                line-height: 1.4;
+            }
+
+            .header-3 {
+                font-size: 16px;
+                font-family: Cambria;
                 font-weight: bold;
-                margin: 50px 0 20px;
-                color: #005f9e;
+                line-height: 1.4;
+            }
+
+            .title {
+                font-family: Old English Text MT;
+                font-size: 65px;
+                color: black;
             }
             .awarded-to {
-                font-size: 18px;
+                font-family: Times New Roman;
+                font-size: 23px;
                 margin: 15px 0;
             }
             .recipient {
-                font-size: 30px;
-                font-weight: bold;
-                margin: 30px 0;
-                border-bottom: 1px solid #000;
-                padding-bottom: 5px;
+                font-family: Bookman Old Style;
+                font-weight: Bold;
+                font-size: 70px;
                 display: inline-block;
             }
-            .description {
-                font-size: 18px;
-                margin: 20px 0;
+
+            .description, strong {
+                font-family: Bookman Old Style;
+                font-size: 25px;
+                font-weight: 0;
                 line-height: 1.5;
             }
             .date {
-                font-size: 16px;
-                margin: 18px 0;
+                margin-top: 35px;
+                font-size: 24px;
             }
             .signature {
-                margin-top: 60px;
+                margin-top: 5px;
             }
             .superintendent {
-                font-weight: bold;
-                font-size: 16px;
+                letter-spacing: 1px;
+                font-weight: bolder;
+                font-size: 28px;
                 margin-bottom: 5px;
             }
             .position {
-                font-size: 14px;
+                font-size: 21px;
                 line-height: 1.4;
             }
 
             .logo {
-                position: absolute;
-                top: 20px;
+                margin: auto;
+                top: 10px;
                 left: 20px;
-                width: 100px; /* Adjust size as needed */
-                height: auto;
+                width: 130px; /* Adjust size as needed */
+                height: 130px;
             }
         </style>
     </head>
     <body>
     <center>
         <div class="certificate">';
-
-    // Only add the logo if we have it
-    if ($logoSrc) {
-        $html .= '<img src="' . $logoSrc . '" class="logo" alt="DEPED Logo">';
-    }
     
     $html .='<div class="header">
 
-                <img src="' . $logoSrc . '" class="logo" alt="DEPED Logo">
-                Republic of the Philippines<br>
-                Department of Education<br>
-                REGION IV-A CALABARZON<br>
-                SCHOOLS DIVISION OF GENERAL TRIAS CITY
+                <img src="' . $logoSrc . '" class="logo" alt="DEPED Logo"><br>
+                <div class="header-1">
+                Republic of the Philippines</div>
+                <div class="header-2">Department of Education</div>
+                <div class="header-3">REGION IV-A CALABARZON<br>
+                SCHOOLS DIVISION OF GENERAL TRIAS CITY</div>
             </div>
             
             <div class="title">Certificate of Participation</div>
@@ -238,8 +255,8 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
             <div class="recipient">' . $replacements['participant_name'] . '</div>
             
             <div class="description">
-                for the meaningful engagement as PARTICIPANT during the<br>
-                "' . $replacements['event_title'] . '" conducted by the Department of Education-Schools Division Office of General Trias City<br>
+                for the meaningful engagement as <strong>PARTICIPANT</strong> during the<br>
+                <strong>"' . $replacements['event_title'] . '" </strong> conducted by the Department of Education-Schools Division Office of General Trias City
                 On ' . $replacements['event_start_date and end_date'] . ', at the ' . $replacements['venue'] . '
             </div>
             
