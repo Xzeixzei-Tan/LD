@@ -211,6 +211,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="scripts/admin-create_events.js" defer></script>
     <title>Create Events</title>
     <style>
+        .remove-speaker-btn{
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 7px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
         .success-message {
             background-color: #d4edda;
             color: #155724;
@@ -225,10 +234,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: relative;
             display: none;
         }
+            /* Row layout for funding options */
+    .funding-options-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 15px;
+        padding: 10px;
+    }
 
+    .funding-option {
+        flex: 0 0 auto;
+        min-width: 200px;
+        margin-bottom: 15px;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        transition: all 0.2s ease;
+        background-color: #fff;
+    }
+
+    .funding-option:hover {
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .funding-option label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 500;
+        cursor: pointer;
+        background-color: #fff;
+    }
+
+    .funding-option input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        margiin-left: 5px;s
+    }
+
+    /* Style for the amount field */
+    .amount-field.show {
+        animation: slideDown 0.3s ease forwards;
+    }
+
+    .amount-field label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #4CAF50;
+        font-size: 14px;
+    }
+
+    .amount-field .input-with-symbol {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .amount-field .currency-symbol {
+        position: absolute;
+        left: 12px;
+        top: 35%;
+        transform: translateY(-50%);
+        color: #666;
+        font-weight: 500;
+    }
+
+    .amount-field input[type="number"] {
+        width: 100%;
+        padding: 8px 12px 8px 30px;
+        border-radius: 4px;
+        font-size: 15px;
+    
+    }
+
+    .amount-field input[type="number"]:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .funding-options-row {
+            flex-direction: column;
+            gap: 10px;
+            padding: 5px;
+        }
+        
+        .funding-option {
+            width: 100%;
+            min-width: auto;
+            padding: 15px;
+        }
+    }
+    
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        .section-title {
+            font-family: Montserrat ExtraBold;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            color: black;
         }
         
         .meal-day {
@@ -247,13 +358,364 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .time-inputs {
             display: flex;
-            gap: 10px;
-            margin-top: 5px;
+            gap: 20px;
+            margin-top: 10px;
         }
-        
-        .time-inputs input {
+
+        .time-inputs div {
             flex: 1;
         }
+
+        .time-inputs label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .time-inputs input[type="time"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .time-inputs input[type="time"]:hover {
+            border-color: #aaa;
+        }
+
+        .time-inputs input[type="time"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+
+        .time-inputs input[type="time"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.8;
+        }
+
+        .time-inputs input[type="time"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .form-col label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-col input[type="date"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-col input[type="date"]:hover {
+            border-color: #aaa;
+        }
+
+        .form-col input[type="date"]:focus {
+            border-color: #4CAF 
+        }
+
+        .meal-day {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            
+        }
+
+        .meal-day h4 {
+            
+            margin-top: -0%;
+            color: #2b3a8f;
+            font-size: 16px;
+            padding-bottom: 8px;
+           
+        
+        }
+
+        .specializations-1{
+            display: flex;
+        }
+
+        /* Adjust the Target Personnel section layout */
+.form-group .section-title {
+    margin-bottom: 1rem;
+}
+
+.personnel-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.personnel-selection label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.target {
+    width: 100%;
+}
+
+#target-personnel {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    font-family: Montserrat Light;
+    margin-top: 0rem;
+}
+
+/* Style the dropdown options */
+#target-personnel option {
+    padding: 0.5rem;
+    font-family: Montserrat Light;
+}
+
+
+
+       /* For the specialization sections - making them two rows */
+.checkbox-subgroup {
+    background-color: white;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 15px;
+}
+
+.checkbox-subgroup label {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 0;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    width: calc(50% - 10px); /* Make each item take up half the width minus the gap */
+    box-sizing: border-box;
+    background-color: white;
+}
+
+
+
+.checkbox-subgroup input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Specific layout adjustments for division personnel section */
+#division-personnel .checkbox-subgroup {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+#division-personnel .checkbox-subgroup label {
+    width: 100%;
+}
+
+/* For school personnel sections */
+#school-personnel .checkbox-subgroup {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+#school-personnel .checkbox-subgroup label {
+    width: 100%;
+}
+
+/* Keep meal plan styles intact */
+.meal-day {
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+}
+
+.meal-day h4 {
+    margin-top: 0;
+    margin-bottom: -2%;
+    color: #2b3a8f;
+    font-size: 16px;
+    padding-bottom: 8px;
+}
+
+.meal-day  {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.meal-day .checkbox-subgroup label {
+    width: auto;
+    min-width: 100px;
+    flex-grow: 1;
+}
+
+/* Improved styling for form sections */
+.form-group {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.form-group {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.7rem;
+    color: #2b3a8f;
+    
+}
+
+/* Improved input styling */
+input[type="text"], 
+input[type="number"], 
+input[type="date"],
+input[type="time"],
+select {
+    border: 1px solid #ddd;
+    padding: 12px;
+    border-radius: 6px;
+    background-color: white;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    margin-bottom: 15px;
+}
+
+input[type="text"]:focus, 
+input[type="number"]:focus, 
+input[type="date"]:focus,
+input[type="time"]:focus,
+select:focus {
+    border-color: #2b3a8f;
+    outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+/* Better responsive layout */
+@media (max-width: 768px) {
+    #school-personnel 
+    #division-personnel .checkbox-subgroup {
+        grid-template-columns: 1fr;
+        padding: 10px;
+        
+    }
+    .checkbox-subgroup {
+    background-color: white;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 5px;
+}
+    
+     label {
+        width: 100%;
+        font-family: Montserrat Medium;
+        
+    }
+    .check-subgroup label {
+        width: 100%;
+        
+    }
+    
+    .form-row {
+        flex-direction: column;
+    }
+}
+
+        /* Target all section titles for consistent styling */
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: black;
+            padding-bottom: 8px;
+           
+        }
+
+        /* Consistent styling for event days */
+        .event-day {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            background-color: white;
+        }
+
+        .event-day h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #2b3a8f;
+            font-size: 16px;
+            padding-bottom: 8px;
+           
+        }
+        .submit-btn {
+            font-family: Montserrat ExtraBold;
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 60%;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+        }
+
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+
+        .submit-btn:active {
+            background-color: #3e8e41;
+            transform: translateY(1px);
+        }
+
     </style>
 </head>
 <body>
@@ -313,18 +775,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             <label>Funding Source:</label>
                             <div class="checkbox-group">
-                                <?php foreach ($fundingOptions as $option): ?>
-                                    <div class="funding-option">
-                                        <label>
-                                            <input type="checkbox" name="funding_source[]" value="<?= $option ?>" onchange="toggleAmountField('<?= $option ?>')">
-                                            <?= ucfirst(str_replace('-', ' ', $option)) ?>
-                                        </label>
-                                        <div id="<?= $option ?>-amount" class="amount-field" style="display: none;">
-                                        <label>Amount:</label>
-                                            <input type="number" name="<?= $option ?>_amount" placeholder="Enter amount">
+                                <div class="funding-options-row">
+                                    <?php foreach ($fundingOptions as $option): ?>
+                                        <div class="funding-option">
+                                            <label>
+                                                <input type="checkbox" name="funding_source[]" value="<?= $option ?>" onchange="toggleAmountField('<?= $option ?>')">
+                                                <?= ucfirst(str_replace('-', ' ', $option)) ?>
+                                            </label>
+                                            <div id="<?= $option ?>-amount" class="amount-field" style="display: none;">
+                                                <label>Amount:</label>
+                                                <div class="input-with-symbol">
+                                                    <span class="currency-symbol">₱</span>
+                                                    <input type="number" name="<?= $option ?>_amount" placeholder="Enter amount">
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div><br>
-                                <?php endforeach; ?>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
 
                             <div class="form-row">
@@ -404,6 +871,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="section-title">Target Personnel</div>
                             <div class="personnel-selection">
                                 <label>Target Participants: </label>
+                                <div class="target">
                                 <select id="target-personnel" name="target_personnel" required>
                                     <option value="">Select target personnel</option>
                                     <?php foreach ($targetOptions as $option): ?>
@@ -411,32 +879,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <?php endforeach; ?>
                                 </select>
                             </div>
+                                    </div>
 
                             <div id="school-personnel" class="checkbox-group" style="display: none;">
-                            <label>School Level:</label>
+                            <h4>School Level:</h4> <br>
                                 <div class="checkbox-subgroup">
                                     <?php foreach ($schoolLevelOptions as $option): ?>
                                         <label><input type="checkbox" name="school_level[]" value="<?= $option['id'] ?>"> <?= ucfirst($option['name']) ?></label>
                                     <?php endforeach; ?>
                                 </div>
-
-                                <label>Type:</label>
+                                <br>
+                                <h4>Type:</h4> <br>
                                 <div class="checkbox-subgroup">
                                     <?php foreach ($typeOptions as $option): ?>
                                         <label><input type="checkbox" name="type[]" value="<?= $option['id'] ?>"> <?= ucfirst($option['name']) ?></label>
                                     <?php endforeach; ?>
                                 </div>
-
-                                <label>Specialization:</label>
+                                <br>
+                                <h4>Specialization:</h4> <br>
                                 <div class="checkbox-subgroup">
                                     <?php foreach ($specializationOptions as $option): ?>
                                         <label><input type="checkbox" name="specialization[]" value="<?= $option['id'] ?>"> <?= ucfirst($option['name']) ?></label>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
-
+                            <br>
                             <div id="division-personnel" class="checkbox-group" style="display: none;">
-                                <label>Unit/Department:</label>
+                            <h4>Unit/Department:</h4> <br>
                                 <div class="checkbox-subgroup">
                                     <label><input type="checkbox" id="select-all-division" onclick="selectAllDivision()"> Select All</label>
                                     <?php foreach ($departmentOptions as $option): ?>
@@ -447,7 +916,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <!-- Submit Button -->
-                        <div class="form-group">
                             <button type="submit" class="submit-btn">Create Event</button>
                         </div>
                     </form>
@@ -469,25 +937,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Function to add speaker field
-        function addSpeakerField() {
-            const container = document.getElementById('speakers-container');
-            const newGroup = document.createElement('div');
-            newGroup.className = 'speaker-input-group';
-            newGroup.innerHTML = `
-                <input type="text" name="speaker[]" placeholder="Enter speaker/resource person">
-                <button type="button" class="remove-speaker-btn" onclick="removeSpeakerField(this)">
-                    <i class="fas fa-minus"></i>
-                </button>
-            `;
-            container.appendChild(newGroup);
-        }
+       // Function to add speaker field
+function addSpeakerField() {
+    const container = document.getElementById('speakers-container');
+    const newGroup = document.createElement('div');
+    newGroup.className = 'speaker-input-group';
+    newGroup.innerHTML = `
+        <input type="text" name="speaker[]" placeholder="Enter speaker/resource person">
+        <button type="button" class="remove-speaker-btn" onclick="removeSpeakerField(this)">
+            <i class="fa-solid fa-circle-xmark"></i>
+        </button>
+    `;
+    container.appendChild(newGroup);
+}
 
         // Function to remove speaker field
         function removeSpeakerField(button) {
-            const group = button.parentElement;
-            group.remove();
-        }
-
+    const group = button.parentElement;
+    group.remove();
+}
         // Function to select all division checkboxes
         function selectAllDivision() {
             const selectAll = document.getElementById('select-all-division');
@@ -593,7 +1061,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Check target personnel selection
             const targetSelect = document.getElementById('target-personnel');
             if (targetSelect.value === 'School' || targetSelect.value === 'Both') {
-                document.getElementById('school-personnel').style.display = 'block';
+                document.getElementById('school-personnel').style.display = 'flex';
             }
             if (targetSelect.value === 'Division' || targetSelect.value === 'Both') {
                 document.getElementById('division-personnel').style.display = 'block';
