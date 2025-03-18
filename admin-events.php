@@ -337,6 +337,11 @@ foreach ($eventsData as $event) {
         .download-btn i {
             margin-right: 8px;
         }
+
+        .highlighted-event{
+            transition: background-color 0.5s;
+            background-color: #374ab6;
+        }
     </style>
 </head>
 <body>
@@ -408,11 +413,11 @@ foreach ($eventsData as $event) {
                     <button class="expand-btn" onclick="toggleExpand()"><i class="fas fa-expand"></i></button>
                     <h2>Details</h2>
                     <?php if ($viewArchived): ?>
-                    <div class="detail-item">
+                    <div class="detail-item expanded-content">
                         <button onclick="unarchiveEvent()" id="unarchive-btn" style="display:none;">Unarchive Event</button>
                     </div>
                     <?php else: ?>
-                    <div class="detail-item">
+                    <div class="detail-item expanded-content">
                         <button onclick="archiveEvent()" id="archive-btn" style="display:none;">Archive Event</button>
                     </div>
                     <?php endif; ?>
@@ -463,16 +468,16 @@ foreach ($eventsData as $event) {
                         </div>
                         <div class="detail-item">
                             <h4>Eligible Participants:</h4>
-                            <p id="detail-eligible_participants"></p>
+                            <div class="select-container">
+                                <select id="detail-eligible_participants" style="width: 100%; padding: 10px; background-color: #f8f9fa; cursor: pointer; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; margin-bottom: 10px;">
+                                    <option value="">-- Select Participant Type --</option>
+                                </select>
+                            </div>
+                            <div id="participant-details-container" class="participant-details-wrapper" style="display: none;"></div>
                         </div>
                         <div class="detail-item">
                             <h4>Meal Plan:</h4>
                             <p id="detail-meal_plan"></p>
-                        </div>
-                        <div class="detail-item">
-                            <button class="download-btn" onclick="downloadParticipantsList()" id="download-btn" style="display:none;">
-                                <i class="fas fa-download"></i> List of Registered Participants
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -480,22 +485,37 @@ foreach ($eventsData as $event) {
                 <!-- Add this new section for registered users table -->
                  
                 <div class="detail-item expanded-content" style="width: 100%;">
-                    <h4>Registered Users:</h4>
-                    <p id="detail-user_count"></p>
-
-                    <div id="registered-users-table-container" style="max-height: 300px; overflow-y: auto;">
-                        <table id="registered-users-table" style="width: 100%; border-collapse: collapse;">
+                    <div class="registered-users">
+                        <h4 style="margin: 0;">Registered Users: <span id="detail-user_count" style="font-weight: normal;"></span></h4>
+                    </div>
+                    <button id="toggle-users-table-btn" onclick="toggleRegisteredUsersTable()" class="view-user-btn">
+                        <i class="fas fa-eye"></i> View Registered Users
+                    </button>
+                    
+                    <div id="registered-users-table-container">
+                        <div class="detail-item download">
+                            <button class="download-btn" onclick="downloadParticipantsList()" id="download-btn">
+                                <i class="fas fa-download"></i> List of Registered Participants
+                            </button>
+                            <button class="download-btn" onclick="distributeCertificates()" id="distribute-btn">
+                                <i class="fas fa-certificate"></i> Distribute Certificates
+                            </button>
+                        </div>
+                        <table id="registered-users-table">
                             <thead>
                                 <tr>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Name</th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Email</th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Phone</th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Designation</th>
-                                    <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Registration Date</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Designation</th>
+                                    <th>Registration Date</th>
                                 </tr>
                             </thead>
                             <tbody id="registered-users-table-body">
                                 <!-- Data will be populated via JavaScript -->
+                                <tr>
+                                    <td colspan="5">Click "View Registered Users" to load data</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -510,158 +530,202 @@ foreach ($eventsData as $event) {
     let currentEvent = null;
 
     function showDetails(eventData) {
-        const detailsSection = document.getElementById('details-section');
-        const eventsSection = document.querySelector('.events-section');
-        const registeredUsersData = <?php echo json_encode($eventsWithUsers); ?>;
+    const detailsSection = document.getElementById('details-section');
+    const eventsSection = document.querySelector('.events-section');
+    const registeredUsersData = <?php echo json_encode($eventsWithUsers); ?>;
 
-        if (currentEvent === eventData.id) {
-            detailsSection.style.display = 'none';
-            eventsSection.classList.remove('shrink');
-            currentEvent = null;
-        } else {
-            document.getElementById('detail-title').textContent = eventData.title;
-            document.getElementById('detail-event_specification').textContent = eventData.specification;
-            document.getElementById('detail-delivery').textContent = eventData.delivery;
-            document.getElementById('detail-start').textContent = eventData.start_date;
-            document.getElementById('detail-end').textContent = eventData.end_date;
-            // In your showDetails function:
-            document.getElementById('detail-event-days').innerHTML = eventData.formatted_event_days || "No specific days information available";
-            document.getElementById('detail-status').textContent = eventData.status;
-            document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
-            document.getElementById('detail-user_count').textContent = eventData.user_count;
-            document.getElementById('detail-funding_sources').textContent = eventData.funding_sources || "Not specified";
-            document.getElementById('detail-speakers').textContent = eventData.speakers || "Not specified";
+    if (currentEvent === eventData.id) {
+        detailsSection.style.display = 'none';
+        eventsSection.classList.remove('shrink');
+        currentEvent = null;
+    } else {
+        document.getElementById('detail-title').textContent = eventData.title;
+        document.getElementById('detail-event_specification').textContent = eventData.specification;
+        document.getElementById('detail-delivery').textContent = eventData.delivery;
+        document.getElementById('detail-start').textContent = eventData.start_date;
+        document.getElementById('detail-end').textContent = eventData.end_date;
+        document.getElementById('detail-event-days').innerHTML = eventData.formatted_event_days || "No specific days information available";
+        document.getElementById('detail-status').textContent = eventData.status;
+        document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
+        document.getElementById('detail-user_count').textContent = eventData.user_count;
+        document.getElementById('detail-funding_sources').textContent = eventData.funding_sources || "Not specified";
+        document.getElementById('detail-speakers').textContent = eventData.speakers || "Not specified";
+        
+        // Fetch registered users for this event
+        fetchRegisteredUsers(eventData.id);
+        
+        // In the showDetails function, replace the participant select code with this:
+
+// Process the eligible participants data for the dropdown
+const participantSelect = document.getElementById('detail-eligible_participants');
+const detailsContainer = document.getElementById('participant-details-container');
+
+// Clear previous options
+participantSelect.innerHTML = '<option value="">-- Select Participant Type --</option>';
+participantSelect.removeAttribute('disabled');
+
+try {
+    if (eventData.processed_eligible_data) {
+        const eligibleData = JSON.parse(eventData.processed_eligible_data);
+        const participantTypes = [];
+        
+        // Create options for the dropdown
+        eligibleData.forEach((participant, index) => {
+            let optionText = '';
+            let iconClass = '';
             
+            // Format the option text based on target type
+            if (participant.target === 'School') {
+                optionText = '🏫 School Personnel';
+                iconClass = 'fa-school';
+            } else if (participant.target === 'Division') {
+                optionText = '🏢 Division Office Personnel';
+                iconClass = 'fa-building';
+            } else if (participant.target === 'all') {
+                optionText = '👥 All Personnel';
+                iconClass = 'fa-users';
+            }
             
-            // Fetch registered users for this event
-            fetchRegisteredUsers(eventData.id);
-            // Process the eligible participants data
-            // Update the part in the showDetails function that displays eligible participants
-
-            let participantDetails = '';
-
-            try {
-                if (eventData.processed_eligible_data) {
-                    const eligibleData = JSON.parse(eventData.processed_eligible_data);
-
-                    eligibleData.forEach(participant => {
-                        if (participant.target === 'School') {
-                            participantDetails += `<strong>School:</strong><br>`;
-                            if (participant.specificParticipants && participant.specificParticipants.length > 0) {
-                                participant.specificParticipants.forEach(school => {
-                                    if (typeof school === 'object') {
-                                        // Modified to display the actual names fetched from the database
-                                        participantDetails += ` Level: ${school.level || 'N/A'} <br> Type: ${school.type || 'N/A'} <br> Specialization: ${school.specialization || 'N/A'}<br>`;
-                                    } else {
-                                        // Fallback for legacy data structure
-                                        participantDetails += `- ${school}<br>`;
-                                    }
-                                });
-                                participantDetails += `<br>`;
-                            } else {
-                                participantDetails += '<em>All Schools</em><br><br>';
+            if (optionText) {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = optionText;
+                option.setAttribute('data-icon', iconClass);
+                participantSelect.appendChild(option);
+                
+                // Store participant data for later use
+                participantTypes.push({
+                    type: participant.target,
+                    data: participant.specificParticipants || []
+                });
+            }
+        });
+        
+        // Add event listener for dropdown change
+        participantSelect.addEventListener('change', function() {
+            const selectedIndex = this.value;
+            
+            if (selectedIndex === '') {
+                detailsContainer.style.display = 'none';
+                return;
+            }
+            
+            const selectedParticipant = participantTypes[selectedIndex];
+            let detailsHTML = '';
+            
+            if (selectedParticipant.type === 'School') {
+                detailsHTML += '<div class="participant-details-container">';
+                detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-school mr-2"></i> School Participants</div>';
+                
+                if (selectedParticipant.data.length > 0) {
+                    selectedParticipant.data.forEach((school, idx) => {
+                        detailsHTML += `<div class="participant-item">`;
+                        if (typeof school === 'object') {
+                            if (school.level) {
+                                detailsHTML += `<span class="participant-tag"><i class="fas fa-layer-group"></i> ${school.level}</span>`;
                             }
-                        } 
-                        else if (participant.target === 'Division') {
-                            participantDetails += `<strong>Deparment/Unit:</strong><br>`;
-                            if (participant.specificParticipants && participant.specificParticipants.length > 0) {
-                                participant.specificParticipants.forEach(division => {
-                                    if (typeof division === 'object') {
-                                        // Modified to display division object properties if they exist
-                                        const divisionProps = Object.entries(division)
-                                            .map(([key, value]) => `${key ? key : ''}${value || 'N/A'}`)
-                                            .join(', ');
-                                        participantDetails += ` ${divisionProps}<br>`;
-                                    } else {
-                                        // Fallback for string values
-                                        participantDetails += `: ${division}<br>`;
-                                    }
-                                });
-                                participantDetails += `<br>`;
-                            } else {
-                                participantDetails += '<em>All Departments/Units</em><br><br>';
+                            if (school.type) {
+                                detailsHTML += `<span class="participant-tag"><i class="fas fa-tag"></i> ${school.type}</span>`;
                             }
-                        } else if (participant.target === 'all') {
-                            participantDetails += `<strong>All Personnel</strong><br><br>`;
+                            detailsHTML += `<div class="specialization"><strong>Specialization:</strong> ${school.specialization || 'N/A'}</div>`;
+                        } else {
+                            detailsHTML += `${school}`;
                         }
+                        detailsHTML += '</div>';
                     });
+                } else {
+                    detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All School Personnel are eligible</div>';
                 }
-            } catch (error) {
-                console.error("Error parsing eligible participants data:", error);
-                participantDetails = "Error displaying participant data";
-            }
-
-            // Now update the registered users table
-            const tableBody = document.getElementById('registered-users-table-body');
-            tableBody.innerHTML = ''; // Clear previous content
-            
-            const users = registeredUsersData[eventData.id] || [];
-            
-            if (users.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
-            } else {
-                users.forEach(user => {
-                    const row = document.createElement('tr');
-                    
-                    // Format the registration date
-                    const regDate = new Date(user.registration_date);
-                    const formattedDate = regDate.toLocaleString();
-                    
-                    row.innerHTML = `
-                        <td style="border: 1px solid #ddd; padding: 8px;">${user.name}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">${user.email}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">${user.phone || 'N/A'}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">${user.designation || 'N/A'}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">${formattedDate}</td>
-                    `;
-                    
-                    tableBody.appendChild(row);
-                });
-            }
-            
-            // Show download button and set event ID
-            const downloadBtn = document.getElementById('download-btn');
-            downloadBtn.style.display = 'block';
-            downloadBtn.setAttribute('data-id', eventData.id);
-
-            document.getElementById('detail-eligible_participants').innerHTML = participantDetails;
-
-            // Display the meal plan information
-            if (eventData.meal_plan_data) {
-                const mealPlanItems = eventData.meal_plan_data.split('||');
-                let mealPlanText = '';
+                detailsHTML += '</div>';
+            } else if (selectedParticipant.type === 'Division') {
+                detailsHTML += '<div class="participant-details-container">';
+                detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-building mr-2"></i> Division Office Participants</div>';
                 
-                mealPlanItems.forEach(item => {
-                    // Each item is in the format "date:meal_types"
-                    if (item && item.includes(':')) {
-                        mealPlanText += `${item.replace(':', ': ')}<br>`;
-                    }
-                });
-                
-                document.getElementById('detail-meal_plan').innerHTML = mealPlanText;
-            } else {
-                document.getElementById('detail-meal_plan').textContent = "Not specified";
+                if (selectedParticipant.data.length > 0) {
+                    detailsHTML += '<ul class="participant-list">';
+                    selectedParticipant.data.forEach((division, idx) => {
+                        detailsHTML += `<li class="participant-list-item">`;
+                        if (typeof division === 'object') {
+                            // Get the department name (usually the only/first property)
+                            const deptName = Object.values(division)[0] || 'N/A';
+                            detailsHTML += `${deptName}`;
+                        } else {
+                            detailsHTML += `${division}`;
+                        }
+                        detailsHTML += '</li>';
+                    });
+                    detailsHTML += '</ul>';
+                } else {
+                    detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All Division Units are eligible</div>';
+                }
+                detailsHTML += '</div>';
+            } else if (selectedParticipant.type === 'all') {
+                detailsHTML += '<div class="participant-details-container">';
+                detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-users mr-2"></i> All Personnel</div>';
+                detailsHTML += '<div class="participant-item" style="text-align: center;">';
+                detailsHTML += '<i class="fas fa-check-circle mr-2" style="color: #28a745;"></i>';
+                detailsHTML += 'This event is open to all personnel from both Schools and Division units.';
+                detailsHTML += '</div>';
+                detailsHTML += '</div>';
             }
-
-            detailsSection.style.display = 'block';
-            eventsSection.classList.add('shrink');
-            currentEvent = eventData.id;
             
-            // Show/hide archive/unarchive buttons as appropriate
-            const archiveBtn = document.getElementById('archive-btn');
-                archiveBtn.style.display = 'block';
-            const unarchiveBtn = document.getElementById('unarchive-btn');
-            
-            if (archiveBtn) {
-                archiveBtn.setAttribute('data-id', eventData.id);
-            }
-            
-            if (unarchiveBtn) {
-                unarchiveBtn.style.display = 'block';
-                unarchiveBtn.setAttribute('data-id', eventData.id);
-            }
-        }
+            detailsContainer.innerHTML = detailsHTML;
+            detailsContainer.style.display = 'block';
+        });
     }
+} catch (error) {
+    console.error("Error parsing eligible participants data:", error);
+    participantSelect.innerHTML = '<option value="">Error loading participant data</option>';
+    participantSelect.classList.add('error');
+}
+
+        // Display the meal plan information
+        if (eventData.meal_plan_data) {
+            const mealPlanItems = eventData.meal_plan_data.split('||');
+            let mealPlanText = '';
+            
+            mealPlanItems.forEach(item => {
+                // Each item is in the format "date:meal_types"
+                if (item && item.includes(':')) {
+                    mealPlanText += `${item.replace(':', ': ')}<br>`;
+                }
+            });
+            
+            document.getElementById('detail-meal_plan').innerHTML = mealPlanText;
+        } else {
+            document.getElementById('detail-meal_plan').textContent = "Not specified";
+        }
+
+        detailsSection.style.display = 'block';
+        eventsSection.classList.add('shrink');
+        currentEvent = eventData.id;
+        
+        // Show/hide archive/unarchive buttons as appropriate
+        const archiveBtn = document.getElementById('archive-btn');
+        if (archiveBtn) {
+            archiveBtn.style.display = 'block';
+            archiveBtn.setAttribute('data-id', eventData.id);
+        }
+        
+        const unarchiveBtn = document.getElementById('unarchive-btn');
+        if (unarchiveBtn) {
+            unarchiveBtn.style.display = 'block';
+            unarchiveBtn.setAttribute('data-id', eventData.id);
+        }
+        
+        // Show download button and set event ID
+        const downloadBtn = document.getElementById('download-btn');
+        downloadBtn.style.display = 'block';
+        downloadBtn.setAttribute('data-id', eventData.id);
+    }
+}
+
+function distributeCertificates() {
+    const eventId = document.getElementById('distribute-btn').getAttribute('data-id');
+    if (confirm('Are you sure you want to distribute certificates to all participants of this event?')) {
+        window.location.href = 'distribute_certificates.php?event_id=' + eventId;
+    }
+}
 
 function fetchRegisteredUsers(eventId) {
     // Show loading indicator
@@ -690,11 +754,11 @@ function fetchRegisteredUsers(eventId) {
                 const formattedDate = regDate.toLocaleString();
                 
                 row.innerHTML = `
-                    <td style="border: 1px solid #ddd; padding: 8px;">${user.name}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${user.email}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${user.phone || 'N/A'}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${user.designation || 'N/A'}</td>
-                    <td style="border: 1px solid #ddd; padding: 8px;">${formattedDate}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.phone || 'N/A'}</td>
+                    <td>${user.designation || 'N/A'}</td>
+                    <td>${formattedDate}</td>
                 `;
                 
                 tableBody.appendChild(row);
@@ -705,6 +769,24 @@ function fetchRegisteredUsers(eventId) {
             document.getElementById('registered-users-table-body').innerHTML = 
                 '<tr><td colspan="5" style="text-align: center;">Error loading registered users</td></tr>';
         });
+}
+
+function toggleRegisteredUsersTable() {
+    const tableContainer = document.getElementById('registered-users-table-container');
+    const toggleButton = document.getElementById('toggle-users-table-btn');
+    
+    if (tableContainer.style.display === 'none' || tableContainer.style.display === '') {
+        tableContainer.style.display = 'block';
+        toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Registered Users';
+        // Fetch users data if not already loaded
+        const eventId = currentEvent;
+        if (eventId) {
+            fetchRegisteredUsers(eventId);
+        }
+    } else {
+        tableContainer.style.display = 'none';
+        toggleButton.innerHTML = '<i class="fas fa-eye"></i> View Registered Users';
+    }
 }
 
 function downloadParticipantsList() {
