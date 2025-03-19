@@ -47,19 +47,6 @@ $result = $stmt->execute();
 if ($result) {
     // Successful unregistration
         echo "<script>alert('You are already registered for this event.'); window.location.href='user-events.php';</script>";
-    
-    // Optionally, insert a notification record for the user
-    if (!empty($event_title)) {
-        $notification_message = "You have unregistered from the event: " . $event_title;
-        $notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read) VALUES (?, ?, NOW(), 0)";
-        
-        if ($conn->prepare($notification_sql)) {
-            $notification_stmt = $conn->prepare($notification_sql);
-            $notification_stmt->bind_param("is", $user_id, $notification_message);
-            $notification_stmt->execute();
-            $notification_stmt->close();
-        }
-    }
 } else {
     // Failed unregistration
     $_SESSION['message'] = "Failed to unregister from this event. Please try again.";

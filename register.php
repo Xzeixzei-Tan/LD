@@ -72,7 +72,7 @@ $result = $insert_stmt->execute();
 if ($result) {
     // Create notification for the user
     $admin_notification_message = "User " . $first_name . " has registered for event: " . $title;
-    $admin_notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, event_id) VALUES (?, ?, NOW(), 0, 'admin', ?)";
+    $admin_notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype,event_id) VALUES (?, ?, NOW(), 0, 'admin', 'admin_event_registration' , ?)";
     $admin_notification_stmt = $conn->prepare($admin_notification_sql);
     $admin_notification_stmt->bind_param("isi", $user_id, $admin_notification_message, $event_id);
     $admin_notification_stmt->execute();

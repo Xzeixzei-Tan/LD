@@ -101,7 +101,7 @@ while ($participant = $participantsResult->fetch_assoc()) {
     $certStmt->execute();
     
     // Insert notification for the user
-    $notificationMessage = "Your certificate for event: {$event_title} is now available for download";
+    $notificationMessage = "Your certificate for event: {$event_title} is now available to download";
     $notificationSQL = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype, event_id) 
                         VALUES (?, ?, NOW(), 0, 'user', 'certificate', ?)";
     $notifStmt = $conn->prepare($notificationSQL);

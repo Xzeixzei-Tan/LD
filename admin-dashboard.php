@@ -50,7 +50,7 @@ if (!$notif_result) {
             <a href="admin-dashboard.php" class="active"><i class="fas fa-home"></i>Home</a>
             <a href="admin-events.php"><i class="fas fa-calendar-alt"></i>Events</a>
             <a href="admin-users.php"><i class="fas fa-users"></i>Users</a>
-            <a href="admin-notif.php"><i class="fas fa-bell"></i>Notification</a> 
+        
         </div>
     </div>
 
@@ -76,6 +76,7 @@ if (!$notif_result) {
                         <?php while ($event = $result->fetch_assoc()) : ?>
                             <div class="event">
                                 <div class="event-content">
+                                    <a style="text-decoration: none;" href="admin-events.php?event_id=<?php echo urlencode($event['id']); ?>">
                                     <h3><?php echo htmlspecialchars($event['title']); ?></h3>
                                     <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['specification']); ?></p>
                                     <div class="event-dates">
@@ -91,9 +92,12 @@ if (!$notif_result) {
                                 <?php } else { ?>
                                     <span class="upcoming"><i class="fas fa-hourglass-start"></i> Upcoming</span>
                                 <?php } ?>  
-                                </div>
+                                </div></a>
                             </div>
                         <?php endwhile; ?>
+                        <?php if ($result->num_rows == 0): ?>
+                            <p style="font-family: Montserrat; color: gray;">No events available yet.</p>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Notifications Section -->
@@ -104,7 +108,7 @@ if (!$notif_result) {
                                 <?php if (!empty($notif['event_id']) && $notif['notification_subtype'] == 'admin_event_registration'): ?>
                                     <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="admin-events.php?event_id=<?php echo urlencode($notif['event_id']); ?>">
                                 <?php else: ?>
-                                    <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="admin-events.php?event_id=<?php echo urlencode($notif['event_id']); ?>">
+                                    <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" href="admin-users.php">
                                 <?php endif; ?>
                                     <div class="notification-content">
                                         <p><?php echo htmlspecialchars($notif['message']); ?></p>
@@ -113,6 +117,9 @@ if (!$notif_result) {
                                 </a>
                             </div>
                         <?php endwhile; ?>
+                        <?php if ($notif_result->num_rows == 0): ?>
+                            <p style="font-family: Montserrat; color: gray;">No notifications available yet.</p>
+                        <?php endif; ?>
                     </div>          
             </div>
         </div>
@@ -133,7 +140,7 @@ if (!$notif_result) {
     // Update the sort order label and button text on page load
     document.addEventListener('DOMContentLoaded', function() {
         const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
-        document.getElementById('sortOrder').textContent = currentSortOrder === 'ASC' ? 'Ascending' : 'Descending';
+        document.getElementById('sortOrderLabel').textContent = currentSortOrder === 'ASC' ? 'Ascending' : 'Descending';
         document.getElementById('sortButton').textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
     });
 </script>
