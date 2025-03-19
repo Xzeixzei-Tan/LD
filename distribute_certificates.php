@@ -257,7 +257,7 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
             <div class="description">
                 for the meaningful engagement as <strong>PARTICIPANT</strong> during the<br>
                 <strong>"' . $replacements['event_title'] . '" </strong> conducted by the Department of Education-Schools Division Office of General Trias City
-                On ' . $replacements['event_start_date and end_date'] . ', at the ' . $replacements['venue'] . '
+                On ' . $replacements['date_month'] . ' ' . $replacements['event_start_date and end_date'] . ', at the ' . $replacements['venue'] . '
             </div>
             
             <div class="date">
