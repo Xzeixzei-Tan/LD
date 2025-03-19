@@ -270,7 +270,7 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
                     Assistant Schools Division Superintendent<br>
                     Officer-in-Charge<br>
                     Office of the Schools Division Superintendent
-                </div>
+                </div>  
             </div>
         </div>
     </center>    
