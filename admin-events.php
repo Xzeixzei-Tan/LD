@@ -413,11 +413,11 @@ foreach ($eventsData as $event) {
                     <button class="expand-btn" onclick="toggleExpand()"><i class="fas fa-expand"></i></button>
                     <h2>Details</h2>
                     <?php if ($viewArchived): ?>
-                    <div class="detail-item expanded-content">
+                    <div class="expanded-content">
                         <button onclick="unarchiveEvent()" id="unarchive-btn" style="display:none;">Unarchive Event</button>
                     </div>
                     <?php else: ?>
-                    <div class="detail-item expanded-content">
+                    <div class="expanded-content">
                         <button onclick="archiveEvent()" id="archive-btn" style="display:none;">Archive Event</button>
                     </div>
                     <?php endif; ?>
@@ -469,7 +469,7 @@ foreach ($eventsData as $event) {
                         <div class="detail-item">
                             <h4>Eligible Participants:</h4>
                             <div class="select-container">
-                                <select id="detail-eligible_participants" style="width: 100%; padding: 10px; background-color: #f8f9fa; cursor: pointer; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px; margin-bottom: 10px;">
+                                <select id="detail-eligible_participants">
                                     <option value="">-- Select Participant Type --</option>
                                 </select>
                             </div>
@@ -486,10 +486,10 @@ foreach ($eventsData as $event) {
                  
                 <div class="detail-item expanded-content" style="width: 100%;">
                     <div class="registered-users">
-                        <h4 style="margin: 0;">Registered Users: <span id="detail-user_count" style="font-weight: normal;"></span></h4>
+                        <h4 style="margin: 0;">Registered Users: <span id="detail-user_count"></span></h4>
                     </div>
                     <button id="toggle-users-table-btn" onclick="toggleRegisteredUsersTable()" class="view-user-btn">
-                        <i class="fas fa-eye"></i> View Registered Users
+                        <i class="fas fa-eye"></i> View List of Registered Users
                     </button>
                     
                     <div id="registered-users-table-container">
@@ -782,7 +782,7 @@ function toggleRegisteredUsersTable() {
     
     if (tableContainer.style.display === 'none' || tableContainer.style.display === '') {
         tableContainer.style.display = 'block';
-        toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Registered Users';
+        toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i> Hide List of Registered Users';
         // Fetch users data if not already loaded
         const eventId = currentEvent;
         if (eventId) {
