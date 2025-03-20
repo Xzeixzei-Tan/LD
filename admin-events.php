@@ -277,72 +277,6 @@ foreach ($eventsData as $event) {
     <link href="styles/admin-events.css" rel="stylesheet">
     <script src="scripts/admin-events.js" defer></script>
     <title>Event Management System</title>
-    <style>
-        .archive-toggle {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .archive-toggle a {
-            padding: 8px 16px;
-            background-color: #f1f1f1;
-            color: #333;
-            text-decoration: none;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-        
-        .archive-toggle a.active {
-            background-color: #4CAF50;
-            color: white;
-        }
-        
-        .archived-label {
-            background-color: #888;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            margin-left: 10px;
-        }
-        
-        .ongoing-label {
-            float: right;
-            
-            color: white;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            margin-left: 10px;
-        }
-        
-        .download-btn {
-            background-color: #2b3a8f;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        
-        .download-btn:hover {
-            background-color: #374ab6;
-        }
-        
-        .download-btn i {
-            margin-right: 8px;
-        }
-
-        .highlighted-event{
-            transition: background-color 0.5s;
-            background-color: #374ab6;
-        }
-    </style>
 </head>
 <body>
 
@@ -425,7 +359,7 @@ foreach ($eventsData as $event) {
                     <hr>
 
 
-                    <h3 id="detail-title"></h3>
+                <h3 id="detail-title"></h3>
                 <div class="detail-items">
                     <div class="detail-items-1">
                         <div class="detail-item">
@@ -497,6 +431,9 @@ foreach ($eventsData as $event) {
                             <button class="download-btn" onclick="downloadParticipantsList()" id="download-btn">
                                 <i class="fas fa-download"></i> List of Registered Participants
                             </button>
+                            <button class="download-btn" id="link-btn">
+                                <i class="fa fa-link" aria-hidden="true"></i> Distribute Evaluation Link
+                            </button>
                             <button class="download-btn" onclick="distributeCertificates()" id="distribute-btn">
                                 <i class="fas fa-certificate"></i> Distribute Certificates
                             </button>
@@ -525,367 +462,550 @@ foreach ($eventsData as $event) {
             </div>
         </div>
     </div>
+
+<!-- Evaluation Link Modal -->
+<div id="evaluation-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Distribute Evaluation Link</h2>
+    <p>Send evaluation link to all registered participants for this event.</p>
+    <form id="evaluation-form">
+        <div class="form-group">
+            <label for="eval-link">Evaluation Link:</label>
+            <input type="text" id="eval-link" name="eval-link" placeholder="Enter evaluation form URL" required>
+        </div>
+      
+        <div class="form-group">
+            <label>Participants who will receive the link:</label>
+            <div class="participant-count">
+            <span id="total-participants" style="display: none;">
+            </div>
+            <div class="participants-table-container">
+            <table id="participants-table">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                </tr>
+                </thead>
+                <tbody id="participants-table-body">
+                <tr>
+                    <td colspan="3" class="text-center">Loading participants...</td>
+                </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+      
+        <div class="form-actions">
+            <button type="button" id="cancel-eval">Cancel</button>
+            <button type="submit" id="send-eval">Send Evaluation Link</button>
+        </div>
+        </form>
+    </div>
+    </div>
 </div>
+
 <script>
     let currentEvent = null;
+    let currentParticipantSelect = null;
 
     function showDetails(eventData) {
-    const detailsSection = document.getElementById('details-section');
-    const eventsSection = document.querySelector('.events-section');
-    const registeredUsersData = <?php echo json_encode($eventsWithUsers); ?>;
-
-    // Show distribute certificate button and set event ID
-    const distributeBtn = document.getElementById('distribute-btn');
-    distributeBtn.style.display = 'block';
-    distributeBtn.setAttribute('data-id', eventData.id);
-
-    if (currentEvent === eventData.id) {
-        detailsSection.style.display = 'none';
-        eventsSection.classList.remove('shrink');
-        currentEvent = null;
-    } else {
-        document.getElementById('detail-title').textContent = eventData.title;
-        document.getElementById('detail-event_specification').textContent = eventData.specification;
-        document.getElementById('detail-delivery').textContent = eventData.delivery;
-        document.getElementById('detail-start').textContent = eventData.start_date;
-        document.getElementById('detail-end').textContent = eventData.end_date;
-        document.getElementById('detail-event-days').innerHTML = eventData.formatted_event_days || "No specific days information available";
-        document.getElementById('detail-status').textContent = eventData.status;
-        document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
-        document.getElementById('detail-user_count').textContent = eventData.user_count;
-        document.getElementById('detail-funding_sources').textContent = eventData.funding_sources || "Not specified";
-        document.getElementById('detail-speakers').textContent = eventData.speakers || "Not specified";
+        const detailsSection = document.getElementById('details-section');
+        const eventsSection = document.querySelector('.events-section');
+        const registeredUsersData = <?php echo json_encode($eventsWithUsers); ?>;
         
-        // Fetch registered users for this event
-        fetchRegisteredUsers(eventData.id);
-        
-        // In the showDetails function, replace the participant select code with this:
+        // Reset participant details container visibility
+        const participantDetailsContainer = document.getElementById('participant-details-container');
+        participantDetailsContainer.style.display = 'none';
 
-// Process the eligible participants data for the dropdown
-const participantSelect = document.getElementById('detail-eligible_participants');
-const detailsContainer = document.getElementById('participant-details-container');
+        // Show distribute certificate button and set event ID
+        const distributeBtn = document.getElementById('distribute-btn');
+        distributeBtn.style.display = 'block';
+        distributeBtn.setAttribute('data-id', eventData.id);
 
-// Clear previous options
-participantSelect.innerHTML = '<option value="">-- Select Participant Type --</option>';
-participantSelect.removeAttribute('disabled');
-
-try {
-    if (eventData.processed_eligible_data) {
-        const eligibleData = JSON.parse(eventData.processed_eligible_data);
-        const participantTypes = [];
-        
-        // Create options for the dropdown
-        eligibleData.forEach((participant, index) => {
-            let optionText = '';
-            let iconClass = '';
-            
-            // Format the option text based on target type
-            if (participant.target === 'School') {
-                optionText = '🏫 School Personnel';
-                iconClass = 'fa-school';
-            } else if (participant.target === 'Division') {
-                optionText = '🏢 Division Office Personnel';
-                iconClass = 'fa-building';
-            } else if (participant.target === 'all') {
-                optionText = '👥 All Personnel';
-                iconClass = 'fa-users';
-            }
-            
-            if (optionText) {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = optionText;
-                option.setAttribute('data-icon', iconClass);
-                participantSelect.appendChild(option);
-                
-                // Store participant data for later use
-                participantTypes.push({
-                    type: participant.target,
-                    data: participant.specificParticipants || []
-                });
-            }
-        });
-        
-        // Add event listener for dropdown change
-        participantSelect.addEventListener('change', function() {
-            const selectedIndex = this.value;
-            
-            if (selectedIndex === '') {
-                detailsContainer.style.display = 'none';
-                return;
-            }
-            
-            const selectedParticipant = participantTypes[selectedIndex];
-            let detailsHTML = '';
-            
-            if (selectedParticipant.type === 'School') {
-                detailsHTML += '<div class="participant-details-container">';
-                detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-school mr-2"></i> School Participants</div>';
-                
-                if (selectedParticipant.data.length > 0) {
-                    selectedParticipant.data.forEach((school, idx) => {
-                        detailsHTML += `<div class="participant-item">`;
-                        if (typeof school === 'object') {
-                            if (school.level) {
-                                detailsHTML += `<span class="participant-tag"><i class="fas fa-layer-group"></i> ${school.level}</span>`;
-                            }
-                            if (school.type) {
-                                detailsHTML += `<span class="participant-tag"><i class="fas fa-tag"></i> ${school.type}</span>`;
-                            }
-                            detailsHTML += `<div class="specialization"><strong>Specialization:</strong> ${school.specialization || 'N/A'}</div>`;
-                        } else {
-                            detailsHTML += `${school}`;
-                        }
-                        detailsHTML += '</div>';
-                    });
-                } else {
-                    detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All School Personnel are eligible</div>';
-                }
-                detailsHTML += '</div>';
-            } else if (selectedParticipant.type === 'Division') {
-                detailsHTML += '<div class="participant-details-container">';
-                detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-building mr-2"></i> Division Office Participants</div>';
-                
-                if (selectedParticipant.data.length > 0) {
-                    detailsHTML += '<ul class="participant-list">';
-                    selectedParticipant.data.forEach((division, idx) => {
-                        detailsHTML += `<li class="participant-list-item">`;
-                        if (typeof division === 'object') {
-                            // Get the department name (usually the only/first property)
-                            const deptName = Object.values(division)[0] || 'N/A';
-                            detailsHTML += `${deptName}`;
-                        } else {
-                            detailsHTML += `${division}`;
-                        }
-                        detailsHTML += '</li>';
-                    });
-                    detailsHTML += '</ul>';
-                } else {
-                    detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All Division Units are eligible</div>';
-                }
-                detailsHTML += '</div>';
-            } else if (selectedParticipant.type === 'all') {
-                detailsHTML += '<div class="participant-details-container">';
-                detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-users mr-2"></i> All Personnel</div>';
-                detailsHTML += '<div class="participant-item" style="text-align: center;">';
-                detailsHTML += '<i class="fas fa-check-circle mr-2" style="color: #28a745;"></i>';
-                detailsHTML += 'This event is open to all personnel from both Schools and Division units.';
-                detailsHTML += '</div>';
-                detailsHTML += '</div>';
-            }
-            
-            detailsContainer.innerHTML = detailsHTML;
-            detailsContainer.style.display = 'block';
-        });
-    }
-} catch (error) {
-    console.error("Error parsing eligible participants data:", error);
-    participantSelect.innerHTML = '<option value="">Error loading participant data</option>';
-    participantSelect.classList.add('error');
-}
-
-        // Display the meal plan information
-        if (eventData.meal_plan_data) {
-            const mealPlanItems = eventData.meal_plan_data.split('||');
-            let mealPlanText = '';
-            
-            mealPlanItems.forEach(item => {
-                // Each item is in the format "date:meal_types"
-                if (item && item.includes(':')) {
-                    mealPlanText += `${item.replace(':', ': ')}<br>`;
-                }
-            });
-            
-            document.getElementById('detail-meal_plan').innerHTML = mealPlanText;
+        if (currentEvent === eventData.id) {
+            detailsSection.style.display = 'none';
+            eventsSection.classList.remove('shrink');
+            currentEvent = null;
         } else {
-            document.getElementById('detail-meal_plan').textContent = "Not specified";
-        }
+            document.getElementById('detail-title').textContent = eventData.title;
+            document.getElementById('detail-event_specification').textContent = eventData.specification;
+            document.getElementById('detail-delivery').textContent = eventData.delivery;
+            document.getElementById('detail-start').textContent = eventData.start_date;
+            document.getElementById('detail-end').textContent = eventData.end_date;
+            document.getElementById('detail-event-days').innerHTML = eventData.formatted_event_days || "No specific days information available";
+            document.getElementById('detail-status').textContent = eventData.status;
+            document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
+            document.getElementById('detail-user_count').textContent = eventData.user_count;
+            document.getElementById('detail-funding_sources').textContent = eventData.funding_sources || "Not specified";
+            document.getElementById('detail-speakers').textContent = eventData.speakers || "Not specified";
+            
+            // Fetch registered users for this event
+            fetchRegisteredUsers(eventData.id);
+            
+            // Process the eligible participants data for the dropdown
+            const participantSelect = document.getElementById('detail-eligible_participants');
+            
+            // Clear previous options and reset
+            participantSelect.innerHTML = '<option value="">-- Select Participant Type --</option>';
+            participantSelect.removeAttribute('disabled');
+            
+            // Remove previous event listener if it exists
+            if (currentParticipantSelect) {
+                participantSelect.removeEventListener('change', currentParticipantSelect);
+            }
 
-        detailsSection.style.display = 'block';
-        eventsSection.classList.add('shrink');
-        currentEvent = eventData.id;
-        
-        // Show/hide archive/unarchive buttons as appropriate
-        const archiveBtn = document.getElementById('archive-btn');
-        if (archiveBtn) {
-            archiveBtn.style.display = 'block';
-            archiveBtn.setAttribute('data-id', eventData.id);
+            try {
+                if (eventData.processed_eligible_data) {
+                    const eligibleData = JSON.parse(eventData.processed_eligible_data);
+                    const participantTypes = [];
+                    
+                    // Create options for the dropdown
+                    eligibleData.forEach((participant, index) => {
+                        let optionText = '';
+                        let iconClass = '';
+                        
+                        // Format the option text based on target type
+                        if (participant.target === 'School') {
+                            optionText = '🏫 School Personnel';
+                            iconClass = 'fa-school';
+                        } else if (participant.target === 'Division') {
+                            optionText = '🏢 Division Office Personnel';
+                            iconClass = 'fa-building';
+                        } else if (participant.target === 'all') {
+                            optionText = '👥 All Personnel';
+                            iconClass = 'fa-users';
+                        }
+                        
+                        if (optionText) {
+                            const option = document.createElement('option');
+                            option.value = index;
+                            option.textContent = optionText;
+                            option.setAttribute('data-icon', iconClass);
+                            participantSelect.appendChild(option);
+                            
+                            // Store participant data for later use
+                            participantTypes.push({
+                                type: participant.target,
+                                data: participant.specificParticipants || []
+                            });
+                        }
+                    });
+                    
+                    // Create the event listener function
+                    const handleParticipantChange = function() {
+                        const selectedIndex = this.value;
+                        
+                        if (selectedIndex === '') {
+                            participantDetailsContainer.style.display = 'none';
+                            return;
+                        }
+                        
+                        const selectedParticipant = participantTypes[selectedIndex];
+                        let detailsHTML = '';
+                        
+                        if (selectedParticipant.type === 'School') {
+                            detailsHTML += '<div class="participant-details-container">';
+                            detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-school mr-2"></i> School Participants</div>';
+                            
+                            if (selectedParticipant.data.length > 0) {
+                                selectedParticipant.data.forEach((school, idx) => {
+                                    detailsHTML += `<div class="participant-item">`;
+                                    if (typeof school === 'object') {
+                                        if (school.level) {
+                                            detailsHTML += `<span class="participant-tag"><i class="fas fa-layer-group"></i> ${school.level}</span>`;
+                                        }
+                                        if (school.type) {
+                                            detailsHTML += `<span class="participant-tag"><i class="fas fa-tag"></i> ${school.type}</span>`;
+                                        }
+                                        detailsHTML += `<div class="specialization"><strong>Specialization:</strong> ${school.specialization || 'N/A'}</div>`;
+                                    } else {
+                                        detailsHTML += `${school}`;
+                                    }
+                                    detailsHTML += '</div>';
+                                });
+                            } else {
+                                detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All School Personnel are eligible</div>';
+                            }
+                            detailsHTML += '</div>';
+                        } else if (selectedParticipant.type === 'Division') {
+                            detailsHTML += '<div class="participant-details-container">';
+                            detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-building mr-2"></i> Division Office Participants</div>';
+                            
+                            if (selectedParticipant.data.length > 0) {
+                                detailsHTML += '<ul class="participant-list">';
+                                selectedParticipant.data.forEach((division, idx) => {
+                                    detailsHTML += `<li class="participant-list-item">`;
+                                    if (typeof division === 'object') {
+                                        // Get the department name (usually the only/first property)
+                                        const deptName = Object.values(division)[0] || 'N/A';
+                                        detailsHTML += `${deptName}`;
+                                    } else {
+                                        detailsHTML += `${division}`;
+                                    }
+                                    detailsHTML += '</li>';
+                                });
+                                detailsHTML += '</ul>';
+                            } else {
+                                detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All Division Units are eligible</div>';
+                            }
+                            detailsHTML += '</div>';
+                        } else if (selectedParticipant.type === 'all') {
+                            detailsHTML += '<div class="participant-details-container">';
+                            detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-users mr-2"></i> All Personnel</div>';
+                            detailsHTML += '<div class="participant-item" style="text-align: center;">';
+                            detailsHTML += '<i class="fas fa-check-circle mr-2" style="color: #28a745;"></i>';
+                            detailsHTML += 'This event is open to all personnel from both Schools and Division units.';
+                            detailsHTML += '</div>';
+                            detailsHTML += '</div>';
+                        }
+                        
+                        participantDetailsContainer.innerHTML = detailsHTML;
+                        participantDetailsContainer.style.display = 'block';
+                    };
+                    
+                    // Save reference to current event listener function
+                    currentParticipantSelect = handleParticipantChange;
+                    
+                    // Add event listener
+                    participantSelect.addEventListener('change', handleParticipantChange);
+                }
+            } catch (error) {
+                console.error("Error parsing eligible participants data:", error);
+                participantSelect.innerHTML = '<option value="">Error loading participant data</option>';
+                participantSelect.setAttribute('disabled', 'disabled');
+            }
+
+            // Display the meal plan information
+            if (eventData.meal_plan_data) {
+                const mealPlanItems = eventData.meal_plan_data.split('||');
+                let mealPlanText = '';
+                
+                mealPlanItems.forEach(item => {
+                    // Each item is in the format "date:meal_types"
+                    if (item && item.includes(':')) {
+                        mealPlanText += `${item.replace(':', ': ')}<br>`;
+                    }
+                });
+                
+                document.getElementById('detail-meal_plan').innerHTML = mealPlanText;
+            } else {
+                document.getElementById('detail-meal_plan').textContent = "Not specified";
+            }
+
+            detailsSection.style.display = 'block';
+            eventsSection.classList.add('shrink');
+            currentEvent = eventData.id;
+            
+            // Show/hide archive/unarchive buttons as appropriate
+            const archiveBtn = document.getElementById('archive-btn');
+            if (archiveBtn) {
+                archiveBtn.style.display = 'block';
+                archiveBtn.setAttribute('data-id', eventData.id);
+            }
+            
+            const unarchiveBtn = document.getElementById('unarchive-btn');
+            if (unarchiveBtn) {
+                unarchiveBtn.style.display = 'block';
+                unarchiveBtn.setAttribute('data-id', eventData.id);
+            }
+            
+            // Show download button and set event ID
+            const downloadBtn = document.getElementById('download-btn');
+            downloadBtn.style.display = 'block';
+            downloadBtn.setAttribute('data-id', eventData.id);
         }
-        
-        const unarchiveBtn = document.getElementById('unarchive-btn');
-        if (unarchiveBtn) {
-            unarchiveBtn.style.display = 'block';
-            unarchiveBtn.setAttribute('data-id', eventData.id);
-        }
-        
-        // Show download button and set event ID
-        const downloadBtn = document.getElementById('download-btn');
-        downloadBtn.style.display = 'block';
-        downloadBtn.setAttribute('data-id', eventData.id);
     }
-}
 
-function distributeCertificates() {
-    const eventId = document.getElementById('distribute-btn').getAttribute('data-id');
-    if (confirm('Are you sure you want to distribute certificates to all participants of this event?')) {
-        window.location.href = 'distribute_certificates.php?event_id=' + eventId;
+    // Get the modal and button elements
+    const evalLinkBtn = document.getElementById("link-btn");
+    const evalModal = document.getElementById("evaluation-modal");
+    const closeBtn = evalModal.querySelector(".close");
+    const cancelBtn = document.getElementById("cancel-eval");
+    const evalForm = document.getElementById("evaluation-form");
+
+    // When the user clicks the link button, open the modal
+    evalLinkBtn.onclick = function() {
+    evalModal.style.display = "block";
+    const eventId = currentEvent;
+    
+    // Set event ID as a data attribute on the form
+    evalForm.setAttribute('data-event-id', eventId);
+    
+    // Load participants for this event
+    loadParticipantsForModal(eventId);
     }
-}
 
-function fetchRegisteredUsers(eventId) {
+    // Function to load participants for the modal
+    function loadParticipantsForModal(eventId) {
+    const tableBody = document.getElementById('participants-table-body');
+    const totalParticipantsElement = document.getElementById('total-participants');
+    
     // Show loading indicator
-    document.getElementById('registered-users-table-body').innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading...</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Loading participants...</td></tr>';
     
     // Fetch registered users using AJAX
     fetch('get_registered_users.php?event_id=' + eventId)
         .then(response => response.json())
         .then(data => {
-            const tableBody = document.getElementById('registered-users-table-body');
+        // Clear loading indicator
+        tableBody.innerHTML = '';
+        
+        // Update total participants count
+        totalParticipantsElement.textContent = data.length;
+        
+        if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center">No registered users found</td></tr>';
+            return;
+        }
+        
+        // Populate table with user data
+        data.forEach((user, index) => {
+            const row = document.createElement('tr');
             
-            // Clear loading indicator
-            tableBody.innerHTML = '';
+            row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            `;
             
-            if (data.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
-                return;
-            }
-            
-            // Populate table with user data
-            data.forEach(user => {
-                const row = document.createElement('tr');
-                
-                // Format the registration date
-                const regDate = new Date(user.registration_date);
-                const formattedDate = regDate.toLocaleString();
-                
-                row.innerHTML = `
-                    <td>${user.name}</td>
-                    <td>${user.email}</td>
-                    <td>${user.phone || 'N/A'}</td>
-                    <td>${user.designation || 'N/A'}</td>
-                    <td>${formattedDate}</td>
-                `;
-                
-                tableBody.appendChild(row);
-            });
+            tableBody.appendChild(row);
+        });
         })
         .catch(error => {
-            console.error('Error fetching registered users:', error);
-            document.getElementById('registered-users-table-body').innerHTML = 
-                '<tr><td colspan="5" style="text-align: center;">Error loading registered users</td></tr>';
+        console.error('Error fetching registered users:', error);
+        tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Error loading registered users</td></tr>';
+        totalParticipantsElement.textContent = '0';
         });
-}
+    }
 
-function toggleRegisteredUsersTable() {
-    const tableContainer = document.getElementById('registered-users-table-container');
-    const toggleButton = document.getElementById('toggle-users-table-btn');
+    // When the user clicks the close button or cancel button, close the modal
+    closeBtn.onclick = function() {
+    evalModal.style.display = "none";
+    }
+
+    cancelBtn.onclick = function() {
+    evalModal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+    if (event.target == evalModal) {
+        evalModal.style.display = "none";
+    }
+    }
+
+    // Handle form submission
+    evalForm.onsubmit = function(e) {
+    e.preventDefault();
+    const eventId = this.getAttribute('data-event-id');
+    const evalLink = document.getElementById('eval-link').value;
     
-    if (tableContainer.style.display === 'none' || tableContainer.style.display === '') {
-        tableContainer.style.display = 'block';
-        toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i> Hide List of Registered Users';
-        // Fetch users data if not already loaded
-        const eventId = currentEvent;
-        if (eventId) {
-            fetchRegisteredUsers(eventId);
-        }
-    } else {
-        tableContainer.style.display = 'none';
-        toggleButton.innerHTML = '<i class="fas fa-eye"></i> View Registered Users';
-    }
-}
-
-function downloadParticipantsList() {
-    const eventId = document.getElementById('download-btn').getAttribute('data-id');
-    if (eventId) {
-        window.location.href = 'download_participants.php?event_id=' + eventId;
-    }
-}
-
-function archiveEvent() {
-    const eventId = document.getElementById('archive-btn').getAttribute('data-id');
-    if (confirm('Are you sure you want to archive this event?')) {
-        window.location.href = 'archive-event.php?id=' + eventId + '&action=archive';
-    }
-}
-
-function unarchiveEvent() {
-    const eventId = document.getElementById('unarchive-btn').getAttribute('data-id');
-    if (confirm('Are you sure you want to unarchive this event?')) {
-        window.location.href = 'archive-event.php?id=' + eventId + '&action=unarchive';
-    }
-}
-
-function selectEvent(event) {
-    document.querySelectorAll('.event').forEach(div => {
-        div.classList.remove('selected');
-    });
-
-    event.currentTarget.classList.add('selected');
-}
-
-function toggleExpand() {
-    let detailsSection = document.getElementById('details-section');
-    let eventsSection = document.querySelector('.events-section');
-    let expandIcon = document.querySelector('.expand-btn i');
-    let expandedContent = document.querySelectorAll('.expanded-content');
-
-    if (detailsSection.classList.contains('expand')) {
-        // Collapse
-        detailsSection.classList.remove('expand');
-        eventsSection.classList.remove('hidden');
-        expandIcon.classList.replace('fa-compress', 'fa-expand');
-        expandedContent.forEach(content => content.style.display = 'none');
-    } else {
-        // Expand
-        detailsSection.classList.add('expand');
-        eventsSection.classList.add('hidden');
-        expandIcon.classList.replace('fa-expand', 'fa-compress');
-        expandedContent.forEach(content => content.style.display = 'block');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const eventDivs = document.querySelectorAll('.event');
-    eventDivs.forEach(div => {
-        div.addEventListener('click', selectEvent);
-    });
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if an event_id is in the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('event_id');
+    // Show loading state
+    document.getElementById('send-eval').textContent = "Sending...";
+    document.getElementById('send-eval').disabled = true;
     
-    if (eventId) {
-        // Find the event with the matching ID
-        const events = <?php echo json_encode($eventsData); ?>;
-        const event = events.find(e => e.id == eventId);
+    // You would typically send this data to the server via AJAX
+    // For now, we'll just simulate a server request
+    setTimeout(() => {
+        alert(`Evaluation link has been sent to all participants' email addresses.`);
+        evalModal.style.display = "none";
+        // Reset form
+        evalForm.reset();
+        document.getElementById('send-eval').textContent = "Send Evaluation Link";
+        document.getElementById('send-eval').disabled = false;
         
-        if (event) {
-            // Show the details for this event
-            showDetails(event);
-            
-            // Find all event buttons
-            const eventElements = document.querySelectorAll('.events-btn');
-            
-            // Loop through each event button to find the one with the matching ID
-            eventElements.forEach(function(element) {
-                // Get the onclick attribute content
-                const onclickAttr = element.getAttribute('onclick');
-                
-                // If this element has the matching event ID in its onclick attribute
-                if (onclickAttr && onclickAttr.indexOf(`"id":${eventId}`) !== -1) {
-                    // Scroll to this element
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // Optional: Add a highlight class
-                    element.classList.add('highlighted-event');
-                }
-            });
+        // For a real implementation, you would use something like:
+        /*
+        fetch('send_evaluation_link.php', {
+        method: 'POST',
+        body: JSON.stringify({
+            event_id: eventId,
+            eval_link: evalLink
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+        })
+        .then(response => response.json())
+        .then(data => {
+        alert(data.message);
+        evalModal.style.display = "none";
+        evalForm.reset();
+        })
+        .catch(error => {
+        alert('Error sending evaluation links: ' + error);
+        })
+        .finally(() => {
+        document.getElementById('send-eval').textContent = "Send Evaluation Link";
+        document.getElementById('send-eval').disabled = false;
+        });
+        */
+    }, 1500);
+    }
+    
+    function distributeCertificates() {
+        const eventId = document.getElementById('distribute-btn').getAttribute('data-id');
+        if (confirm('Are you sure you want to distribute certificates to all participants of this event?')) {
+            window.location.href = 'distribute_certificates.php?event_id=' + eventId;
         }
     }
-});
 
+    function fetchRegisteredUsers(eventId) {
+        // Show loading indicator
+        document.getElementById('registered-users-table-body').innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading...</td></tr>';
+        
+        // Fetch registered users using AJAX
+        fetch('get_registered_users.php?event_id=' + eventId)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('registered-users-table-body');
+                
+                // Clear loading indicator
+                tableBody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
+                    return;
+                }
+                
+                // Populate table with user data
+                data.forEach(user => {
+                    const row = document.createElement('tr');
+                    
+                    // Format the registration date
+                    const regDate = new Date(user.registration_date);
+                    const formattedDate = regDate.toLocaleString();
+                    
+                    row.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone || 'N/A'}</td>
+                        <td>${user.designation || 'N/A'}</td>
+                        <td>${formattedDate}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching registered users:', error);
+                document.getElementById('registered-users-table-body').innerHTML = 
+                    '<tr><td colspan="5" style="text-align: center;">Error loading registered users</td></tr>';
+            });
+    }
+
+    function toggleRegisteredUsersTable() {
+        const tableContainer = document.getElementById('registered-users-table-container');
+        const toggleButton = document.getElementById('toggle-users-table-btn');
+        
+        if (tableContainer.style.display === 'none' || tableContainer.style.display === '') {
+            tableContainer.style.display = 'block';
+            toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i> Hide List of Registered Users';
+            // Fetch users data if not already loaded
+            const eventId = currentEvent;
+            if (eventId) {
+                fetchRegisteredUsers(eventId);
+            }
+        } else {
+            tableContainer.style.display = 'none';
+            toggleButton.innerHTML = '<i class="fas fa-eye"></i> View Registered Users';
+        }
+    }
+
+    function downloadParticipantsList() {
+        const eventId = document.getElementById('download-btn').getAttribute('data-id');
+        if (eventId) {
+            window.location.href = 'download_participants.php?event_id=' + eventId;
+        }
+    }
+
+    function archiveEvent() {
+        const eventId = document.getElementById('archive-btn').getAttribute('data-id');
+        if (confirm('Are you sure you want to archive this event?')) {
+            window.location.href = 'archive-event.php?id=' + eventId + '&action=archive';
+        }
+    }
+
+    function unarchiveEvent() {
+        const eventId = document.getElementById('unarchive-btn').getAttribute('data-id');
+        if (confirm('Are you sure you want to unarchive this event?')) {
+            window.location.href = 'archive-event.php?id=' + eventId + '&action=unarchive';
+        }
+    }
+
+    function selectEvent(event) {
+        document.querySelectorAll('.event').forEach(div => {
+            div.classList.remove('selected');
+        });
+
+        event.currentTarget.classList.add('selected');
+    }
+
+    function toggleExpand() {
+        let detailsSection = document.getElementById('details-section');
+        let eventsSection = document.querySelector('.events-section');
+        let expandIcon = document.querySelector('.expand-btn i');
+        let expandedContent = document.querySelectorAll('.expanded-content');
+
+        if (detailsSection.classList.contains('expand')) {
+            // Collapse
+            detailsSection.classList.remove('expand');
+            eventsSection.classList.remove('hidden');
+            expandIcon.classList.replace('fa-compress', 'fa-expand');
+            expandedContent.forEach(content => content.style.display = 'none');
+        } else {
+            // Expand
+            detailsSection.classList.add('expand');
+            eventsSection.classList.add('hidden');
+            expandIcon.classList.replace('fa-expand', 'fa-compress');
+            expandedContent.forEach(content => content.style.display = 'block');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const eventDivs = document.querySelectorAll('.event');
+        eventDivs.forEach(div => {
+            div.addEventListener('click', selectEvent);
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if an event_id is in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event_id');
+        
+        if (eventId) {
+            // Find the event with the matching ID
+            const events = <?php echo json_encode($eventsData); ?>;
+            const event = events.find(e => e.id == eventId);
+            
+            if (event) {
+                // Show the details for this event
+                showDetails(event);
+                
+                // Find all event buttons
+                const eventElements = document.querySelectorAll('.events-btn');
+                
+                // Loop through each event button to find the one with the matching ID
+                eventElements.forEach(function(element) {
+                    // Get the onclick attribute content
+                    const onclickAttr = element.getAttribute('onclick');
+                    
+                    // If this element has the matching event ID in its onclick attribute
+                    if (onclickAttr && onclickAttr.indexOf(`"id":${eventId}`) !== -1) {
+                        // Scroll to this element
+                        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Optional: Add a highlight class
+                        element.classList.add('highlighted-event');
+                    }
+                });
+            }
+        }
+    });
 </script>
 
 </body>
