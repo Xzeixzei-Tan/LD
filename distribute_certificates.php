@@ -199,6 +199,7 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
                 font-weight: Bold;
                 font-size: 70px;
                 display: inline-block;
+                text-transform: uppercase;
             }
 
             .description, strong {
