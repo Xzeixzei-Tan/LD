@@ -37,7 +37,7 @@ if ($stmt === false) {
     exit();
 }
 
-$stmt->bind_param("i", $user_id); // FIXED: Use $user_id instead of $current_user_id
+$stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -87,7 +87,12 @@ $is_registered = false;
 if ($selected_event_id) {
     // Fetch event details
     $detail_sql = "SELECT e.*, 
-                  (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered 
+                  (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered,
+                  CASE 
+                      WHEN NOW() BETWEEN e.start_date AND e.end_date THEN 'Ongoing'
+                      WHEN NOW() < e.start_date THEN 'Upcoming'
+                      ELSE 'Past'
+                  END AS status
                   FROM events e WHERE e.id = ?";
     $stmt = $conn->prepare($detail_sql);
     $stmt->bind_param("ii", $user_id, $selected_event_id);
@@ -911,15 +916,21 @@ p{
                         </div>
                     </div>
                     <br>
-                    <?php if (!$is_registered): ?>
-                    <a class="create-btn" href="register.php?event_id=<?php echo urlencode($selected_event['id']); ?>">Register</a>
+                    <?php if ($selected_event): ?>
+                        <?php if (!$is_registered): ?>
+                            <?php if ($selected_event["status"] === "Past" || $selected_event["status"] === "Ongoing"): ?>        
+                                <a class="create-btn" style="background-color: gray; color: #E5E4E2; cursor: not-allowed;" onclick="showStatusAlert('<?php echo htmlspecialchars($selected_event["status"]); ?>')">Register</a>
+                            <?php else: ?>
+                                <a class="create-btn" href="register.php?event_id=<?php echo urlencode($selected_event['id']); ?>">Register</a>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <a class="create-btn" href="unregister.php?event_id=<?php echo urlencode($selected_event['id']); ?>" style="background-color:rgb(117, 130, 14); border-style: none; cursor: pointer;" onclick="return confirm('Are you sure you want to unregister from this event?');">Unregister</a>
+                        <?php endif; ?>
                     <?php else: ?>
-                    <a class="create-btn" href="unregister.php?event_id=<?php echo urlencode($selected_event['id']); ?>" style="background-color:rgb(117, 130, 14); border-style: none; cursor: pointer;" onclick="return confirm('Are you sure you want to unregister from this event?');">Unregister</a>
+                        <div class="detail-item">
+                            <p>Select an event to view details</p>
+                        </div>
                     <?php endif; ?>
-                    <?php else: ?>
-                    <div class="detail-item">
-                        <p>Select an event to view details</p>
-                    </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -956,6 +967,11 @@ function switchTab(tabName) {
     } else {
         window.history.replaceState(null, null, `?tab=${tabName}`);
     }
+}
+
+// Function to show alert for past or ongoing events
+function showStatusAlert(status) {
+    alert("You can't register to '" + status + "' events.");
 }
 
 // Auto-scroll to selected event

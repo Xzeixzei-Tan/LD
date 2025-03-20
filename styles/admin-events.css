@@ -240,6 +240,7 @@ hr {
 #details-section {
     display: none;
     flex-basis: 30%;
+    max-height: fit-content;
     margin-left: 5px;
     margin-top: 20px;
     background-color: white;
@@ -257,11 +258,14 @@ hr {
 .details-section h2 {
     margin-top: 10px;
     margin-bottom: 15px;
-    font-family: Montserrat;
+    font-family: Montserrat ExtraBold;
 }
 
 .details-section hr {
-    margin-bottom: 15px;
+    border: 0;
+    height: 1px;
+    background: #e6e9ec;
+    margin: 16px 0;
 }
 
 #detail-title {
@@ -272,22 +276,34 @@ hr {
     line-height: 1.3;
 }
 
+.detail-item{
+    max-width: 100%;
+    margin-bottom: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    transition: transform 0.2s;
+}
+
 .details-section .detail-item {
     margin-bottom: 18px;
 }
 
 .details-section .detail-item h4 {
-    margin: 0;
-    font-size: 16px;
-    font-family: Montserrat;
     color: #555;
-    margin-bottom: 5px;
+    font-size: 16px;
+    font-family: Montserrat ;
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
 }
 
 .detail-item p {
-    margin: 5px 0 0;
+    margin: 5px 0;
     color: #2b3a8f;
-    font-size: 15px;
+    font-weight: Bold;
     font-family: Montserrat Medium;
     font-size: 16px;
 }
@@ -305,8 +321,7 @@ hr {
 }
 
 .detail-items-2 {
-    margin-left: 30%;
-    margin-top: 2%;
+    margin: 20px 0 0 150px ;
 }
 
 .detail-item-3 {
@@ -314,7 +329,7 @@ hr {
 }
 
 /* New styles for expanded content */
-.expanded-content {
+.expanded-content{
     display: none;
 }
 
@@ -330,6 +345,10 @@ hr {
     transform: rotate(180deg);
 }
 
+#detail-event-days #text{
+    margin-bottom: 10px;
+}
+
 .select-container {
     position: relative;
     width: 100%;
@@ -340,14 +359,26 @@ select:disabled {
     color: #333;
 }
 
+#detail-eligible_participants{
+    width: 100%; 
+    padding: 10px; 
+    background-color: #f8f9fa; 
+    cursor: pointer; 
+    border: 1px solid #ced4da; 
+    border-radius: 4px; 
+    font-size: 14px; 
+    margin-bottom: 10px;
+}
+
 #participant-details-container {
+    width: 100%;
     max-height: 200px;
     overflow-y: auto;
     line-height: 1.5;
 }
 
 #detail-eligible_participants option {
-    padding: 5px;
+    padding: 10px;
 }
 
 .events-section h2,
@@ -507,16 +538,26 @@ select:disabled {
 }
 
 .expand-btn {
-    cursor: pointer;
     float: right;
-    transition: transform 0.3s ease;
-    background-color: #e7ebff;
-    margin-top: -1%;
-    padding: 8px 10px;
-    border: 2px solid #e7ebff;
-    border-radius: 50%;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
     color: #2b3a8f;
-}
+    border-radius: 50%;
+    margin-top: -2%;
+    padding: 8px 10px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  
+  .expand-btn:hover {
+    background-color: #e9ecef;
+    color: #212529;
+  }
 
 .expand-btn:hover {
     background: #dbe1ff;
@@ -536,7 +577,10 @@ select:disabled {
     float: right;
     display: absolute;
     margin-top: 2%;
-    font-family: Tilt Warp;
+    margin-bottom: 0;
+    font-family: Montserrat Medium;
+    font-weight: Bold;
+    font-size: 12px;
     background-color: #2b3a8f;
     color: white;
     padding: 12px;
@@ -596,6 +640,7 @@ select:disabled {
 }
 
 .participant-details-wrapper {
+    width: 100px;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
     padding: 15px;
@@ -622,6 +667,7 @@ select:disabled {
 }
 
 .participant-item {
+    width: 100%;
     background-color: white;
     border-left: 3px solid #2b3a8f;
     padding: 10px 15px;
@@ -668,6 +714,7 @@ select:disabled {
 }
 
 .participant-type-indicator {
+    width: 100%;
     font-size: 14px;
     font-weight: bold;
     text-transform: uppercase;
@@ -762,7 +809,7 @@ select:disabled {
     overflow-y: auto; 
     padding: 30px;
     display: none; 
-    margin-top: 60px;
+    margin-top: 5px;
     background-color: #fafafa;
     border-radius: 5px;
 }
@@ -797,16 +844,26 @@ select:disabled {
     background-color: #edf2ff;
 }
 
+#detail-user_count{
+    font-family: Montserrat Medium;
+    color: #2b3a8f;
+    margin-left: 5px;
+}
+
 .view-user-btn{
-    float: left;
     font-family: Montserrat Medium;
     font-size: 12px;
     padding: 10px;
-    margin-top: 5px;
+    margin-top: 10px;
     background-color: white;
     border: 2px solid #2b3a8f;
-    border-radius: 10px;
+    border-radius: 5px;
     cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.download-btn{
+    font-family: Montserrat;
 }
 
 .download{

@@ -10,7 +10,7 @@ html {
     height: 100%;
 }
 
-.sidebar {
+.sidebar {  
     position: fixed;
     width: 250px;
     height: 100vh;
