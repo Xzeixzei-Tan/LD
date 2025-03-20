@@ -171,14 +171,42 @@ if (!empty($certificate_path)) {
         bottom: 0;
         background-color: #12753E;
         width: 100%;
+        cursor: pointer;
+        position: relative;
     }
 
-    #logout {
-        float: right;
-        border: 1px solid black;
-        height: 100%;
+    .logout-menu {
+        position: absolute;
+        top: 0;
+        bottom: 100%;
+        border-radius: 5px;
+        padding: 10px;
+        display: none;
+        z-index: 1000;
+        width: 85px;
+    }
+
+    .logout-menu.active {
+        display: block;
+    }
+
+    .logout-btn {
+        background-color: white;    
+        display: block;
         width: 100%;
-        font-color: black;
+        padding: 8px 10px;
+        color: #12753E;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: 'Tilt Warp', sans-serif;
+        font-size: 14px;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 80%;
+        left: 248%;
+        z-index: 5;
     }
 
     .user-avatar img{
@@ -196,6 +224,32 @@ if (!empty($certificate_path)) {
 
     .username {
         font-family: Tilt Warp;
+    }
+
+    .main-content {
+        flex: 1;
+        padding: 20px;
+        background-color: #ecf0f1;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 70px;
+        }
+
+        .sidebar-header h2, .menu-text, .username {
+            display: none;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: center;
+        }
+
+        .user-profile {
+            justify-content: center;
+        }
     }
 
     .main-content {
@@ -356,9 +410,13 @@ if (!empty($certificate_path)) {
                     <span class="menu-text">Notification</span>
                 </a>
             </div>
-            <div class="user-profile">
-                <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
-                <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
+        <!-- Modified user profile with logout menu -->
+        <div class="user-profile" id="userProfileToggle">
+            <div class="user-avatar"><img src="styles/photos/default.png"></div>
+            <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
+            <!-- Add logout menu -->
+            <div class="logout-menu" id="logoutMenu">
+                <a href="login.php" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </div>
@@ -396,5 +454,21 @@ if (!empty($certificate_path)) {
             </div>
         </div>
     </div>
+    <script>
+        <!-- Add JavaScript for the user profile toggle and logout menu -->
+document.getElementById('userProfileToggle').addEventListener('click', function() {
+    document.getElementById('logoutMenu').classList.toggle('active');
+});
+
+// Close the menu when clicking outside
+document.addEventListener('click', function(event) {
+    const profile = document.getElementById('userProfileToggle');
+    const menu = document.getElementById('logoutMenu');
+    
+    if (!profile.contains(event.target)) {
+        menu.classList.remove('active');
+    }
+});
+</script>
 </body>
 </html>
