@@ -1012,4 +1012,4 @@ foreach ($eventsData as $event) {
 </html>
 <?php
 $conn->close(); 
-?>
+?>  
