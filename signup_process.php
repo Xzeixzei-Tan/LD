@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+session_start();
 
 // Check if form fields are not empty
 $firstName = isset($_POST['first_name']) ? trim($_POST['first_name']) : '';
@@ -27,10 +28,34 @@ $emailCheckStmt->execute();
 $emailCheckStmt->store_result();
 
 if ($emailCheckStmt->num_rows > 0) {
-    echo "<script>alert('Email already exists! Please use another email.'); window.location.href='signup.php';</script>";
+    $_SESSION['status'] = 'This User already exists.';
+    header("Location: signup.php");
     exit();
 }
 $emailCheckStmt->close();
+
+// Check if a user with the same first name, middle name, and last name already exists
+$nameCheckSql = "SELECT id FROM users WHERE first_name = ? AND last_name = ?";
+$params = "ss";
+$paramValues = [$firstName, $lastName];
+
+// Only include middle name in the check if it's not empty
+if (!empty($middleName)) {
+    $nameCheckSql .= " AND middle_name = ?";
+    $params .= "s";
+    $paramValues[] = $middleName;
+}
+
+$nameCheckStmt = $conn->prepare($nameCheckSql);
+$nameCheckStmt->bind_param($params, ...$paramValues);
+$nameCheckStmt->execute();
+$nameCheckStmt->store_result();
+
+if ($nameCheckStmt->num_rows > 0) {
+    echo "<script>alert('A user with the same name already exists! If this is you, please log in or use the password recovery option.'); window.location.href='signup.php';</script>";
+    exit();
+}
+$nameCheckStmt->close();
 
 // Get classification related to the selected position
 $classSql = "SELECT classification_id FROM class_position WHERE id = ?";

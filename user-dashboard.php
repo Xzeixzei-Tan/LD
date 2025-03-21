@@ -50,7 +50,7 @@ if ($user_result->num_rows > 0) {
     $_SESSION['last_name'] = $last_name;
 }
 
-// Fetch notifications for admin
+// Fetch notifications for user
 $notif_query = "SELECT id, message, created_at, is_read, notification_subtype, event_id 
                 FROM notifications 
                 WHERE notification_type = 'user' 
@@ -626,8 +626,13 @@ function formatEventDaysData($eventDaysData) {
                                     $redirect_url = "user-notif.php?event_id=" . urlencode($notif['event_id']);
                                 } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'new_event') {
                                     $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
-                                } else {
-                                    $redirect_url = "user-notification.php?event_id=" . urlencode($notif['event_id']);
+                                } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'event_reminder') {
+                                    $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                                } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'event_registration') {
+                                    $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                                } 
+                                else {
+                                    $redirect_url = "user-notif.php?event_id=" . urlencode($notif['event_id']);
                                 }
                                 
                                 // You need to make sure your query also fetches the notification ID
