@@ -6,8 +6,8 @@ $currentDateTime = date('Y-m-d H:i:s');
 error_log("Current Date and Time: " . $currentDateTime);
 
 // Auto-update archived status (as a fallback to the MySQL event)
-$updateArchivedSQL = "UPDATE events SET archived = 1 WHERE end_date < NOW() AND archived = 0";
-$conn->query($updateArchivedSQL);
+// $updateArchivedSQL = "UPDATE events SET archived = 1 WHERE end_date < NOW() AND archived = 0";
+// $conn->query($updateArchivedSQL);
 
 // Check if we're viewing archived events
 $viewArchived = isset($_GET['view']) && $_GET['view'] === 'archived';
@@ -16,7 +16,7 @@ $viewArchived = isset($_GET['view']) && $_GET['view'] === 'archived';
 // In your SQL query, make sure the event_days_data portion is included:
 $baseSQL = "SELECT 
             e.id, e.title, e.specification, e.delivery, 
-            e.start_date, e.end_date, e.venue, e.archived,
+            e.start_date, e.end_date, e.venue, e.proponent, e.archived,
             (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id) AS user_count,
             GROUP_CONCAT(DISTINCT CONCAT(fs.source, ' -  ₱', FORMAT(fs.amount, 2), '') SEPARATOR ', ') AS funding_sources,
             GROUP_CONCAT(DISTINCT s.name SEPARATOR ', ') AS speakers,  
@@ -24,7 +24,7 @@ $baseSQL = "SELECT
                 CASE 
                     WHEN ep.target = 'school' THEN 'School'
                     WHEN ep.target = 'division' THEN 'Division'
-                    WHEN ep.target = 'all' THEN 'All Personnel'
+                    WHEN ep.target = 'Both' THEN 'All Personnel'
                 END 
                 SEPARATOR ', ') AS participant_types,
             GROUP_CONCAT(DISTINCT 
@@ -39,7 +39,11 @@ $baseSQL = "SELECT
                 SEPARATOR '||') AS event_days_data,
             CASE 
                 WHEN NOW() BETWEEN e.start_date AND e.end_date THEN 'Ongoing'
-                WHEN e.archived = 1 THEN 'Archived'
+                WHEN e.archived = 1 THEN 
+                    CASE 
+                        WHEN e.end_date < NOW() THEN 'Past'
+                        ELSE 'Upcoming'
+                    END
                 ELSE 'Upcoming'
             END AS status
         FROM events e
@@ -98,71 +102,123 @@ function formatEventDaysData($eventDaysData) {
 }
 
 // Function to get specific participants for an eligible participant ID
-function getSpecificParticipants($conn, $eligibleId, $target) {
-    $participants = [];
+// PHP function that prepares the participant data for JavaScript
+function getParticipantDataForEvent($conn, $eventId) {
+    // Get the eligible participant record for this event
+    $sql = "SELECT id, target FROM eligible_participants WHERE event_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $eventId);
+    $stmt->execute();
+    $result = $stmt->get_result();
     
-    if ($target === 'School') {
-        // First get the basic participant info
-        $sql = "SELECT sp.id, sl.name as school_level_name, c.name as type_name, sp.specialization as specialization_ids 
-                FROM school_participants sp
-                LEFT JOIN school_level sl ON sp.school_level = sl.id
-                LEFT JOIN classification c ON sp.type = c.id
-                WHERE sp.eligible_participant_id = ?";
+    if ($row = $result->fetch_assoc()) {
+        $eligibleId = $row['id'];
+        $target = $row['target'];
         
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $eligibleId);
-        $stmt->execute();
-        $result = $stmt->get_result();
+        // Get the specific participants based on target type
+        $specificParticipants = getSpecificParticipants($conn, $eligibleId, $target);
         
-        while ($row = $result->fetch_assoc()) {
-            // Check if specialization_ids contains multiple values
-            $specialization_names = [];
-            
-            if (!empty($row['specialization_ids'])) {
-                // Split the comma-separated specialization IDs
-                $spec_ids = explode(',', $row['specialization_ids']);
-                
-                // For each ID, get the name from the specialization table
-                foreach ($spec_ids as $spec_id) {
-                    $spec_id = trim($spec_id); // Remove any whitespace
-                    if (!empty($spec_id)) {
-                        $spec_sql = "SELECT name FROM specialization WHERE id = ?";
-                        $spec_stmt = $conn->prepare($spec_sql);
-                        $spec_stmt->bind_param("i", $spec_id);
-                        $spec_stmt->execute();
-                        $spec_result = $spec_stmt->get_result();
-                        
-                        if ($spec_row = $spec_result->fetch_assoc()) {
-                            $specialization_names[] = $spec_row['name'];
-                        }
-                        
-                        $spec_stmt->close();
-                    }
-                }
-            }
-            
-            $participants[] = [
-                'level' => $row['school_level_name'],
-                'type' => $row['type_name'],
-                'specialization' => !empty($specialization_names) ? implode(', ', $specialization_names) : 'N/A'
-            ];
-        }
-    } elseif ($target === 'Division') {
-        $sql = "SELECT department_name FROM division_participants WHERE eligible_participant_id = ?";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $eligibleId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        while ($row = $result->fetch_assoc()) {
-            $participants[] = [
-                '' => $row['department_name']
-            ];
-        }
+        return [
+            'id' => $eligibleId,
+            'type' => $target,
+            'data' => $specificParticipants
+        ];
     }
     
-    return $participants;
+    return null;
+}
+
+// Modified getSpecificParticipants to handle "Both" correctly
+function getSpecificParticipants($conn, $eligibleId, $target) {
+    if ($target === 'Both') {
+        // For "Both", return an array with school and division data
+        $schoolData = getSchoolParticipants($conn, $eligibleId);
+        $divisionData = getDivisionParticipants($conn, $eligibleId);
+        
+        return [
+            'school' => $schoolData,
+            'division' => $divisionData
+        ];
+    } else if ($target === 'School') {
+        return getSchoolParticipants($conn, $eligibleId);
+    } else if ($target === 'Division') {
+        return getDivisionParticipants($conn, $eligibleId);
+    }
+    
+    return [];
+}
+
+// Helper function to get school participants
+function getSchoolParticipants($conn, $eligibleId) {
+    $schoolParticipants = [];
+    
+    // Get the basic participant info
+    $sql = "SELECT sp.id, sl.name as school_level_name, c.name as type_name, sp.specialization as specialization_ids 
+            FROM school_participants sp
+            LEFT JOIN school_level sl ON sp.school_level = sl.id
+            LEFT JOIN classification c ON sp.type = c.id
+            WHERE sp.eligible_participant_id = ?";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $eligibleId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        // Check if specialization_ids contains multiple values
+        $specialization_names = [];
+        
+        if (!empty($row['specialization_ids'])) {
+            // Split the comma-separated specialization IDs
+            $spec_ids = explode(',', $row['specialization_ids']);
+            
+            // For each ID, get the name from the specialization table
+            foreach ($spec_ids as $spec_id) {
+                $spec_id = trim($spec_id); // Remove any whitespace
+                if (!empty($spec_id)) {
+                    $spec_sql = "SELECT name FROM specialization WHERE id = ?";
+                    $spec_stmt = $conn->prepare($spec_sql);
+                    $spec_stmt->bind_param("i", $spec_id);
+                    $spec_stmt->execute();
+                    $spec_result = $spec_stmt->get_result();
+                    
+                    if ($spec_row = $spec_result->fetch_assoc()) {
+                        $specialization_names[] = $spec_row['name'];
+                    }
+                    
+                    $spec_stmt->close();
+                }
+            }
+        }
+        
+        $schoolParticipants[] = [
+            'level' => $row['school_level_name'],
+            'type' => $row['type_name'],
+            'specialization' => !empty($specialization_names) ? implode(', ', $specialization_names) : 'N/A'
+        ];
+    }
+    
+    return $schoolParticipants;
+}
+
+// Helper function to get division participants
+function getDivisionParticipants($conn, $eligibleId) {
+    $divisionParticipants = [];
+    
+    $sql = "SELECT department_name FROM division_participants WHERE eligible_participant_id = ?";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $eligibleId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $divisionParticipants[] = [
+            'department_name' => $row['department_name']
+        ];
+    }
+    
+    return $divisionParticipants;
 }
 
 // Function to get registered users for an event
@@ -397,6 +453,14 @@ foreach ($eventsData as $event) {
                             <p id="detail-funding_sources"></p>
                         </div>
                         <div class="detail-item">
+                            <h4>No. of Estimated Participants</h4>
+                            <p id="detail-est-participants">
+                        </div>
+                        <div class="detail-item">
+                            <h4>Proponents</h4>
+                            <p id="detail-proponent">
+                        </div>
+                        <div class="detail-item">
                             <h4>Speakers:</h4>
                             <p id="detail-speakers"></p>
                         </div>
@@ -540,6 +604,7 @@ foreach ($eventsData as $event) {
             document.getElementById('detail-venue').textContent = eventData.venue || "Not specified";
             document.getElementById('detail-user_count').textContent = eventData.user_count;
             document.getElementById('detail-funding_sources').textContent = eventData.funding_sources || "Not specified";
+            document.getElementById('detail-proponent').textContent = eventData.proponent || "Not specified";
             document.getElementById('detail-speakers').textContent = eventData.speakers || "Not specified";
             
             // Fetch registered users for this event
@@ -574,7 +639,7 @@ foreach ($eventsData as $event) {
                         } else if (participant.target === 'Division') {
                             optionText = '🏢 Division Office Personnel';
                             iconClass = 'fa-building';
-                        } else if (participant.target === 'all') {
+                        } else if (participant.target === 'Both') {
                             optionText = '👥 All Personnel';
                             iconClass = 'fa-users';
                         }
@@ -594,77 +659,150 @@ foreach ($eventsData as $event) {
                         }
                     });
                     
-                    // Create the event listener function
                     const handleParticipantChange = function() {
-                        const selectedIndex = this.value;
-                        
-                        if (selectedIndex === '') {
-                            participantDetailsContainer.style.display = 'none';
-                            return;
-                        }
-                        
-                        const selectedParticipant = participantTypes[selectedIndex];
-                        let detailsHTML = '';
-                        
-                        if (selectedParticipant.type === 'School') {
-                            detailsHTML += '<div class="participant-details-container">';
-                            detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-school mr-2"></i> School Participants</div>';
-                            
-                            if (selectedParticipant.data.length > 0) {
-                                selectedParticipant.data.forEach((school, idx) => {
-                                    detailsHTML += `<div class="participant-item">`;
-                                    if (typeof school === 'object') {
-                                        if (school.level) {
-                                            detailsHTML += `<span class="participant-tag"><i class="fas fa-layer-group"></i> ${school.level}</span>`;
-                                        }
-                                        if (school.type) {
-                                            detailsHTML += `<span class="participant-tag"><i class="fas fa-tag"></i> ${school.type}</span>`;
-                                        }
-                                        detailsHTML += `<div class="specialization"><strong>Specialization:</strong> ${school.specialization || 'N/A'}</div>`;
-                                    } else {
-                                        detailsHTML += `${school}`;
-                                    }
-                                    detailsHTML += '</div>';
-                                });
-                            } else {
-                                detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All School Personnel are eligible</div>';
-                            }
-                            detailsHTML += '</div>';
-                        } else if (selectedParticipant.type === 'Division') {
-                            detailsHTML += '<div class="participant-details-container">';
-                            detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-building mr-2"></i> Division Office Participants</div>';
-                            
-                            if (selectedParticipant.data.length > 0) {
-                                detailsHTML += '<ul class="participant-list">';
-                                selectedParticipant.data.forEach((division, idx) => {
-                                    detailsHTML += `<li class="participant-list-item">`;
-                                    if (typeof division === 'object') {
-                                        // Get the department name (usually the only/first property)
-                                        const deptName = Object.values(division)[0] || 'N/A';
-                                        detailsHTML += `${deptName}`;
-                                    } else {
-                                        detailsHTML += `${division}`;
-                                    }
-                                    detailsHTML += '</li>';
-                                });
-                                detailsHTML += '</ul>';
-                            } else {
-                                detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All Division Units are eligible</div>';
-                            }
-                            detailsHTML += '</div>';
-                        } else if (selectedParticipant.type === 'all') {
-                            detailsHTML += '<div class="participant-details-container">';
-                            detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-users mr-2"></i> All Personnel</div>';
-                            detailsHTML += '<div class="participant-item" style="text-align: center;">';
-                            detailsHTML += '<i class="fas fa-check-circle mr-2" style="color: #28a745;"></i>';
-                            detailsHTML += 'This event is open to all personnel from both Schools and Division units.';
-                            detailsHTML += '</div>';
-                            detailsHTML += '</div>';
-                        }
-                        
-                        participantDetailsContainer.innerHTML = detailsHTML;
-                        participantDetailsContainer.style.display = 'block';
-                    };
+    const selectedIndex = this.value;
+    
+    if (selectedIndex === '') {
+        participantDetailsContainer.style.display = 'none';
+        return;
+    }
+    
+    const selectedParticipant = participantTypes[selectedIndex];
+    let detailsHTML = '';
+    
+    if (selectedParticipant.type === 'School') {
+        detailsHTML += '<div class="participant-details-container">';
+        detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-school mr-2"></i> School Participants</div>';
+        
+        if (selectedParticipant.data && selectedParticipant.data.length > 0) {
+            selectedParticipant.data.forEach((school) => {
+                detailsHTML += `<div class="participant-item">`;
+                if (typeof school === 'object') {
+                    if (school.level) {
+                        detailsHTML += `<span class="participant-tag"><i class="fas fa-layer-group"></i> ${school.level}</span>`;
+                    }
+                    if (school.type) {
+                        detailsHTML += `<span class="participant-tag"><i class="fas fa-tag"></i> ${school.type}</span>`;
+                    }
+                    detailsHTML += `<div class="specialization"><strong>Specialization:</strong> ${school.specialization || 'N/A'}</div>`;
+                } else {
+                    detailsHTML += `${school}`;
+                }
+                detailsHTML += '</div>';
+            });
+        } else {
+            detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All School Personnel are eligible</div>';
+        }
+        detailsHTML += '</div>';
+    } else if (selectedParticipant.type === 'Division') {
+        detailsHTML += '<div class="participant-details-container">';
+        detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-building mr-2"></i> Division Office Participants</div>';
+        
+        if (selectedParticipant.data && selectedParticipant.data.length > 0) {
+            detailsHTML += '<ul class="participant-list">';
+            selectedParticipant.data.forEach((division) => {
+                detailsHTML += `<li class="participant-list-item">`;
+                if (typeof division === 'object') {
+                    // Get the department name
+                    const deptName = division.department_name || 'N/A';
+                    detailsHTML += `${deptName}`;
+                } else {
+                    detailsHTML += `${division}`;
+                }
+                detailsHTML += '</li>';
+            });
+            detailsHTML += '</ul>';
+        } else {
+            detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All Division Units are eligible</div>';
+        }
+        detailsHTML += '</div>';
+    } else if (selectedParticipant.type === 'Both') {
+    detailsHTML += '<div class="participant-details-container">';
+    detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-users mr-2"></i> All Personnel</div>';
+    
+    // School Personnel Section
+    detailsHTML += '<div class="participant-section">';
+    detailsHTML += '<h4><i class="fas fa-school mr-2"></i> School Personnel</h4>';
+    
+    // Check data structure and extract school data
+    let schoolData = [];
+    if (selectedParticipant.data) {
+        if (typeof selectedParticipant.data === 'object' && selectedParticipant.data.school) {
+            // If data is in {school: [...], division: [...]} format
+            schoolData = selectedParticipant.data.school || [];
+        } else if (Array.isArray(selectedParticipant.data)) {
+            // For legacy data format, assume first half is school data
+            // This is likely where the issue is - incorrect filtering
+            schoolData = selectedParticipant.data.filter(item => 
+                typeof item === 'object' && 
+                (item.hasOwnProperty('level') || item.hasOwnProperty('type') || item.hasOwnProperty('specialization')));
+        }
+    }
+    
+    if (schoolData && schoolData.length > 0) {
+        schoolData.forEach(school => {
+            detailsHTML += `<div class="participant-item">`;
+            if (typeof school === 'object') {
+                if (school.level) {
+                    detailsHTML += `<span class="participant-tag"><i class="fas fa-layer-group"></i> ${school.level}</span>`;
+                }
+                if (school.type) {
+                    detailsHTML += `<span class="participant-tag"><i class="fas fa-tag"></i> ${school.type}</span>`;
+                }
+                detailsHTML += `<div class="specialization"><strong>Specialization:</strong> ${school.specialization || 'N/A'}</div>`;
+            } else {
+                detailsHTML += `${school}`;
+            }
+            detailsHTML += '</div>';
+        });
+    } else {
+        detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-check-circle mr-2" style="color: #28a745;"></i> All School Personnel are eligible</div>';
+    }
+    detailsHTML += '</div>';
+        
+        // Division Personnel Section
+        detailsHTML += '<div class="participant-section">';
+        detailsHTML += '<h4><i class="fas fa-building mr-2"></i> Division Office Personnel</h4>';
+        
+        // Check data structure and extract division data
+        let divisionData = [];
+        if (selectedParticipant.data) {
+            if (typeof selectedParticipant.data === 'object' && selectedParticipant.data.division) {
+                // If data is in {school: [...], division: [...]} format
+                divisionData = selectedParticipant.data.division || [];
+            } else if (Array.isArray(selectedParticipant.data)) {
+                // For legacy data format, try to detect division-like objects
+                divisionData = selectedParticipant.data.filter(item => 
+                    typeof item === 'object' && item.department_name);
+            }
+        }
+        
+        if (divisionData && divisionData.length > 0) {
+            detailsHTML += '<ul class="participant-list">';
+            divisionData.forEach(division => {
+                detailsHTML += `<li class="participant-list-item">`;
+                if (typeof division === 'object') {
+                    // Get the department name
+                    const deptName = division.department_name || 'N/A';
+                    detailsHTML += `${deptName}`;
+                } else {
+                    detailsHTML += `${division}`;
+                }
+                detailsHTML += '</li>';
+            });
+            detailsHTML += '</ul>';
+        } else {
+            detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-check-circle mr-2" style="color: #28a745;"></i> All Division Units are eligible</div>';
+        }
+        detailsHTML += '</div>';
+        
+        detailsHTML += '<div class="participant-note"><i class="fas fa-info-circle mr-2"></i> This event is open to all personnel from both Schools and Division units.</div>';
+        detailsHTML += '</div>';
+    }
+    
+    participantDetailsContainer.innerHTML = detailsHTML;
+    participantDetailsContainer.style.display = 'block';
+}
                     
                     // Save reference to current event listener function
                     currentParticipantSelect = handleParticipantChange;
