@@ -10,13 +10,13 @@ if (isset($_SESSION['message'])) {
     unset($_SESSION['message']); // Clear the message after displaying
 }
 
-// Get event information if event_id is provided
-$event_title = "Sample Event"; // Default value
-$certificate_filename = "Certificate.pdf"; // Default value
-$certificate_path = ""; // Initialize certificate path
-
 if (isset($_GET['event_id'])) {
     $event_id = $_GET['event_id'];
+
+    $show_modal = false;
+    if (isset($_GET['modal']) && $_GET['modal'] == 'true') {
+        $show_modal = true;
+    }
     
     // Fetch event details
     $event_sql = "SELECT title FROM events WHERE id = ?";
@@ -52,40 +52,15 @@ if (isset($_GET['event_id'])) {
     }
 }
 
-// Get user information
-$user_sql = "SELECT first_name, last_name FROM users WHERE id = ?";
-$stmt = $conn->prepare($user_sql);
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$user_result = $stmt->get_result();
+// Fetch notifications for user
+$notif_query = "SELECT id, message, created_at, is_read, notification_subtype, event_id 
+                FROM notifications 
+                WHERE notification_type = 'user' 
+                ORDER BY created_at DESC";
+$notif_result = $conn->query($notif_query);
 
-if ($user_result->num_rows > 0) {
-    $row = $user_result->fetch_assoc();
-    $first_name = $row['first_name'];
-    $last_name = $row['last_name'];
-    $_SESSION['first_name'] = $first_name; // Update the session
-    $_SESSION['last_name'] = $last_name; 
-} else {
-    $first_name = "Unknown";
-    $last_name = ""; // Set a default value
-    $_SESSION['first_name'] = $first_name;
-    $_SESSION['last_name'] = $last_name;
-}
-
-// Check if the certificate file exists and handle file extension issue (.pdf vs .docx)
-if (!empty($certificate_path)) {
-    // Try both .pdf and .docx versions of the file
-    $pdf_path = str_replace('.pdf', '.pdf', $certificate_path); // Keep as PDF
-    $docx_path = str_replace('.pdf', '.docx', $certificate_path); // Try DOCX instead
-    
-    if (file_exists($docx_path)) {
-        // If the DOCX version exists, use that
-        $certificate_path = $docx_path;
-        $certificate_filename = str_replace('.pdf', '.docx', $certificate_filename);
-    } elseif (file_exists($pdf_path)) {
-        // If the PDF version exists, use that
-        $certificate_path = $pdf_path;
-    }
+if (!$notif_result) {
+    die("Notification query failed: " . $conn->error);
 }
 ?>
 
@@ -171,14 +146,42 @@ if (!empty($certificate_path)) {
         bottom: 0;
         background-color: #12753E;
         width: 100%;
+        cursor: pointer;
+        position: relative;
     }
 
-    #logout {
-        float: right;
-        border: 1px solid black;
-        height: 100%;
+    .logout-menu {
+        position: absolute;
+        top: 0;
+        bottom: 100%;
+        border-radius: 5px;
+        padding: 10px;
+        display: none;
+        z-index: 1000;
+        width: 85px;
+    }
+
+    .logout-menu.active {
+        display: block;
+    }
+
+    .logout-btn {
+        background-color: white;    
+        display: block;
         width: 100%;
-        font-color: black;
+        padding: 8px 10px;
+        color: #12753E;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: 'Tilt Warp', sans-serif;
+        font-size: 14px;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 80%;
+        left: 248%;
+        z-index: 5;
     }
 
     .user-avatar img{
@@ -196,6 +199,32 @@ if (!empty($certificate_path)) {
 
     .username {
         font-family: Tilt Warp;
+    }
+
+    .main-content {
+        flex: 1;
+        padding: 20px;
+        background-color: #ecf0f1;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 70px;
+        }
+
+        .sidebar-header h2, .menu-text, .username {
+            display: none;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: center;
+        }
+
+        .user-profile {
+            justify-content: center;
+        }
     }
 
     .main-content {
@@ -263,62 +292,215 @@ if (!empty($certificate_path)) {
         border: 1px solid #95A613;
     }
 
-    .cards {
-        display: grid;
-        display: inline-block;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-    }
-
-    .card {
-        margin: auto;
-        margin-bottom: 2%;
-        background-color: #F4F4F4;
-        padding: 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        width: 600px;
-        height: 80px;
-        max-width: 1000px;
-    }
-
-    .notifications-header {
-            font-size: 24px;
-            font-weight: bold;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e0e0e0;
-            margin-bottom: 20px;
-        }
-        
     .notification-card {
-            display: flex;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            overflow: hidden;
-            width: 1000px;
-            height: 160px;
-        }
-        
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Modified events section for 3-column layout */
     .notification-content {
-            padding: 20px;
-            flex: 1;
-            position: relative; /* Added position relative for absolute positioning of the red dot */
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        flex: 1;
+    }
+
+    .notifs {
+        background-color: #d7f3e4;
+        border-radius: 5px;
+        padding: 25px;
+        position: relative;
+        transition: transform 0.2s;
+        height: 100%;
+    }
+
+    .notifs:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .event.selected{
+        background: #2b3a8f;
+    }
+
+    .event.selected h3{
+        color: white;
+    }
+
+    .event.selected p{
+        color: rgb(231, 231, 231);
+    }
+
+    /* Responsive adjustments for the grid */
+    @media (max-width: 992px) {
+        .events-section {
+            grid-template-columns: repeat(2, 1fr);
         }
+    }
+
+    @media (max-width: 576px) {
+        .events-section {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .events-section h2 {
+        font-size: 22px;
+        font-family: Montserrat ExtraBold;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .notification-content h3 {
+        font-size: 15px;
+        margin-bottom: 5px;
+        font-family: Montserrat;
+        color:rgb(14, 19, 44);
+    }
+
+    .notification-content p {
+        font-size: 13px;
+        color: #585858;
+        font-family: Montserrat Medium;
+    }
+
+    .notification p {
+        font-size: 14px;
+        font-family: Montserrat;
+    }
+
+    .events-btn {
+
+        text-decoration: none;
+        color: black;
+        display: block;
+        height: 100%;
+    }
+
+    .notifs.read {
+    opacity: 0.7;
+    background-color: #f0f0f0;
+    border-left: 4px solid #ccc;
+    }
+
+    .notifs.read:hover {
+        background-color: #e8e8e8;
+    }
+
+    .notifs.important {
+        background-color: #d7f3e4;
+        border-left: 4px solid #12753E;
+    }
+
+    .events-btn.read {
+        color: #888;
+    }
+
+    .events-btn small {
+        display: block;
+        font-size: 12px;
+        margin-top: 10px;
+        color: #777;
+    }
+
+    .notifs.read .events-btn small {
+        color: #aaa;
+    }
+
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+        /* Flexbox for perfect centering */
+        display: none;
+        align-items: center;
+        justify-content: center;
         
-    .notification-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            font-family: Montserrat;
-        }
-        
-    .notification-instruction {
-            color: #666;
-            font-style: italic;
-            margin-top: 15px;
-            font-size: 14px;
-            font-family: Montserrat;
-        }
+    }
+
+    .modal-content {
+        position: relative;
+        background-color: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        width: 60%;
+        max-width: 600px;
+        animation: modalopen 0.4s;
+        border: 2px solid #12753E;
+        /* No margin needed with flexbox centering */
+        margin-left: 10%;
+
+    }
+
+    @keyframes modalopen {
+        from {opacity: 0; transform: scale(0.9);}
+        to {opacity: 1; transform: scale(1);}
+    }
+
+    .close-btn {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.3s;
+        margin-top: -2%;
+    }
+
+    .close-btn:hover {
+        color: #12753E;
+    }
+
+    .modal-header {
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        color: #2b3a8f;
+        font-family: Montserrat Extrabold;
+    }
+
+    .modal-body .detail-item {
+        margin-bottom: 15px;
+    }
+
+    .modal-body .detail-item h3 {
+        margin: 0;
+        font-size: 1em;
+        font-family: Montserrat;
+        color: rgb(14, 19, 44);
+    }
+
+    .modal-body .detail-item p {
+        margin: 5px 0 0;
+        color: #555;
+        font-size: .9em;
+        font-family: Montserrat Medium;
+    }
+
+    .modal-footer {
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        margin-top: 20px;
+        text-align: right;
+    }
+
+    .pdf-preview {
+        align-content: center;
+    }
         
     .pdf-icon img{
             width: 120px;
@@ -356,9 +538,13 @@ if (!empty($certificate_path)) {
                     <span class="menu-text">Notification</span>
                 </a>
             </div>
-            <div class="user-profile">
-                <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
-                <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
+        <!-- Modified user profile with logout menu -->
+        <div class="user-profile" id="userProfileToggle">
+            <div class="user-avatar"><img src="styles/photos/default.png"></div>
+            <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
+            <!-- Add logout menu -->
+            <div class="logout-menu" id="logoutMenu">
+                <a href="login.php" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
     </div>
@@ -374,27 +560,166 @@ if (!empty($certificate_path)) {
             <h1>Notifications</h1>
             <hr><br>
 
-            <div class="notification-card">
-                <div class="notification-content">
-                    <br>
-                    <div class="notification-title">Your certificate from "<?php echo htmlspecialchars($event_title); ?>" is now available to download.</div>
-                    <div class="notification-instruction">Click the file to download your certificate.</div>
-                </div>
-                
-                <div class="pdf-preview">
-                    <div class="pdf-icon"><br>
-                        <a href="<?php echo !empty($certificate_path) ? htmlspecialchars($certificate_path) : 'Sample.pdf'; ?>" download>
-                            <img src="styles/photos/PDF.png">
-                        </a>
-                        <div class="pdf-filename">
-                            <a href="<?php echo !empty($certificate_path) ? htmlspecialchars($certificate_path) : 'Sample.pdf'; ?>" download>
-                                Certificate of Participation
+    <div class="notification-card">
+        <div class="notification-content">
+            <?php
+            if ($notif_result->num_rows > 0) {
+                while ($row = $notif_result->fetch_assoc()) { 
+                    $notification_id = $row['id'];
+                    $is_read = $row['is_read'] ? 'read' : 'unread';
+                    $is_important = $row['is_read'] ? 'read' : 'important';
+                    ?>
+                    <div class="notifs <?php echo $is_important; ?>">
+                        <?php 
+                        // Determine the redirect URL and action based on notification type
+                        if (!empty($row['event_id']) && $row['notification_subtype'] == 'certificate') {
+                            // For certificate notifications, create a visible button that triggers the modal
+                            ?>
+                            <a style="cursor: pointer;" class="events-btn <?php echo $is_read; ?>" 
+                            onclick="showModal('<?php echo $row['event_id']; ?>', '<?php echo addslashes(htmlspecialchars($row['message'])); ?>');">
+                                <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                                <small><?php echo $row['created_at']; ?></small>
                             </a>
-                        </div>
+                            <?php 
+                        } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'new_event') {
+                            $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
+                            ?>
+                            <a class="events-btn <?php echo $is_read; ?>" 
+                               href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                                <small><?php echo $row['created_at']; ?></small>
+                            </a>
+                            <?php
+                        } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'event_reminder') {
+                            $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
+                            ?>
+                            <a class="events-btn <?php echo $is_read; ?>" 
+                               href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                                <small><?php echo $row['created_at']; ?></small>
+                            </a>
+                            <?php
+                        }  elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'event_registration') {
+                            $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
+                            ?>
+                            <a class="events-btn <?php echo $is_read; ?>" 
+                               href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                                <small><?php echo $row['created_at']; ?></small>
+                            </a>
+                            <?php
+                        } else {
+                            $redirect_url = "user-notif.php?event_id=" . urlencode($row['event_id']);
+                            ?>
+                            <a class="events-btn <?php echo $is_read; ?>" 
+                               href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                                <small><?php echo $row['created_at']; ?></small>
+                            </a>
+                            <?php
+                        }
+                        ?>
+                    </div>
+                <?php }
+            } else { ?>
+                <p>No notifications found.</p>
+            <?php } ?>
+        </div>
+    </div>
+        </div>
+    </div>
+
+<!-- Event Details Modal -->
+<div id="eventModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <div class="modal-body">
+            <div class="detail-item">
+                <p id="modal-message">Your certificate is now available to download.</div></p>
+            </div>
+
+            <div class="pdf-preview">
+                <div class="pdf-icon"><br>
+                    <a href="<?php echo isset($certificate_path) ? htmlspecialchars($certificate_path) : 'Sample.pdf'; ?>" download>
+                        <img src="styles/photos/PDF.png">
+                    </a>
+                    <div class="pdf-filename">
+                        <a href="<?php echo isset($certificate_path) ? htmlspecialchars($certificate_path) : 'Sample.pdf'; ?>" download>
+                            Certificate of Participation
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+<<<<<<< HEAD
+</div>
+
+<script>
+// Get the modal
+var modal = document.getElementById("eventModal");
+
+function showModal(eventId, message) {
+    // Update the modal message
+    document.getElementById('modal-message').textContent = message;
+    
+    // Redirect to the same page with event_id parameter to fetch certificate info
+    var currentUrl = window.location.href.split('?')[0]; // Get current URL without parameters
+    var newUrl = currentUrl + "?event_id=" + eventId + "&modal=true";
+    window.location.href = newUrl;
+}
+
+// Function to close the modal
+function closeModal() {
+    modal.style.display = "none";
+    
+    // Remove selected class from all events
+    document.querySelectorAll('.event').forEach(div => {
+        div.classList.remove('selected');
+    });
+}
+
+// Close the modal if user clicks outside of it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+
+function markAsRead(notificationId) {
+    // Redirect to mark as read script
+    window.location.href = "mark_notification_read.php?notification_id=" + notificationId + "&redirect=" + encodeURIComponent("user-notif.php");
+}
+
+// Get the modal
+var modal = document.getElementById("eventModal");
+
+<?php if (isset($_GET['modal']) && $_GET['modal'] == 'true'): ?>
+// Automatically open modal if the page loaded with modal=true parameter
+document.addEventListener('DOMContentLoaded', function() {
+    modal.style.display = "flex";
+});
+<?php endif; ?>
+
+</script>
+
+=======
+    <script>
+        <!-- Add JavaScript for the user profile toggle and logout menu -->
+document.getElementById('userProfileToggle').addEventListener('click', function() {
+    document.getElementById('logoutMenu').classList.toggle('active');
+});
+
+// Close the menu when clicking outside
+document.addEventListener('click', function(event) {
+    const profile = document.getElementById('userProfileToggle');
+    const menu = document.getElementById('logoutMenu');
+    
+    if (!profile.contains(event.target)) {
+        menu.classList.remove('active');
+    }
+});
+</script>
+>>>>>>> d5a5d11893c0b1b8d4ec49c91f8b0a3487fd9b29
 </body>
 </html>

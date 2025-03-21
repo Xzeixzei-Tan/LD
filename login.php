@@ -146,7 +146,10 @@ session_start();
         #status {
             color: #E33629;
             font-family: Montserrat; 
-        }        
+            font-size: small;
+            font-weight: lighter;
+            font-style: italic;
+        }         
     </style>
 </head>
 <body>

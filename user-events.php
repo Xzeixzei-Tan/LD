@@ -213,14 +213,6 @@ html {
     width: 100%;
 }
 
-#logout {
-    float: right;
-    border: 1px solid black;
-    height: 100%;
-    width: 100%;
-    color: white;
-}
-
 .user-avatar img{
     width: 40px;
     height: 40px;
@@ -751,7 +743,95 @@ html {
 p{
     font-family: Montserrat;
 }
+.user-profile {
+        padding: 15px;
+        border-top: 1px solid white;
+        display: flex;
+        align-items: center;
+        position: sticky;
+        bottom: 0;
+        background-color: #12753E;
+        width: 100%;
+        cursor: pointer;
+        position: relative;
+    }
 
+    .logout-menu {
+        position: absolute;
+        top: 0;
+        bottom: 100%;
+        border-radius: 5px;
+        padding: 10px;
+        display: none;
+        z-index: 1000;
+        width: 85px;
+    }
+
+    .logout-menu.active {
+        display: block;
+    }
+
+    .logout-btn {
+        background-color: white;    
+        display: block;
+        width: 100%;
+        padding: 8px 10px;
+        color: #12753E;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: 'Tilt Warp', sans-serif;
+        font-size: 14px;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 80%;
+        left: 248%;
+        z-index: 5;
+    }
+
+    .user-avatar img{
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px solid white;
+        padding: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+        font-family: Tilt Warp;
+    }
+
+    .username {
+        font-family: Tilt Warp;
+    }
+
+    .main-content {
+        flex: 1;
+        padding: 20px;
+        background-color: #ecf0f1;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 70px;
+        }
+
+        .sidebar-header h2, .menu-text, .username {
+            display: none;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: center;
+        }
+
+        .user-profile {
+            justify-content: center;
+        }
+    }
 </style>
 </head>
 <body>
@@ -772,9 +852,14 @@ p{
 
             <!-- Add more menu items as needed -->
         </div>
-        <div class="user-profile">
-            <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
+        <!-- Modified user profile with logout menu -->
+        <div class="user-profile" id="userProfileToggle">
+            <div class="user-avatar"><img src="styles/photos/default.png"></div>
             <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
+            <!-- Add logout menu -->
+            <div class="logout-menu" id="logoutMenu">
+                <a href="login.php" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
         </div>
     </div>
 
@@ -919,7 +1004,7 @@ p{
                     <?php if ($selected_event): ?>
                         <?php if (!$is_registered): ?>
                             <?php if ($selected_event["status"] === "Past" || $selected_event["status"] === "Ongoing"): ?>        
-                                <a class="create-btn" style="background-color: gray; color: #E5E4E2; cursor: not-allowed;" onclick="showStatusAlert('<?php echo htmlspecialchars($selected_event["status"]); ?>')">Register</a>
+                                <a class="create-btn" style="visibility: hidden;">Register</a>
                             <?php else: ?>
                                 <a class="create-btn" href="register.php?event_id=<?php echo urlencode($selected_event['id']); ?>">Register</a>
                             <?php endif; ?>
@@ -1018,6 +1103,20 @@ function toggleExpand() {
         expandIcon.classList.replace('fa-expand', 'fa-compress');
     }
 }
+<!-- Add JavaScript for the user profile toggle and logout menu -->
+document.getElementById('userProfileToggle').addEventListener('click', function() {
+    document.getElementById('logoutMenu').classList.toggle('active');
+});
+
+// Close the menu when clicking outside
+document.addEventListener('click', function(event) {
+    const profile = document.getElementById('userProfileToggle');
+    const menu = document.getElementById('logoutMenu');
+    
+    if (!profile.contains(event.target)) {
+        menu.classList.remove('active');
+    }
+});
 </script>
 
 </body>
