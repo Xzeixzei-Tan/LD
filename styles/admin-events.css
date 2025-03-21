@@ -146,8 +146,6 @@ hr {
     transition: all 0.3s ease;
 }
 
-
-
 .create-btn:hover {
     background-color: #0e6433;
     transform: translateY(-2px);
@@ -248,7 +246,7 @@ hr {
     border-radius: 12px;
     border: 0;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    transition: all 0.5s ease;
 }
 
 .events-section.shrink {
@@ -338,7 +336,7 @@ hr {
 }
 
 .details-section {
-    transition: all 0.3s ease;
+    transition: all 0.5s ease;
 }
 
 .details-section.expand .expand-btn {
@@ -354,6 +352,33 @@ hr {
     width: 100%;
 }
 
+.select-container select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 0.95em;
+}
+
+.select-container.archived {
+    width: 300px; /* Or any fixed width you prefer */
+}
+
+/* Alternatively, if you want a more specific selector */
+#archived-events .select-container {
+    width: 300px; /* Or any fixed width you prefer */
+}
+
+.select-container.archived select,
+#archived-events .select-container select {
+    width: 100%;
+}
+
+.select-container.archived .participant-dropdown-menu,
+#archived-events .participant-dropdown-menu {
+    width: 300px; /* Match the width of the container */
+}
+
 select:disabled {
     opacity: 0.9;
     color: #333;
@@ -361,13 +386,13 @@ select:disabled {
 
 #detail-eligible_participants{
     width: 100%; 
-    padding: 10px; 
     background-color: #f8f9fa; 
     cursor: pointer; 
     border: 1px solid #ced4da; 
     border-radius: 4px; 
     font-size: 14px; 
     margin-bottom: 10px;
+    margin-right: 200px;
 }
 
 #participant-details-container {
@@ -378,7 +403,9 @@ select:disabled {
 }
 
 #detail-eligible_participants option {
+    width: 100%;
     padding: 10px;
+    font-family: Montserrat;
 }
 
 .events-section h2,
@@ -554,10 +581,10 @@ select:disabled {
     transition: transform 0.3s ease;
   }
   
-  .expand-btn:hover {
+.expand-btn:hover {
     background-color: #e9ecef;
     color: #212529;
-  }
+}
 
 .expand-btn:hover {
     background: #dbe1ff;
@@ -862,8 +889,23 @@ select:disabled {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
-.download-btn{
+.download-btn {
+    background-color: #2b3a8f;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
     font-family: Montserrat;
+    transition: background-color 0.3s;
+}
+
+.download-btn i {
+    margin-right: 8px;
 }
 
 .download{
@@ -871,6 +913,175 @@ select:disabled {
 }
 
 #distribute-btn{
-    margin-left: 10px; 
+    margin-right: -5%;
+    margin-left: 10px;
     background-color: #3ca25e;
 }
+
+#link-btn{
+    margin-left: 10%;
+    color: #3ca25e;
+    background-color: #b2dec1;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+}
+  
+.modal-content {
+    background-color: #f8f9fa;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    overflow: auto;
+    height: 60%;
+}
+
+.modal-content h2{
+    font-family: Montserrat;
+    margin-bottom: 5px;
+}
+
+.modal-content p{
+    font-family: Montserrat;
+    font-size: 14px;
+    margin-bottom: 18px;
+    font-style: Italic;
+    color: #aaa;
+}
+  
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+  
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+}
+  
+.form-group {
+    margin-bottom: 15px;
+}
+  
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-family: Montserrat;
+}
+  
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-family: Montserrat;
+    margin-bottom: 10px;
+}
+  
+.participant-count {
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-family: Montserrat;
+}
+  
+.participants-table-container {
+    max-height: 250px;
+    overflow-y: auto;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+  
+#participants-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+  
+#participants-table th,
+#participants-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    font-family: Montserrat;
+}
+  
+#participants-table th {
+    background-color: #2b3a8f;
+    color: white;
+    position: sticky;
+    top: 0;
+}
+
+#participants-table td{
+    padding: 15px 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    border-bottom: 1px solid #edf2f7;
+    color:rgb(1, 8, 20);
+    transition: background-color 0.2s ease;
+}
+  
+#participants-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+  
+#participants-table tr:hover {
+    background-color: #f1f1f1;
+}
+  
+.text-center {
+    text-align: center;
+}
+  
+.form-actions {
+    text-align: right;
+    margin-top: 20px;
+}
+  
+.form-actions button {
+    padding: 8px 16px;
+    margin-left: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+  
+#cancel-eval {
+    background-color: #f1f1f1;
+    color: #333;
+    font-family: Montserrat Medium;
+}
+  
+#send-eval {
+    background-color: #4CAF50;
+    color: white;
+    font-family: Montserrat Medium;
+}
+  
+#send-eval:hover {
+    background-color: #45a049;
+}
+

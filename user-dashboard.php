@@ -91,6 +91,7 @@ if (!$notif_result) {
         flex-direction: column;
         transition: width 0.3s ease;
         position: fixed;
+        z-index: 9999;
     }
 
     .sidebar-content {
@@ -143,15 +144,44 @@ if (!$notif_result) {
         bottom: 0;
         background-color: #12753E;
         width: 100%;
+        cursor: pointer;
+        position: relative;
     }
 
-    #logout {
-        float: right;
-        border: 1px solid black;
-        height: 100%;
-        width: 100%;
-        font-color: black;
+    .logout-menu {
+        position: absolute;
+        top: 0;
+        bottom: 100%;
+        border-radius: 5px;
+        padding: 10px;
+        display: none;
+        z-index: 10000;
+        width: 85px;
     }
+
+    .logout-menu.active {
+        display: block;
+    }
+
+    .logout-btn {
+        background-color: white;    
+        display: block;
+        width: 100%;
+        padding: 8px 10px;
+        color: #12753E;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: 'Tilt Warp', sans-serif;
+        font-size: 14px;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 80%;
+        left: 248%;
+        z-index: 10001 !important; /* Increase this value significantly */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: add shadow for better visibility */
+}
 
     .user-avatar img{
         width: 40px;
@@ -267,6 +297,7 @@ if (!$notif_result) {
     display: flex;
     flex-direction: column;
     position: relative;
+    z-index: 1;
 }
 
 .events-section:hover, .notifications-section:hover {
@@ -311,6 +342,7 @@ if (!$notif_result) {
     position: relative;
     border-bottom: 2px solid #f0f2fa;
     padding-bottom: 10px;
+    z-index: 10;
 }
 
 .event, .notification {
@@ -502,9 +534,14 @@ if (!$notif_result) {
 
             <!-- Add more menu items as needed -->
         </div>
-        <div class="user-profile">
-            <div class="user-avatar"><img src="styles/photos/jess.jpg"></div>
+        <!-- Modified user profile with logout menu -->
+        <div class="user-profile" id="userProfileToggle">
+            <div class="user-avatar"><img src="styles/photos/default.png"></div>
             <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
+            <!-- Add logout menu -->
+            <div class="logout-menu" id="logoutMenu">
+                <a href="login.php" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
         </div>
     </div>
 
@@ -585,7 +622,22 @@ if (!$notif_result) {
     	</div>
     </div>
 </div>
+
+<!-- Add JavaScript for the user profile toggle and logout menu -->
+<script>
+document.getElementById('userProfileToggle').addEventListener('click', function() {
+    document.getElementById('logoutMenu').classList.toggle('active');
+});
+
+// Close the menu when clicking outside
+document.addEventListener('click', function(event) {
+    const profile = document.getElementById('userProfileToggle');
+    const menu = document.getElementById('logoutMenu');
+    
+    if (!profile.contains(event.target)) {
+        menu.classList.remove('active');
+    }
+});
+</script>
 </body>
-
-
 </html>

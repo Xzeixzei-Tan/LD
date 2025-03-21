@@ -186,7 +186,7 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
 
             .title {
                 font-family: Old English Text MT;
-                font-size: 65px;
+                font-size: 62px;
                 color: black;
             }
             .awarded-to {
@@ -199,14 +199,24 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
                 font-weight: Bold;
                 font-size: 70px;
                 display: inline-block;
+                text-transform: uppercase;
             }
 
-            .description, strong {
+            .description {
                 font-family: Bookman Old Style;
-                font-size: 25px;
-                font-weight: 0;
+                font-size: 23px;
                 line-height: 1.5;
             }
+
+            strong{
+                font-weight: 1000;
+            }
+
+            .event-title{
+                font-size: 28px;
+                font-weight: 2000;
+            }
+
             .date {
                 margin-top: 35px;
                 font-size: 24px;
@@ -256,7 +266,7 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
             
             <div class="description">
                 for the meaningful engagement as <strong>PARTICIPANT</strong> during the<br>
-                <strong>"' . $replacements['event_title'] . '" </strong> conducted by the Department of Education-Schools Division Office of General Trias City
+                <strong class="event-title">"' . $replacements['event_title'] . '" </strong> conducted by the Department of Education-Schools Division Office of General Trias City
                 On ' . $replacements['date_month'] . ' ' . $replacements['event_start_date and end_date'] . ', at the ' . $replacements['venue'] . '
             </div>
             
