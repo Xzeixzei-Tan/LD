@@ -552,6 +552,9 @@ foreach ($eventsData as $event) {
                             <button class="download-btn" onclick="downloadParticipantsList()" id="download-btn">
                                 <i class="fas fa-download"></i> List of Registered Participants
                             </button>
+                            <button class="download-btn" id="link-btn">
+                                <i class="fa fa-link" aria-hidden="true"></i> Distribute Evaluation Link
+                            </button>
                             <button class="download-btn" onclick="distributeCertificates()" id="distribute-btn">
                                 <i class="fas fa-certificate"></i> Distribute Certificates
                             </button>
@@ -581,6 +584,51 @@ foreach ($eventsData as $event) {
         </div>
     </div>
 </div>
+
+<!-- Evaluation Link Modal -->
+<div id="evaluation-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h2>Distribute Evaluation Link</h2>
+    <p>Send evaluation link to all registered participants for this event.</p>
+    <form id="evaluation-form">
+        <div class="form-group">
+            <label for="eval-link">Evaluation Link:</label>
+            <input type="text" id="eval-link" name="eval-link" placeholder="Enter evaluation form URL" required>
+        </div>
+      
+        <div class="form-group">
+            <label>Participants who will receive the link:</label>
+            <div class="participant-count">
+            <span id="total-participants" style="display: none;">
+            </div>
+            <div class="participants-table-container">
+            <table id="participants-table">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                </tr>
+                </thead>
+                <tbody id="participants-table-body">
+                <tr>
+                    <td colspan="3" class="text-center">Loading participants...</td>
+                </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+      
+        <div class="form-actions">
+            <button type="button" id="cancel-eval">Cancel</button>
+            <button type="submit" id="send-eval">Send Evaluation Link</button>
+        </div>
+        </form>
+    </div>
+    </div>
+</div>
+
 <script>
     let currentEvent = null;
 
@@ -787,6 +835,133 @@ if (unarchiveBtn) {
         downloadBtn.setAttribute('data-id', eventData.id);
     }
 }
+
+// Get the modal and button elements
+    const evalLinkBtn = document.getElementById("link-btn");
+    const evalModal = document.getElementById("evaluation-modal");
+    const closeBtn = evalModal.querySelector(".close");
+    const cancelBtn = document.getElementById("cancel-eval");
+    const evalForm = document.getElementById("evaluation-form");
+
+    // When the user clicks the link button, open the modal
+    evalLinkBtn.onclick = function() {
+    evalModal.style.display = "block";
+    const eventId = currentEvent;
+    
+    // Set event ID as a data attribute on the form
+    evalForm.setAttribute('data-event-id', eventId);
+    
+    // Load participants for this event
+    loadParticipantsForModal(eventId);
+    }
+
+    // Function to load participants for the modal
+    function loadParticipantsForModal(eventId) {
+    const tableBody = document.getElementById('participants-table-body');
+    const totalParticipantsElement = document.getElementById('total-participants');
+    
+    // Show loading indicator
+    tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Loading participants...</td></tr>';
+    
+    // Fetch registered users using AJAX
+    fetch('get_registered_users.php?event_id=' + eventId)
+        .then(response => response.json())
+        .then(data => {
+        // Clear loading indicator
+        tableBody.innerHTML = '';
+        
+        // Update total participants count
+        totalParticipantsElement.textContent = data.length;
+        
+        if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="3" class="text-center">No registered users found</td></tr>';
+            return;
+        }
+        
+        // Populate table with user data
+        data.forEach((user, index) => {
+            const row = document.createElement('tr');
+            
+            row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+        })
+        .catch(error => {
+        console.error('Error fetching registered users:', error);
+        tableBody.innerHTML = '<tr><td colspan="3" class="text-center">Error loading registered users</td></tr>';
+        totalParticipantsElement.textContent = '0';
+        });
+    }
+
+    // When the user clicks the close button or cancel button, close the modal
+    closeBtn.onclick = function() {
+    evalModal.style.display = "none";
+    }
+
+    cancelBtn.onclick = function() {
+    evalModal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+    if (event.target == evalModal) {
+        evalModal.style.display = "none";
+    }
+    }
+
+    // Handle form submission
+    evalForm.onsubmit = function(e) {
+    e.preventDefault();
+    const eventId = this.getAttribute('data-event-id');
+    const evalLink = document.getElementById('eval-link').value;
+    
+    // Show loading state
+    document.getElementById('send-eval').textContent = "Sending...";
+    document.getElementById('send-eval').disabled = true;
+    
+    // You would typically send this data to the server via AJAX
+    // For now, we'll just simulate a server request
+    setTimeout(() => {
+        alert(`Evaluation link has been sent to all participants' email addresses.`);
+        evalModal.style.display = "none";
+        // Reset form
+        evalForm.reset();
+        document.getElementById('send-eval').textContent = "Send Evaluation Link";
+        document.getElementById('send-eval').disabled = false;
+        
+        // For a real implementation, you would use something like:
+        /*
+        fetch('send_evaluation_link.php', {
+        method: 'POST',
+        body: JSON.stringify({
+            event_id: eventId,
+            eval_link: evalLink
+        }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+        })
+        .then(response => response.json())
+        .then(data => {
+        alert(data.message);
+        evalModal.style.display = "none";
+        evalForm.reset();
+        })
+        .catch(error => {
+        alert('Error sending evaluation links: ' + error);
+        })
+        .finally(() => {
+        document.getElementById('send-eval').textContent = "Send Evaluation Link";
+        document.getElementById('send-eval').disabled = false;
+        });
+        */
+    }, 1500);
+    }
 
 function distributeCertificates() {
     const eventId = document.getElementById('distribute-btn').getAttribute('data-id');
