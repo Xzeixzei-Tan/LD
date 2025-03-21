@@ -1,5 +1,6 @@
 <?php 
 require_once 'config.php';
+session_start();
 
 // Fetch affiliations
 $affiliationQuery = "SELECT id, name FROM affiliation";
@@ -257,6 +258,14 @@ $positionResult = $conn->query($positionQuery);
                 display: none;
             }
         }
+
+        #status {
+            color: #E33629;
+            font-family: Montserrat; 
+            font-size: small;
+            font-weight: lighter;
+            font-style: italic;
+        }   
     </style>
 </head>
 <body>
@@ -274,6 +283,20 @@ $positionResult = $conn->query($positionQuery);
             <div class="form-container">
                 <h1>SIGNUP</h1>
                 <form action="signup_process.php" method="POST"><br>
+                <?php 
+                    if(isset($_SESSION['status']))
+                    {
+                        ?>
+                            <div id="status">
+
+                                <?php echo $_SESSION['status']; ?>
+                                  
+                            </div>
+                        <?php
+                        unset($_SESSION['status']);
+                    }
+                ?>
+                <br>
                 <div class="form-row">
                     <div class="form-col">
                         <label>First Name:</label>

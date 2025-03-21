@@ -84,9 +84,9 @@ if ($result) {
     // Create notification for the user
     // Create notification for the user
     $user_notification_message = "You have successfully registered for event: " . $title;
-    $user_notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype) VALUES (?, ?, NOW(), 0, 'user', 'event_registration')";
+    $user_notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype, event_id) VALUES (?, ?, NOW(), 0, 'user', 'event_registration', ?)";
     $user_notification_stmt = $conn->prepare($user_notification_sql);
-    $user_notification_stmt->bind_param("is", $user_id, $user_notification_message);
+    $user_notification_stmt->bind_param("isi", $user_id, $user_notification_message, $event_id);
     $user_notification_stmt->execute();
     $user_notification_stmt->close();
 } else {
