@@ -17,7 +17,7 @@ if (!isset($_GET['term'])) {
 
 $searchTerm = '%' . $_GET['term'] . '%';
 
-// Prepare SQL query with parameterized statement for security
+// Base SQL query
 $sql = "SELECT u.id, u.first_name, u.middle_name, u.last_name, u.suffix, u.sex, 
         u.contact_no, u.email, c.name as classification_name, cp.name as position_name 
         FROM users u 
@@ -32,8 +32,19 @@ $sql = "SELECT u.id, u.first_name, u.middle_name, u.last_name, u.suffix, u.sex,
             u.contact_no LIKE ? OR
             c.name LIKE ? OR
             cp.name LIKE ?
-        )
-        ORDER BY u.id";
+        )";
+
+// Add classification filter if provided
+if (isset($_GET['classification']) && !empty($_GET['classification'])) {
+    $sql .= " AND c.name = ?";
+}
+
+// Add position filter if provided
+if (isset($_GET['position']) && !empty($_GET['position'])) {
+    $sql .= " AND cp.name = ?";
+}
+
+$sql .= " ORDER BY u.id";
 
 $stmt = $conn->prepare($sql);
 if ($stmt === false) {
@@ -42,8 +53,31 @@ if ($stmt === false) {
     exit;
 }
 
-// Bind parameters
-$stmt->bind_param("ssssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
+// Create parameter types and array
+$paramTypes = "ssssss"; // 6 initial s parameters for search term
+$paramValues = array($searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
+
+// Add classification parameter if needed
+if (isset($_GET['classification']) && !empty($_GET['classification'])) {
+    $paramTypes .= "s";
+    $paramValues[] = $_GET['classification'];
+}
+
+// Add position parameter if needed
+if (isset($_GET['position']) && !empty($_GET['position'])) {
+    $paramTypes .= "s";
+    $paramValues[] = $_GET['position'];
+}
+
+// Create a reference array for bind_param
+$paramRefs = array();
+$paramRefs[] = &$paramTypes;
+foreach ($paramValues as $key => $value) {
+    $paramRefs[] = &$paramValues[$key];
+}
+
+// Call bind_param with references
+call_user_func_array(array($stmt, 'bind_param'), $paramRefs);
 
 // Execute the statement
 if (!$stmt->execute()) {

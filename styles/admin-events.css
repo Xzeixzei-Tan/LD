@@ -312,6 +312,7 @@ hr {
 
 .detail-items {
     display: flex;
+    margin-top: 5%;
 }
 
 .detail-items-1 {

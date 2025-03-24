@@ -149,6 +149,7 @@ $divResult = $divCount->get_result();
                 </tbody>
             </table>
             <script>
+
 // Function to check if any checkboxes are selected
 function checkSelectedCheckboxes() {
     const checkboxes = document.querySelectorAll('.user-checkbox:checked');
@@ -176,7 +177,6 @@ document.getElementById('select-all').addEventListener('change', function() {
 });
 
 // Handle delete button clicks for individual users
-// Note: This requires adding delete buttons to each row in the PHP code
 function setupDeleteButtons() {
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', function(e) {
@@ -258,6 +258,10 @@ document.getElementById('delete-selected').addEventListener('click', function() 
     }
 });
 
+// Store the current active filter
+let currentFilter = 'All';
+let currentPosition = '';
+
 // Call setupDeleteButtons when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     checkSelectedCheckboxes(); // Check if any checkboxes are already selected
@@ -274,256 +278,313 @@ const tableBody = document.querySelector('table tbody');
 
 // Toggle dropdown when filter container is clicked
 filterContainer.addEventListener('click', function() {
-  dropdown.classList.toggle('show');
+    dropdown.classList.toggle('show');
 });
 
 // Close dropdown when clicking outside
 document.addEventListener('click', function(event) {
-  if (!filterContainer.contains(event.target)) {
-    dropdown.classList.remove('show');
-    // Also remove positions dropdown if it exists
-    const positionsDropdown = document.querySelector('.positions-dropdown');
-    if (positionsDropdown) {
-      positionsDropdown.remove();
+    if (!filterContainer.contains(event.target)) {
+        dropdown.classList.remove('show');
+        // Also remove positions dropdown if it exists
+        const positionsDropdown = document.querySelector('.positions-dropdown');
+        if (positionsDropdown) {
+            positionsDropdown.remove();
+        }
     }
-  }
 });
 
 // Handle filter item clicks
 const dropdownItems = document.querySelectorAll('.dropdown-item');
 dropdownItems.forEach(item => {
-  item.addEventListener('click', function() {
-    // Remove active class from all items
-    dropdownItems.forEach(i => i.classList.remove('active'));
-    
-    // Add active class to clicked item
-    this.classList.add('active');
-    
-    const filterValue = this.getAttribute('data-filter');
-    
-    // Update filter text
-    filterText.textContent = filterValue;
-    
-    if (filterValue === 'Positions') {
-      // Create positions dropdown
-      createPositionsDropdown();
-    } else if (filterValue === 'All') {
-      // Show all rows
-      resetTableFilter();
-      dropdown.classList.remove('show');
-    } else {
-      // Filter table by classification (Teaching/Non-Teaching)
-      filterTableByClassification(filterValue);
-      dropdown.classList.remove('show');
-    }
-  });
+    item.addEventListener('click', function() {
+        // Remove active class from all items
+        dropdownItems.forEach(i => i.classList.remove('active'));
+        
+        // Add active class to clicked item
+        this.classList.add('active');
+        
+        const filterValue = this.getAttribute('data-filter');
+        currentFilter = filterValue;
+        
+        // Update filter text
+        filterText.textContent = filterValue;
+        
+        if (filterValue === 'Positions') {
+            // Create positions dropdown
+            createPositionsDropdown();
+        } else if (filterValue === 'All') {
+            // Show all rows
+            currentPosition = '';
+            
+            // For "Show All" we need to clear the search and refresh the page
+            // This is the most reliable way to reset everything
+            searchInput.value = '';
+            // We use setTimeout to ensure the UI updates before reload
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+            
+            dropdown.classList.remove('show');
+        } else {
+            // Filter table by classification (Teaching/Non-Teaching)
+            currentPosition = '';
+            
+            if (searchInput.value.trim() !== '') {
+                // If there's a search term, fetch results with the new filter
+                performSearch(searchInput.value.trim());
+            } else {
+                // If no search term, just apply the filter
+                filterTableByClassification(filterValue);
+            }
+            
+            dropdown.classList.remove('show');
+        }
+    });
 });
 
 // Function to create positions dropdown
 function createPositionsDropdown() {
-  // Remove existing positions dropdown if it exists
-  const existingDropdown = document.querySelector('.positions-dropdown');
-  if (existingDropdown) {
-    existingDropdown.remove();
-    return;
-  }
-  
-  // Get unique positions from the table
-  const positions = [];
-  document.querySelectorAll('table tbody tr').forEach(row => {
-    const positionCell = row.cells[6]; // Position is in the 7th column (index 6)
-    if (positionCell) {
-      const position = positionCell.textContent.trim();
-      if (position !== "Not Assigned" && !positions.includes(position) && position !== "") {
-        positions.push(position);
-      }
+    // Remove existing positions dropdown if it exists
+    const existingDropdown = document.querySelector('.positions-dropdown');
+    if (existingDropdown) {
+        existingDropdown.remove();
+        return;
     }
-  });
-  
-  // Create dropdown element
-  const positionsDropdown = document.createElement('div');
-  positionsDropdown.className = 'positions-dropdown';
-  
-  // Add positions to dropdown
-  positions.forEach(position => {
-    const item = document.createElement('div');
-    item.className = 'dropdown-item';
-    item.textContent = position;
     
-    item.addEventListener('click', function() {
-      filterTableByPosition(position);
-      filterText.textContent = position; // Update filter text
-      positionsDropdown.remove();
-      dropdown.classList.remove('show');
+    // Get unique positions from the table
+    const positions = [];
+    document.querySelectorAll('table tbody tr').forEach(row => {
+        const positionCell = row.cells[6]; // Position is in the 7th column (index 6)
+        if (positionCell) {
+            const position = positionCell.textContent.trim();
+            if (position !== "Not Assigned" && !positions.includes(position) && position !== "") {
+                positions.push(position);
+            }
+        }
     });
     
-    positionsDropdown.appendChild(item);
-  });
-  
-  // Add "All Positions" option
-  const allItem = document.createElement('div');
-  allItem.className = 'dropdown-item';
-  allItem.textContent = 'All Positions';
-  allItem.style.fontWeight = 'bold';
-  
-  allItem.addEventListener('click', function() {
-    resetTableFilter();
-    filterText.textContent = 'All Positions'; // Update filter text
-    positionsDropdown.remove();
-    dropdown.classList.remove('show');
-  });
-  
-  positionsDropdown.insertBefore(allItem, positionsDropdown.firstChild);
-  
-  // Add dropdown to page
-  document.querySelector('.filter-container').appendChild(positionsDropdown);
-  
-  // Style for positions dropdown
-  const style = document.createElement('style');
-  style.textContent = `
-    .positions-dropdown {
-      position: absolute;
-      top: 0;
-      left: 100%;
-      margin-left: 5px;
-      background-color: white;
-      border-radius: 4px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      width: 180px;
-      z-index: 101;
-      border: 1px solid #eee;
-    }
+    // Create dropdown element
+    const positionsDropdown = document.createElement('div');
+    positionsDropdown.className = 'positions-dropdown';
     
-    .positions-dropdown .dropdown-item {
-      padding: 10px 15px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      border-bottom: 1px solid #f5f5f5;
-    }
+    // Add positions to dropdown
+    positions.forEach(position => {
+        const item = document.createElement('div');
+        item.className = 'dropdown-item';
+        item.textContent = position;
+        
+        item.addEventListener('click', function() {
+            currentFilter = 'Positions';
+            currentPosition = position;
+            
+            if (searchInput.value.trim() !== '') {
+                // If there's a search term, fetch results with the new filter
+                performSearch(searchInput.value.trim());
+            } else {
+                // If no search term, just apply the filter
+                filterTableByPosition(position);
+            }
+            
+            filterText.textContent = position; // Update filter text
+            positionsDropdown.remove();
+            dropdown.classList.remove('show');
+        });
+        
+        positionsDropdown.appendChild(item);
+    });
     
-    .positions-dropdown .dropdown-item:hover {
-      background-color: #f5f5f5;
-    }
+    // Add "All Positions" option
+    const allItem = document.createElement('div');
+    allItem.className = 'dropdown-item';
+    allItem.textContent = 'All Positions';
+    allItem.style.fontWeight = 'bold';
     
-    .positions-dropdown .dropdown-item:last-child {
-      border-bottom: none;
-    }
-  `;
-  document.head.appendChild(style);
+    allItem.addEventListener('click', function() {
+        currentFilter = 'All';
+        currentPosition = '';
+        
+        // For "All Positions" we'll clear the search and reload
+        searchInput.value = '';
+        // We use setTimeout to ensure the UI updates before reload
+        setTimeout(() => {
+            window.location.reload();
+        }, 100);
+        
+        filterText.textContent = 'All Positions'; // Update filter text
+        positionsDropdown.remove();
+        dropdown.classList.remove('show');
+    });
+    
+    positionsDropdown.insertBefore(allItem, positionsDropdown.firstChild);
+    
+    // Add dropdown to page
+    document.querySelector('.filter-container').appendChild(positionsDropdown);
+    
+    // Style for positions dropdown
+    const style = document.createElement('style');
+    style.textContent = `
+        .positions-dropdown {
+            position: absolute;
+            top: 0;
+            left: 100%;
+            margin-left: 5px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 180px;
+            z-index: 101;
+            border: 1px solid #eee;
+        }
+        
+        .positions-dropdown .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .positions-dropdown .dropdown-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .positions-dropdown .dropdown-item:last-child {
+            border-bottom: none;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // Function to filter table by classification (Teaching/Non-Teaching)
 function filterTableByClassification(classification) {
-  document.querySelectorAll('table tbody tr').forEach(row => {
-    const classificationCell = row.cells[5]; // Classification is in the 6th column (index 5)
-    if (classificationCell) {
-      const cellValue = classificationCell.textContent.trim().toLowerCase();
-      
-      // Check if classification contains our filter value (case insensitive)
-      if (cellValue === classification.toLowerCase()) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    }
-  });
+    document.querySelectorAll('table tbody tr').forEach(row => {
+        const classificationCell = row.cells[5]; // Classification is in the 6th column (index 5)
+        if (classificationCell) {
+            const cellValue = classificationCell.textContent.trim().toLowerCase();
+            
+            // Check if classification contains our filter value (case insensitive)
+            if (cellValue === classification.toLowerCase()) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
 }
 
 // Function to filter table by position
 function filterTableByPosition(position) {
-  document.querySelectorAll('table tbody tr').forEach(row => {
-    const positionCell = row.cells[6]; // Position is in the 7th column (index 6)
-    if (positionCell) {
-      const cellValue = positionCell.textContent.trim();
-      
-      if (cellValue === position) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    }
-  });
+    document.querySelectorAll('table tbody tr').forEach(row => {
+        const positionCell = row.cells[6]; // Position is in the 7th column (index 6)
+        if (positionCell) {
+            const cellValue = positionCell.textContent.trim();
+            
+            if (cellValue === position) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
 }
 
 // Function to reset table filter
 function resetTableFilter() {
-  document.querySelectorAll('table tbody tr').forEach(row => {
-    row.style.display = '';
-  });
+    // Make all rows visible
+    document.querySelectorAll('table tbody tr').forEach(row => {
+        row.style.display = '';
+    });
+}
+
+// Function to perform search with current filters
+function performSearch(searchValue) {
+    // Show loading indicator
+    tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center">Searching...</td></tr>';
+    
+    // Build the search URL with filter parameters
+    let searchUrl = 'search_users.php?term=' + encodeURIComponent(searchValue);
+    
+    // Add filter parameters based on current selection
+    if (currentFilter === 'Teaching' || currentFilter === 'Non-Teaching') {
+        searchUrl += '&classification=' + encodeURIComponent(currentFilter);
+    } else if (currentFilter === 'Positions' && currentPosition) {
+        searchUrl += '&position=' + encodeURIComponent(currentPosition);
+    }
+    
+    // Send AJAX request to search users
+    fetch(searchUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (data.data.length > 0) {
+                    // Clear table and add new rows
+                    tableBody.innerHTML = '';
+                    
+                    data.data.forEach(user => {
+                        const row = document.createElement('tr');
+                        
+                        // Create checkbox cell
+                        const checkboxCell = document.createElement('td');
+                        checkboxCell.className = 'checkbox-cell';
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = 'user-checkbox';
+                        checkbox.setAttribute('data-id', user.id);
+                        checkbox.addEventListener('change', checkSelectedCheckboxes);
+                        checkboxCell.appendChild(checkbox);
+                        row.appendChild(checkboxCell);
+                        
+                        // Add other cells
+                        row.innerHTML += `
+                            <td>${user.index}</td>
+                            <td>${user.name}</td>
+                            <td>${user.sex}</td>
+                            <td>${user.contact_no}</td>
+                            <td>${user.classification}</td>
+                            <td>${user.position}</td>
+                            <td>${user.email}</td>
+                            <td>*****</td>
+                        `;
+                        
+                        tableBody.appendChild(row);
+                    });
+                    
+                    // Set up delete buttons for new rows
+                    setupDeleteButtons();
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center">No users found matching your search criteria</td></tr>';
+                }
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center">Error: ${data.message}</td></tr>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center">Error connecting to the server</td></tr>';
+        });
 }
 
 // Add debounce function for search
 function debounce(func, wait) {
-  let timeout;
-  return function() {
-    const context = this, args = arguments;
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      func.apply(context, args);
-    }, wait);
-  };
+    let timeout;
+    return function() {
+        const context = this, args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            func.apply(context, args);
+        }, wait);
+    };
 }
 
 // Handle search input with server-side search
 searchInput.addEventListener('input', debounce(function() {
-  const searchValue = this.value.trim();
-  
-  if (searchValue.length >= 2) {
-    // Show loading indicator
-    tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center">Searching...</td></tr>';
+    const searchValue = this.value.trim();
     
-    // Send AJAX request to search users
-    fetch('search_users.php?term=' + encodeURIComponent(searchValue))
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === 'success') {
-          if (data.data.length > 0) {
-            // Clear table and add new rows
-            tableBody.innerHTML = '';
-            
-            data.data.forEach(user => {
-              const row = document.createElement('tr');
-              
-              // Create checkbox cell
-              const checkboxCell = document.createElement('td');
-              checkboxCell.className = 'checkbox-cell';
-              const checkbox = document.createElement('input');
-              checkbox.type = 'checkbox';
-              checkbox.className = 'user-checkbox';
-              checkbox.setAttribute('data-id', user.id);
-              checkbox.addEventListener('change', checkSelectedCheckboxes);
-              checkboxCell.appendChild(checkbox);
-              row.appendChild(checkboxCell);
-              
-              // Add other cells
-              row.innerHTML += `
-                <td>${user.index}</td>
-                <td>${user.name}</td>
-                <td>${user.sex}</td>
-                <td>${user.contact_no}</td>
-                <td>${user.classification}</td>
-                <td>${user.position}</td>
-                <td>${user.email}</td>
-                <td>*****</td>
-              `;
-              
-              tableBody.appendChild(row);
-            });
-          } else {
-            tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center">No users found matching your search criteria</td></tr>';
-          }
-        } else {
-          tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center">Error: ${data.message}</td></tr>`;
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center">Error connecting to the server</td></tr>';
-      });
-  } else if (searchValue.length === 0) {
-    // If search is cleared, reload the original table
-    window.location.reload();
-  }
+    if (searchValue.length >= 2) {
+        performSearch(searchValue);
+    } else if (searchValue.length === 0) {
+        // If search is cleared, reload the page to get fresh data
+        window.location.reload();
+    }
 }, 500)); // 500ms debounce
 </script>        
 

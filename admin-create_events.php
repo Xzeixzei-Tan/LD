@@ -87,13 +87,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $venue = isset($_POST['venue']) ? $_POST['venue'] : '';
     $startDate = $_POST['start-date'];
     $endDate = $_POST['end-date'];
+    $estimatedParticipants = $_POST['estimated_participants'];
     $proponent = $_POST['proponent'];
     $createdAt = date('Y-m-d H:i:s');
     $updatedAt = date('Y-m-d H:i:s');
 
     // Insert data into the events table
-    $stmt = $conn->prepare("INSERT INTO events (title, specification, delivery, venue, start_date, end_date, proponent, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssssss", $title, $specification, $delivery, $venue, $startDate, $endDate, $proponent, $createdAt, $updatedAt);
+    $stmt = $conn->prepare("INSERT INTO events (title, specification, delivery, venue, start_date, end_date, proponent, created_at, updated_at,estimated_participants) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssssssssi", $title, $specification, $delivery, $venue, $startDate, $endDate, $proponent, $createdAt, $updatedAt, $estimatedParticipants);
     $stmt->execute();
     $eventId = $stmt->insert_id;
     $stmt->close();
@@ -278,6 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         height: 18px;
         cursor: pointer;
         margiin-left: 5px;s
+        
     }
 
     /* Style for the amount field */
@@ -634,6 +636,7 @@ select {
     box-sizing: border-box;
     transition: border-color 0.3s, box-shadow 0.3s;
     margin-bottom: 15px;
+    text-transform: capitalize;
 }
 
 input[type="text"]:focus, 

@@ -163,6 +163,7 @@ hr {
     border-radius: 5px;
     margin-bottom: 1rem;
     font-family: Montserrat Light;
+    text-transform: capitalize;
 }
 
 .form-group textarea {
@@ -525,6 +526,7 @@ hr {
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 1rem;
+    text-transform: capitalize;
 }
 
 .add-speaker-btn {
@@ -658,3 +660,6 @@ hr {
     font-family: "Montserrat Medium", sans-serif;
     margin: 15px 0;
 }
+
+
+
