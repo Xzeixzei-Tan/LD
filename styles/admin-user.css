@@ -10,6 +10,14 @@ body, html {
     background-color: #f5f7ff;
 }
 
+.content {
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+.content.expanded {
+  margin-left: 90px;
+}
+
 .sidebar {
     position: fixed;
     width: 250px;
@@ -23,8 +31,26 @@ body, html {
 }
 
 .sidebar .logo {
-    margin-bottom: 1rem;
+    margin-botm: 1rem;
     margin-left: 5%;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 hr{

@@ -21,11 +21,38 @@ html {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    transition: width 0.3s ease;
+    z-index: 999;
+}
+
+.sidebar.collapsed {
+    width: 90px;
 }
 
 .sidebar .logo {
     margin-bottom: 1rem;
     margin-left: 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 hr {
@@ -37,10 +64,10 @@ hr {
     display: flex;
     flex-direction: column;
     margin-bottom: 18rem;
+   
 }
 
 .sidebar .menu a {
-    font-family: 'Tilt Warp';
     color: #ffffff;
     text-decoration: none;
     padding: 1rem;
@@ -53,6 +80,19 @@ hr {
     margin-bottom: .5rem;
 }
 
+.sidebar .menu a span {
+    margin-left: 0.5rem;
+    transition: opacity 0.2s;
+    font-family: Tilt Warp Regular;
+}
+
+.sidebar.collapsed .menu a span {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}
+
 .sidebar .menu a:hover,
 .sidebar .menu a.active {
     background-color: white;
@@ -61,10 +101,16 @@ hr {
 
 .sidebar .menu a i {
     margin-right: 0.5rem;
+    min-width: 20px;
+    text-align: center;
+}
+
+.sidebar.collapsed .menu a i {
+    margin-right: 0;
 }
 
 .sidebar .menu a.archive-link {
-    font-family: 'Tilt Warp';
+    font-family: Tilt Warp Regular;
     color: #ffffff;
     text-decoration: none;
     padding: 1rem;
@@ -90,7 +136,12 @@ hr {
     flex: 1;
     background-color: #f5f7ff;
     padding: 4rem;
-    margin-left: 17%;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+}
+
+.content.expanded {
+    margin-left: 70px;
 }
 
 .content-header h1 {
