@@ -113,131 +113,223 @@ function formatEventDaysData($eventDaysData) {
 
     body, html {
         height: 100%;
+        #12753E;
     }
 
     .sidebar {
-        width: 230px;
-        height: 100vh;
-        background-color: #12753E;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        transition: width 0.3s ease;
-        position: fixed;
-        z-index: 9999;
-    }
-
-    .sidebar-content {
-        margin-top: 30%;
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        font-family: Tilt Warp;
-    }
-
-    .sidebar-content a{
-        font-family: 'Tilt Warp';
-        color: #ffffff;
-        text-decoration: none;
-        padding: 1rem;
-        display: flex;
-        align-items: center;
-        font-size: 1rem;
-        border-radius: 5px;
-        transition: background 0.3s;
-        font-family: Tilt Warp Regular;
-        margin-bottom: .5rem;
-    }
-
-    .sidebar-content span{
-        font-family: Tilt Warp;
-        font-size: 1rem;
-    }
-
-    .sidebar-content i{
-        margin-right: 0.5rem;
-    }
-
-    .sidebar-content a:hover {
-        background-color: white;
-        color: #12753E; 
-    }
-
-    .sidebar-content .active{
-        background-color: white;
-        color: #12753E;
-    }
-
-    .user-profile {
-        padding: 15px;
-        border-top: 1px solid white;
-        display: flex;
-        align-items: center;
-        position: sticky;
-        bottom: 0;
-        background-color: #12753E;
-        width: 100%;
-        cursor: pointer;
-        position: relative;
-    }
-
-    .logout-menu {
-        position: absolute;
-        top: 0;
-        bottom: 100%;
-        border-radius: 5px;
-        padding: 10px;
-        display: none;
-        z-index: 10000;
-        width: 85px;
-    }
-
-    .logout-menu.active {
-        display: block;
-    }
-
-    .logout-btn {
-        background-color: white;    
-        display: block;
-        width: 100%;
-        padding: 8px 10px;
-        color: #12753E;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-family: 'Tilt Warp', sans-serif;
-        font-size: 14px;
-        text-align: center;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        position: absolute;
-        top: 80%;
-        left: 248%;
-        z-index: 10001 !important; /* Increase this value significantly */
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: add shadow for better visibility */
+    position: fixed;
+    width: 250px;
+    height: 100vh;
+    background-color: #12753E;
+    color: #ffffff;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Changed from space-between to maintain positions */
+    transition: width 0.3s ease;
+    z-index: 999;
 }
 
-    .user-avatar img{
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        border: 2px solid white;
-        padding: 2px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 10px;
-        font-family: Tilt Warp;
-    }
+.sidebar.collapsed {
+    width: 90px;
+    padding: 2rem 0.5rem;
+}
 
-    .username {
-        font-family: Tilt Warp;
-    }
+.sidebar .logo {
+    margin-bottom: 1rem;
+    margin-left: 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-    .main-content {
-        flex: 1;
-        padding: 20px;
-        background-color: #ecf0f1;
-    }
+.sidebar.collapsed .logo {
+    margin-left: 0;
+    justify-content: center;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Keep the menu at the same position */
+.sidebar .menu {
+    margin-top: 50%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allow it to grow but maintain position */
+}
+
+/* Adjust menu items when sidebar is collapsed */
+.sidebar.collapsed .menu {
+    align-items: center;
+    margin-top: 50%; /* Keep the same top margin */
+}
+
+.sidebar .menu a {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    border-radius: 5px;
+    transition: background 0.3s;
+    font-family: Tilt Warp Regular;
+    margin-bottom: .5rem;
+    width: 100%;
+}
+
+.sidebar.collapsed .menu a {
+    justify-content: center;
+    padding: 1rem 0;
+    width: 90%;
+}
+
+.sidebar .menu a span {
+    margin-left: 0.5rem;
+    transition: opacity 0.2s;
+    font-family: Tilt Warp Regular;
+}
+
+.sidebar.collapsed .menu a span {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    display: none;
+}
+
+.sidebar .menu a:hover,
+.sidebar .menu a.active {
+    background-color: white;
+    color: #12753E;
+}
+
+.sidebar .menu a i {
+    margin-right: 0.5rem;
+    min-width: 20px;
+    text-align: center;
+}
+
+.sidebar.collapsed .menu a i {
+    margin-right: 0;
+    font-size: 1.2rem;
+}
+
+/* Fix user profile section for collapsed sidebar */
+.user-profile {
+    padding: 15px;
+    border-top: 1px solid white;
+    display: flex;
+    align-items: center;
+    position: absolute; /* Changed from sticky to absolute for more control */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #12753E;
+    cursor: pointer;
+}
+
+.sidebar.collapsed .user-profile {
+    justify-content: center;
+    padding: 15px 0;
+}
+
+.sidebar.collapsed .username {
+    display: none;
+}
+
+.user-avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid white;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+.username {
+        
+    font-family: Tilt Warp;
+}
+
+.sidebar.collapsed .user-avatar img {
+    margin-right: 0;
+}
+
+/* Update logout menu position for collapsed sidebar */
+.logout-menu {
+    position: absolute;
+    top: 0;
+    bottom: 100%;
+    border-radius: 5px;
+    padding: 10px;
+    display: none;
+    z-index: 10000;
+    width: 85px;
+}
+
+.sidebar.collapsed .logout-menu {
+    left: -50px;
+}
+
+.logout-menu.active {
+    display: block;
+}
+
+.logout-btn {
+    background-color: white;    
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    color: #12753E;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Tilt Warp', sans-serif;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: absolute;
+    top: 80%;
+    left: 248%;
+    z-index: 10001; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.sidebar.collapsed .logout-btn {
+    left: 100%;
+}
+
+/* Content adjustments */
+.content {
+    flex: 1;
+    background-color: #ffffff;
+    padding: 4rem;
+    margin-left: 17%;
+    transition: margin-left 0.3s ease;
+}
+
+.content.expanded {
+    margin-left: 90px;
+}
 
     /* Responsive adjustments */
     @media (max-width: 768px) {
@@ -245,9 +337,10 @@ function formatEventDaysData($eventDaysData) {
             width: 70px;
         }
 
-        .sidebar-header h2, .menu-text, .username {
+        .sidebar-header h2, .menu-text, .username{
             display: none;
         }
+        
 
         .menu-item {
             display: flex;
@@ -550,23 +643,33 @@ function formatEventDaysData($eventDaysData) {
 </style>
 <body>
         <!-- Sidebar -->
-        <div class="sidebar">
-        <div class="sidebar-content">
-            <a href="user-dashboard.php" class="menu-item active">
-                <span class="menu-icon"><i class="fas fa-home mr-3"></i></span>
-                <span class="menu-text">Home</span>
-            </a>
-            <a href="user-events.php" class="menu-item">
-                <span class="menu-icon"><i class="fas fa-calendar-alt mr-3"></i></span>
-                <span class="menu-text">Events</span>
-            </a>
-            <a href="user-notif.php" class="menu-item">
-                <span class="menu-icon"><i class="fas fa-bell mr-3"></i></span>
-                <span class="menu-text">Notification</span>
-            </a>
+        <div class="sidebar" id="sidebar">
+    <div class="logo">
+        <button id="toggleSidebar" class="toggle-btn">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+
+
+       <div class="menu">
+        <a href="user-dashboard.php" class="active">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="user-events.php">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Events</span>
+        </a>
+        <a href="user-notif.php">
+            <i class="fas fa-users"></i>
+            <span>Users</span>
+        </a>
+
+
 
             <!-- Add more menu items as needed -->
-        </div>
+        
         <!-- Modified user profile with logout menu -->
         <div class="user-profile" id="userProfileToggle">
             <div class="user-avatar"><img src="styles/photos/default.png"></div>
@@ -576,6 +679,7 @@ function formatEventDaysData($eventDaysData) {
                 <a href="login.php" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
             </div>
         </div>
+    </div>
     </div>
 
     <div class="content">
@@ -658,17 +762,72 @@ function formatEventDaysData($eventDaysData) {
 
 <!-- Add JavaScript for the user profile toggle and logout menu -->
 <script>
-document.getElementById('userProfileToggle').addEventListener('click', function() {
-    document.getElementById('logoutMenu').classList.toggle('active');
-});
+document.addEventListener('DOMContentLoaded', function() {
+    // User profile toggle and logout menu
+    const userProfileToggle = document.getElementById('userProfileToggle');
+    const logoutMenu = document.getElementById('logoutMenu');
+    const sidebar = document.getElementById('sidebar');
+    const content = document.querySelector('.content');
+    const toggleBtn = document.getElementById('toggleSidebar');
 
-// Close the menu when clicking outside
-document.addEventListener('click', function(event) {
-    const profile = document.getElementById('userProfileToggle');
-    const menu = document.getElementById('logoutMenu');
+    // Check if sidebar state is saved in localStorage
+    const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
     
-    if (!profile.contains(event.target)) {
-        menu.classList.remove('active');
+    // Set initial state based on localStorage
+    if (isSidebarCollapsed) {
+        sidebar.classList.add('collapsed');
+        content.classList.add('expanded');
+    }
+
+    // Toggle sidebar when button is clicked
+    toggleBtn.addEventListener('click', function() {
+        sidebar.classList.toggle('collapsed');
+        content.classList.toggle('expanded');
+        
+        // Save state to localStorage
+        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+    });
+
+    // Toggle logout menu when user profile is clicked
+    if (userProfileToggle) {
+        userProfileToggle.addEventListener('click', function(event) {
+            event.stopPropagation();
+            logoutMenu.classList.toggle('active');
+        });
+    }
+
+    // Close the logout menu when clicking outside
+    document.addEventListener('click', function(event) {
+        if (logoutMenu && userProfileToggle && !userProfileToggle.contains(event.target)) {
+            logoutMenu.classList.remove('active');
+        }
+    });
+
+    // Sort events functionality
+    const sortButton = document.getElementById('sortButton');
+    if (sortButton) {
+        sortButton.addEventListener('click', function() {
+            // Get the current sort order from the URL
+            const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
+            
+            // Toggle sort order
+            const newSortOrder = (currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
+            
+            // Update the URL to reflect the new sort order
+            window.location.href = window.location.pathname + '?sort=' + newSortOrder;
+        });
+    }
+
+    // Update the sort order label and button text on page load
+    const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
+    // Using getElementById with a null check since the element might not exist
+    const sortOrderLabel = document.getElementById('sortOrderLabel');
+    if (sortOrderLabel) {
+        sortOrderLabel.textContent = currentSortOrder === 'ASC' ? 'Ascending' : 'Descending';
+    }
+    
+    if (sortButton) {
+        sortButton.textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
     }
 });
 </script>
