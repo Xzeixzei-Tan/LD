@@ -60,6 +60,39 @@ $notif_result = $conn->query($notif_query);
 if (!$notif_result) {
     die("Notification query failed: " . $conn->error);
 }
+
+// Function to format the event days data into a readable format
+function formatEventDaysData($eventDaysData) {
+    if (empty($eventDaysData)) {
+        return "No specific days information available";
+    }
+    
+    $daysArray = explode('||', $eventDaysData);
+    $formattedDays = [];
+    
+    foreach ($daysArray as $day) {
+        // Use a regular expression to extract the parts
+        if (preg_match('/^(\d+):(\d{4}-\d{2}-\d{2}):(\d{2}):(\d{2}):(\d{2}):(\d{2})$/', $day, $matches)) {
+            $dayNumber = $matches[1];
+            $dayDate = $matches[2];
+            $startHour = $matches[3];
+            $startMinute = $matches[4];
+            $endHour = $matches[5];
+            $endMinute = $matches[6];
+            
+            // Format the date and times
+            $formattedDate = date('F j, Y', strtotime($dayDate));
+            
+            // Format the times
+            $startTime = date('g:i A', strtotime("2000-01-01 $startHour:$startMinute"));
+            $endTime = date('g:i A', strtotime("2000-01-01 $endHour:$endMinute"));
+            
+            $formattedDays[] = "Day $dayNumber ($formattedDate): $startTime - $endTime";
+        }
+    }
+    
+    return implode('<br>', $formattedDays);
+}
 ?>
 
 <!DOCTYPE html>

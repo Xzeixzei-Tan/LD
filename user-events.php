@@ -111,6 +111,22 @@ if ($selected_event_id) {
         header("Location: user-events.php");
         exit();
     }
+
+    $schedule_sql = "SELECT day_date, day_number, start_time, end_time 
+                     FROM event_days 
+                     WHERE event_id = ? 
+                     ORDER BY day_number ASC";
+    $stmt = $conn->prepare($schedule_sql);
+    $stmt->bind_param("i", $selected_event_id);
+    $stmt->execute();
+    $schedule_result = $stmt->get_result();
+    
+    $event_schedule = [];
+    if ($schedule_result) {
+        while ($day = $schedule_result->fetch_assoc()) {
+            $event_schedule[] = $day;
+        }
+    }
     $stmt->close();
     
     // Fetch speakers for the selected event
@@ -364,12 +380,20 @@ html {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     font-family: 'Wesley Demo', serif;
     flex: 1;
-    min-width: 300px;
+    min-width: 30%;
+    max-height: fit-content;
+    border: 0;
+    margin-top: 20px;
     transition: all 0.3s ease;
 }
 
+.events-section {
+    flex-basis: 100%;
+    transition: flex-basis 0.3s, transform 0.3s;
+}
+
 .events-section.shrink {
-    flex-basis: 70%;
+    flex-basis: 65%;
 }
 
 .events-section h2 {
@@ -417,10 +441,11 @@ html {
     font-family: 'Wesley Demo', serif;
     flex: 1;
     min-width: 30%;
-    max-height: fit-content;
+    max-height: 800px;
     border: 0;
-    margin-top: 20px;
+    margin-top: 20px;   
     transition: all 0.3s ease;
+    overflow: auto;
 }
 
 .events-section {
@@ -538,6 +563,68 @@ html {
     }
 }
 
+.search-container {
+  position: relative;
+  flex-grow: 1;
+  max-width: fit-content;
+}
+
+/* Search Input */
+.search-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 45px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  color: #2d3748;
+  background-color: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2b3a8f;
+  box-shadow: 0 0 0 3px rgba(43, 58, 143, 0.1);
+}
+
+.search-input::placeholder {
+  color: #a0aec0;
+  font-weight: 400;
+}
+
+/* Search Icon */
+.search-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #a0aec0;
+  font-size: 14px;
+}
+
+/* Add clear button for search */
+.search-container::after {
+  content: "\f00d";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #cbd5e0;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.search-container:has(.search-input:not(:placeholder-shown))::after {
+  opacity: 1;
+}
+
 /* Content area layout */
 .content-area { 
     display: flex; 
@@ -548,15 +635,15 @@ html {
 .details-section, #details-section {
     display: none;
     flex-basis: 30%;
-    margin-left: 20px;
-    margin-top: 2%;
-    background-color: white;
-    padding: 30px;
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     max-height: fit-content;
-    transition: all 0.3s ease;
+    margin-left: 20px;
+    margin-top: 20px;
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    border: 0;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.5s ease;
 }
 
 #detail-title {
@@ -564,7 +651,6 @@ html {
     font-family: Montserrat Extrabold;
     margin-bottom: 15px;
     color: #12753E;
-    border-bottom: 2px solid #f0f0f0;
     padding-bottom: 10px;
 }
 
@@ -589,10 +675,10 @@ html {
 
 .detail-items-1 {
     margin-top: 2%;
+    margin-right: 18%;
 }
 
 .detail-items-2 {
-    margin-left: 20%;
     margin-top: 2%;
 }
 
@@ -600,20 +686,32 @@ html {
     margin-bottom: 20px;
 }
 
+.detail-item{
+    width: 360px;
+    margin-bottom: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    transition: transform 0.2s;
+}
+
 .details-section .detail-item h4 {
-    margin: 0;
-    font-size: 16px;
-    font-family: Montserrat;
     color: #555;
-    margin-bottom: 5px;
+    font-size: 16px;
+    font-family: Montserrat ;
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
 }
 
 .details-section .detail-item p {
-    margin: 5px 0 0;
+    margin: 5px 0;
     color: #12753E;
-    font-size: 15px;
+    font-weight: Bold;
     font-family: Montserrat Medium;
-    font-weight: 600;
+    font-size: 16px;
 }
 
 .expand-btn {
@@ -698,8 +796,9 @@ html {
 }
 
 /* Responsive adjustments */
-@media (max-width: 992px) {
+@media (max-width: 900px) {
     .detail-items-2 {
+        width: 100%;
         margin-left: 0;
     }
     
@@ -874,6 +973,11 @@ p{
             <h1>Events</h1>
             <hr><br>
 
+            <div class="search-container">
+                <span class="search-icon"><i class="fa fa-search" aria-hidden="true"></i></span>
+                <input type="text" class="search-input" placeholder="Search for events...">
+            </div>
+
             <div class="content-area">
                 <div class="events-section <?php echo $selected_event ? 'shrink' : ''; ?>">
                     <div class="tabs">
@@ -928,7 +1032,7 @@ p{
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
                                 echo '<p>' . '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["specification"]) . '</p>';
-                                echo '<p>'. '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>';
+                                echo '<div class="event-dates">'.'<p>' . '<strong><i class="fas fa-calendar-day"></i>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>'. '</div>';
                                 echo '<span class="status-badge status-' . strtolower($row["status"]) . '">';
                                 if(strtolower($row["status"]) == "upcoming") {
                                     echo '<i class="fas fa-hourglass-start"></i> ';
@@ -966,27 +1070,17 @@ p{
                                 <p id="detail-venue"><?php echo htmlspecialchars($selected_event["venue"] ?? "Not specified"); ?></p>
                             </div>
 
-                            <div class="detail-item expanded-content">
+                            <div class="detail-item">
                                 <h4>Event Specification:</h4>
                                 <p id="detail-specification"><?php echo htmlspecialchars($selected_event["specification"]); ?></p>
                             </div>
 
                             <div class="detail-item">
-                                <h4>Start:</h4>
-                                <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_date"]); ?></p>
-                            </div>
-                            <div class="detail-item">
-                                <h4>End:</h4>
-                                <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_date"]); ?></p>
-                            </div>
-                        </div>
-                        <div class="detail-items-2">
-                            <div class="detail-item expanded-content">
                                 <h4>Organizer:</h4>
                                 <p id="detail-organizer"><?php echo htmlspecialchars($selected_event["proponent"] ?? "Not specified"); ?></p>
                             </div>
 
-                            <div class="detail-item expanded-content">
+                            <div class="detail-item">
                                 <h4>Speaker(s):</h4>
                                 <p id="detail-speakers">
                                 <?php 
@@ -998,6 +1092,46 @@ p{
                                 ?>
                                 </p>
                             </div>
+                        </div>
+                        <div class="detail-items-2">
+                            
+                            <div class="detail-item expanded-content">
+                                <h4>Start:</h4>
+                                <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_date"]); ?></p>
+                            </div>
+
+                            <div class="detail-item expanded-content">
+                                <h4>End:</h4>
+                                <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_date"]); ?></p>
+                            </div>
+
+                            <div class="detail-item expanded-content">
+                                <h4>Event Schedule:</h4>
+                                <div id="detail-event-days">
+                                    <?php 
+                                    if (!empty($event_schedule)) {
+                                        foreach ($event_schedule as $day) {
+                                            $formatted_date = date('F j, Y', strtotime($day['day_date']));
+                                            $start_time = date('g:i A', strtotime($day['start_time']));
+                                            $end_time = date('g:i A', strtotime($day['end_time']));
+                                            
+                                            echo '<p><strong>Day ' . htmlspecialchars($day['day_number']) . '</strong>: ' . 
+                                                htmlspecialchars($formatted_date) . ', ' . 
+                                                htmlspecialchars($start_time) . ' - ' . 
+                                                htmlspecialchars($end_time) . '</p>';
+                                        }
+                                    } else {
+                                        echo "<p>No schedule information available</p>";
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+
+                            <div class="detail-item expanded-content">
+                                <h4>Status:</h4>
+                                <p id="detail-status"><?php echo htmlspecialchars($selected_event["status"]); ?></p>
+                            </div>
+
                         </div>
                     </div>
                     <br>
@@ -1117,6 +1251,121 @@ document.addEventListener('click', function(event) {
         menu.classList.remove('active');
     }
 });
+
+
+// Event search function
+document.addEventListener('DOMContentLoaded', function() {
+    // Get the search input element
+    const searchInput = document.querySelector('.search-input');
+    
+    // Add event listener for input changes
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        // Get all event elements from both tabs
+        const registeredEvents = document.querySelectorAll('#registered-tab .event');
+        const unregisteredEvents = document.querySelectorAll('#unregistered-tab .event');
+        
+        // Search function for events
+        function filterEvents(events) {
+            let visibleCount = 0;
+            
+            events.forEach(event => {
+                // Get the event title and other searchable content
+                const title = event.querySelector('h3').textContent.toLowerCase();
+                const specification = event.querySelector('p').textContent.toLowerCase();
+                const date = event.querySelector('.event-dates') ? 
+                    event.querySelector('.event-dates').textContent.toLowerCase() : 
+                    event.querySelectorAll('p')[1].textContent.toLowerCase();
+                const status = event.querySelector('.status-badge').textContent.toLowerCase();
+                
+                // Combine all searchable content
+                const searchableContent = `${title} ${specification} ${date} ${status}`;
+                
+                // Check if the search term exists in any of the content
+                if (searchableContent.includes(searchTerm)) {
+                    event.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    event.style.display = 'none';
+                }
+            });
+            
+            return visibleCount;
+        }
+        
+        // Apply filter to both tabs
+        const registeredCount = filterEvents(registeredEvents);
+        const unregisteredCount = filterEvents(unregisteredEvents);
+        
+        // Update the badge counts
+        updateBadgeCount('registered', registeredCount);
+        updateBadgeCount('unregistered', unregisteredCount);
+        
+        // Show "No results found" message if needed
+        displayNoResultsMessage('registered-tab', registeredCount);
+        displayNoResultsMessage('unregistered-tab', unregisteredCount);
+    });
+    
+    // Function to update badge count
+    function updateBadgeCount(tabName, count) {
+        const badge = document.querySelector(`.tab:nth-child(${tabName === 'registered' ? '1' : '2'}) .badge`);
+        if (badge) {
+            badge.textContent = count;
+        }
+    }
+    
+    // Function to display "No results found" message
+    function displayNoResultsMessage(tabId, count) {
+        const tabContent = document.getElementById(tabId);
+        
+        // Remove existing no-results message if it exists
+        const existingMessage = tabContent.querySelector('.no-results-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // Add no-results message if no events were found
+        if (count === 0) {
+            const noResultsMessage = document.createElement('p');
+            noResultsMessage.className = 'no-results-message';
+            noResultsMessage.textContent = 'No events found matching your search criteria.';
+            noResultsMessage.style.textAlign = 'center';
+            noResultsMessage.style.padding = '20px';
+            noResultsMessage.style.color = '#666';
+            noResultsMessage.style.fontFamily = 'Montserrat, sans-serif';
+            
+            // Insert after the heading
+            const heading = tabContent.querySelector('h2');
+            heading.insertAdjacentElement('afterend', noResultsMessage);
+        }
+    }
+    
+    // Add clear button functionality
+    searchInput.addEventListener('keyup', function(e) {
+        // Check if Escape key was pressed or input is empty
+        if (e.key === 'Escape' || this.value === '') {
+            this.value = '';
+            // Trigger the input event to reset the search
+            this.dispatchEvent(new Event('input'));
+        }
+    });
+    
+    // When clicking the X (clear) button
+    document.querySelector('.search-container').addEventListener('click', function(e) {
+        // Check if the click was on the after pseudo-element (approximated by position)
+        const searchContainer = this;
+        const rect = searchContainer.getBoundingClientRect();
+        
+        // If click is in the right 30px of the container (where the X appears)
+        if (e.clientX > rect.right - 30 && searchInput.value !== '') {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('input'));
+            searchInput.focus();
+        }
+    });
+});
+
 </script>
 
 </body>
