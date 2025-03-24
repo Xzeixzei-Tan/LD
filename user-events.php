@@ -443,7 +443,7 @@ html {
     min-width: 30%;
     max-height: 800px;
     border: 0;
-    margin-top: 20px;
+    margin-top: 20px;   
     transition: all 0.3s ease;
     overflow: auto;
 }
