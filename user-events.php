@@ -111,6 +111,22 @@ if ($selected_event_id) {
         header("Location: user-events.php");
         exit();
     }
+
+    $schedule_sql = "SELECT day_date, day_number, start_time, end_time 
+                     FROM event_days 
+                     WHERE event_id = ? 
+                     ORDER BY day_number ASC";
+    $stmt = $conn->prepare($schedule_sql);
+    $stmt->bind_param("i", $selected_event_id);
+    $stmt->execute();
+    $schedule_result = $stmt->get_result();
+    
+    $event_schedule = [];
+    if ($schedule_result) {
+        while ($day = $schedule_result->fetch_assoc()) {
+            $event_schedule[] = $day;
+        }
+    }
     $stmt->close();
     
     // Fetch speakers for the selected event
@@ -364,12 +380,20 @@ html {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     font-family: 'Wesley Demo', serif;
     flex: 1;
-    min-width: 300px;
+    min-width: 30%;
+    max-height: fit-content;
+    border: 0;
+    margin-top: 20px;
     transition: all 0.3s ease;
 }
 
+.events-section {
+    flex-basis: 100%;
+    transition: flex-basis 0.3s, transform 0.3s;
+}
+
 .events-section.shrink {
-    flex-basis: 70%;
+    flex-basis: 65%;
 }
 
 .events-section h2 {
@@ -417,10 +441,11 @@ html {
     font-family: 'Wesley Demo', serif;
     flex: 1;
     min-width: 30%;
-    max-height: fit-content;
+    max-height: 800px;
     border: 0;
     margin-top: 20px;
     transition: all 0.3s ease;
+    overflow: auto;
 }
 
 .events-section {
@@ -548,15 +573,15 @@ html {
 .details-section, #details-section {
     display: none;
     flex-basis: 30%;
-    margin-left: 20px;
-    margin-top: 2%;
-    background-color: white;
-    padding: 30px;
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     max-height: fit-content;
-    transition: all 0.3s ease;
+    margin-left: 20px;
+    margin-top: 20px;
+    background-color: white;
+    padding: 25px;
+    border-radius: 12px;
+    border: 0;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.5s ease;
 }
 
 #detail-title {
@@ -564,7 +589,6 @@ html {
     font-family: Montserrat Extrabold;
     margin-bottom: 15px;
     color: #12753E;
-    border-bottom: 2px solid #f0f0f0;
     padding-bottom: 10px;
 }
 
@@ -589,10 +613,10 @@ html {
 
 .detail-items-1 {
     margin-top: 2%;
+    margin-right: 18%;
 }
 
 .detail-items-2 {
-    margin-left: 20%;
     margin-top: 2%;
 }
 
@@ -600,20 +624,32 @@ html {
     margin-bottom: 20px;
 }
 
+.detail-item{
+    width: 360px;
+    margin-bottom: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    transition: transform 0.2s;
+}
+
 .details-section .detail-item h4 {
-    margin: 0;
-    font-size: 16px;
-    font-family: Montserrat;
     color: #555;
-    margin-bottom: 5px;
+    font-size: 16px;
+    font-family: Montserrat ;
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
 }
 
 .details-section .detail-item p {
-    margin: 5px 0 0;
+    margin: 5px 0;
     color: #12753E;
-    font-size: 15px;
+    font-weight: Bold;
     font-family: Montserrat Medium;
-    font-weight: 600;
+    font-size: 16px;
 }
 
 .expand-btn {
@@ -698,8 +734,9 @@ html {
 }
 
 /* Responsive adjustments */
-@media (max-width: 992px) {
+@media (max-width: 900px) {
     .detail-items-2 {
+        width: 100%;
         margin-left: 0;
     }
     
@@ -928,7 +965,7 @@ p{
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
                                 echo '<p>' . '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["specification"]) . '</p>';
-                                echo '<p>'. '<strong>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>';
+                                echo '<div class="event-dates">'.'<p>' . '<strong><i class="fas fa-calendar-day"></i>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>'. '</div>';
                                 echo '<span class="status-badge status-' . strtolower($row["status"]) . '">';
                                 if(strtolower($row["status"]) == "upcoming") {
                                     echo '<i class="fas fa-hourglass-start"></i> ';
@@ -966,27 +1003,17 @@ p{
                                 <p id="detail-venue"><?php echo htmlspecialchars($selected_event["venue"] ?? "Not specified"); ?></p>
                             </div>
 
-                            <div class="detail-item expanded-content">
+                            <div class="detail-item">
                                 <h4>Event Specification:</h4>
                                 <p id="detail-specification"><?php echo htmlspecialchars($selected_event["specification"]); ?></p>
                             </div>
 
                             <div class="detail-item">
-                                <h4>Start:</h4>
-                                <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_date"]); ?></p>
-                            </div>
-                            <div class="detail-item">
-                                <h4>End:</h4>
-                                <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_date"]); ?></p>
-                            </div>
-                        </div>
-                        <div class="detail-items-2">
-                            <div class="detail-item expanded-content">
                                 <h4>Organizer:</h4>
                                 <p id="detail-organizer"><?php echo htmlspecialchars($selected_event["proponent"] ?? "Not specified"); ?></p>
                             </div>
 
-                            <div class="detail-item expanded-content">
+                            <div class="detail-item">
                                 <h4>Speaker(s):</h4>
                                 <p id="detail-speakers">
                                 <?php 
@@ -998,6 +1025,46 @@ p{
                                 ?>
                                 </p>
                             </div>
+                        </div>
+                        <div class="detail-items-2">
+                            
+                            <div class="detail-item expanded-content">
+                                <h4>Start:</h4>
+                                <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_date"]); ?></p>
+                            </div>
+
+                            <div class="detail-item expanded-content">
+                                <h4>End:</h4>
+                                <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_date"]); ?></p>
+                            </div>
+
+                            <div class="detail-item expanded-content">
+                                <h4>Event Schedule:</h4>
+                                <div id="detail-event-days">
+                                    <?php 
+                                    if (!empty($event_schedule)) {
+                                        foreach ($event_schedule as $day) {
+                                            $formatted_date = date('F j, Y', strtotime($day['day_date']));
+                                            $start_time = date('g:i A', strtotime($day['start_time']));
+                                            $end_time = date('g:i A', strtotime($day['end_time']));
+                                            
+                                            echo '<p><strong>Day ' . htmlspecialchars($day['day_number']) . '</strong>: ' . 
+                                                htmlspecialchars($formatted_date) . ', ' . 
+                                                htmlspecialchars($start_time) . ' - ' . 
+                                                htmlspecialchars($end_time) . '</p>';
+                                        }
+                                    } else {
+                                        echo "<p>No schedule information available</p>";
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+
+                            <div class="detail-item expanded-content">
+                                <h4>Status:</h4>
+                                <p id="detail-status"><?php echo htmlspecialchars($selected_event["status"]); ?></p>
+                            </div>
+
                         </div>
                     </div>
                     <br>
