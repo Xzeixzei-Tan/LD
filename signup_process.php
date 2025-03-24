@@ -3,11 +3,11 @@ require_once 'config.php';
 session_start();
 
 // Check if form fields are not empty
-$firstName = isset($_POST['first_name']) ? trim($_POST['first_name']) : '';
-$lastName = isset($_POST['last_name']) ? trim($_POST['last_name']) : '';
-$middleName = isset($_POST['middle_name']) ? trim($_POST['middle_name']) : '';
-$suffix = isset($_POST['suffix']) ? trim($_POST['suffix']) : '';
-$sex = isset($_POST['sex']) ? $_POST['sex'] : '';
+$firstName = isset($_POST['first_name']) ? strtoupper(trim($_POST['first_name'])) : '';
+$lastName = isset($_POST['last_name']) ? strtoupper(trim($_POST['last_name'])) : '';
+$middleName = isset($_POST['middle_name']) ? strtoupper(trim($_POST['middle_name'])) : '';
+$suffix = isset($_POST['suffix']) ? strtoupper(trim($_POST['suffix'])) : '';
+$sex = isset($_POST['sex']) ? strtoupper($_POST['sex']) : '';
 $contact_no = isset($_POST['contact_no']) ? trim($_POST['contact_no']) : '';
 $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $password = isset($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : '';
@@ -86,7 +86,7 @@ if ($stmt->execute()) {
         // Create notifications
         
         // 1. Notification for the user who just signed up
-        $userMessage = "Welcome to the platform! Your account has been created successfully.";
+        $userMessage = "Welcome to the platform! Your account has been created successfully. Click to view fresh and upcoming events!";
         $currentDateTime = date("Y-m-d H:i:s");
         $userNotificationType = "user";
         $userNotificationSubtype = "signup";

@@ -53,9 +53,12 @@ if ($user_result->num_rows > 0) {
 // Fetch notifications for user
 $notif_query = "SELECT id, message, created_at, is_read, notification_subtype, event_id 
                 FROM notifications 
-                WHERE notification_type = 'user' 
+                WHERE notification_type = 'user' AND user_id = ? 
                 ORDER BY created_at DESC";
-$notif_result = $conn->query($notif_query);
+$stmt_notif = $conn->prepare($notif_query);
+$stmt_notif->bind_param("i", $user_id);
+$stmt_notif->execute();
+$notif_result = $stmt_notif->get_result();
 
 if (!$notif_result) {
     die("Notification query failed: " . $conn->error);
@@ -559,29 +562,33 @@ if (!$notif_result) {
             <div class="content-area">
                 <div class="events-section">
                 <h2>Events</h2>
-                <?php while ($event = $result->fetch_assoc()) : ?>    
-                        <div class="event">
-                            <a class="events-btn" href="user-events.php?event_id=<?php echo urlencode($event['id']); ?>">
-                            <div class="event-content">
-                                <h3><?php echo htmlspecialchars($event['title']); ?></h3>
-                                <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['specification']); ?></p>
-                                <div class="event-dates">
-                                    <i class="fas fa-calendar-day"></i>
-                                    <?php 
-                                        $start_date = new DateTime($event['start_date']);
-                                        $end_date = new DateTime($event['end_date']);
-                                        echo $start_date->format('M d') . ' - ' . $end_date->format('M d, Y'); 
-                                    ?>
+                    <?php while ($event = $result->fetch_assoc()) : ?>    
+                            <div class="event">
+                                <a class="events-btn" href="user-events.php?event_id=<?php echo urlencode($event['id']); ?>">
+                                <div class="event-content">
+                                    <h3><?php echo htmlspecialchars($event['title']); ?></h3>
+                                    <p><strong>Event Specification:</strong> <?php echo htmlspecialchars($event['specification']); ?></p>
+                                    <div class="event-dates">
+                                        <i class="fas fa-calendar-day"></i>
+                                        <?php 
+                                            $start_date = new DateTime($event['start_date']);
+                                            $end_date = new DateTime($event['end_date']);
+                                            echo $start_date->format('M d') . ' - ' . $end_date->format('M d, Y'); 
+                                        ?>
+                                    </div>
+                                    <?php if ($event["status"] === "Ongoing") { ?>
+                                        <span class="ongoing"><i class="fas fa-circle"></i> Ongoing</span>
+                                    <?php } else { ?>
+                                        <span class="upcoming"><i class="fas fa-hourglass-start"></i> Upcoming</span>
+                                    <?php } ?>        
                                 </div>
-                                <?php if ($event["status"] === "Ongoing") { ?>
-                                    <span class="ongoing"><i class="fas fa-circle"></i> Ongoing</span>
-                                <?php } else { ?>
-                                    <span class="upcoming"><i class="fas fa-hourglass-start"></i> Upcoming</span>
-                                <?php } ?>        
+                                </a>
                             </div>
-                            </a>
-                        </div>
-                    <?php endwhile; ?>
+                        <?php endwhile; ?>
+                        <?php if ($result->num_rows == 0): ?>
+                            <p style="font-family: Montserrat; color: gray;">No events available yet.</p>
+                        <?php endif; ?>
+
                     </div>
                     <div class="notifications-section">
                         <h2>Notifications</h2>
@@ -597,7 +604,9 @@ if (!$notif_result) {
                                     $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
                                 } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'event_registration') {
                                     $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
-                                } 
+                                } elseif ($notif['notification_subtype'] == 'signup') {
+                                    $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                                }
                                 else {
                                     $redirect_url = "user-notif.php?event_id=" . urlencode($notif['event_id']);
                                 }

@@ -12,6 +12,7 @@ $positionQuery = "SELECT cp.id, cp.name, c.name AS classification_name
                   JOIN classification c ON cp.classification_id = c.id";
 $positionResult = $conn->query($positionQuery);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -118,6 +119,11 @@ $positionResult = $conn->query($positionQuery);
             text-align: center;
         }
 
+        /* Apply uppercase transformation to specific input fields */
+        .uppercase-input {
+            text-transform: uppercase;
+        }
+
         .form-container label{
             display: block;
             text-align: left;
@@ -192,6 +198,7 @@ $positionResult = $conn->query($positionQuery);
 
         label[for=lastName], label[for="sex"]{
             margin-left: -5%;
+            text-transform: uppercase;
         }
 
         #lastName {
@@ -206,11 +213,13 @@ $positionResult = $conn->query($positionQuery);
 
         label[for=suffix] {
             margin-left: 40%;
+            text-transform: uppercase;
         }
 
         #sex{
             margin-left: -5%;
             width: 115%;
+            text-transform: uppercase;
         }
 
         label[for="contact"]{
@@ -300,26 +309,26 @@ $positionResult = $conn->query($positionQuery);
                 <div class="form-row">
                     <div class="form-col">
                         <label>First Name:</label>
-                        <input type="text" name="first_name" placeholder="Enter First Name" value="cess" required>
+                        <input type="text" class="uppercase-input" name="first_name" placeholder="Enter First Name" required>
 
                         <label>Middle Name:</label>
-                        <input type="text" name="middle_name" placeholder="Enter Middle Name" value="jauod">
+                        <input type="text" class="uppercase-input" name="middle_name" placeholder="Enter Middle Name" required>
 
                         <div class="form-row">
                             <div class="form-col">
                                 <label>Last Name:</label>
-                                <input type="text" name="last_name" placeholder="Enter Last Name" value="tan" required>
+                                <input type="text" class="uppercase-input" name="last_name" placeholder="Enter Last Name" required>
                             </div>
                             <div class="form-col">
                                 <label>Suffix:</label>
-                                <input type="text" name="suffix" placeholder="Enter Suffix (e.g. Jr., Sr.)">
+                                <input type="text" class="uppercase-input" name="suffix" placeholder="Enter Suffix (e.g. Jr., Sr.)">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-col">
                                 <label>Sex:</label>
-                                    <select name="sex" required>
+                                    <select name="sex" class="uppercase-input" required>
                                         <option>Select Sex</option>
                                         <option value="Male">Male</option>
                                         <option value="Female">Female</option>
@@ -328,7 +337,7 @@ $positionResult = $conn->query($positionQuery);
                             </div>
                             <div class="form-col">
                                 <label>Contact No:</label>
-                                <input type="text" name="contact_no" placeholder="Enter Contact No." minlength="11" maxlength="11" value="09123456789" required>
+                                <input type="text" name="contact_no" placeholder="Enter Contact No." minlength="11" maxlength="11" required>
                             </div>
                         </div>
                     </div>
@@ -337,10 +346,10 @@ $positionResult = $conn->query($positionQuery);
 
                     <div class="form-col">
                         <label>Email:</label>
-                        <input type="email" name="email" placeholder="Enter Email" value="cess@gmail.com" required>
+                        <input type="email" name="email" placeholder="Enter Email" required>
 
                         <label>Password:</label>
-                        <input type="password" name="password" placeholder="Enter Password" value="password" required>
+                        <input type="password" name="password" placeholder="Enter Password" required>
 
                         <!-- Affiliation Dropdown -->
                         <label>Affiliation:</label>
