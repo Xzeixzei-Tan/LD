@@ -206,10 +206,11 @@ hr {
     font-family: 'Wesley Demo', serif;
     flex: 1;
     min-width: 30%;
-    max-height: fit-content;
+    max-height: 700px;
     border: 0;
     margin-top: 20px;
     transition: all 0.3s ease;
+    overflow: auto;
 }
 
 .events-section {
@@ -312,7 +313,6 @@ hr {
 
 .detail-items {
     display: flex;
-    margin-top: 5%;
 }
 
 .detail-items-1 {
@@ -601,19 +601,25 @@ select:disabled {
     display: none;
 }
 
-#archive-btn, #unarchive-btn {
+#archive-btn, #unarchive-btn, #update-btn {
     float: right;
     display: absolute;
-    margin-top: 2%;
-    margin-bottom: 0;
     font-family: Montserrat Medium;
     font-weight: Bold;
     font-size: 12px;
     background-color: #2b3a8f;
     color: white;
-    padding: 12px;
+    padding: 10px;
     border: 2px solid #2b3a8f;
     border-radius: 5px;
+    margin-left: 5px;
+}
+
+#update-btn {
+    border: 1px solid #374ab6;
+    background-color: white;
+    color: #374ab6;
+    padding: 11px;
 }
 
 .highlighted-event{
@@ -741,7 +747,7 @@ select:disabled {
     font-family: Montserrat;
 }
 
-.participant-type-indicator {
+.participant-type-indicator, .participant-type-subheader {
     width: 100%;
     font-size: 14px;
     font-weight: bold;
@@ -897,12 +903,13 @@ select:disabled {
     padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
-    margin-top: 15px;
     display: flex;
     align-items: center;
+    font-size: 12px;
     font-weight: bold;
     font-family: Montserrat;
     transition: background-color 0.3s;
+    margin-right: 10px;
 }
 
 .download-btn i {
@@ -911,11 +918,16 @@ select:disabled {
 
 .download{
     display: flex;
+    font-size: 12px;
+}
+
+#meal-btn{
+    background-color: white;
+    border: 1px solid #2b3a8f;
+    color:#2b3a8f;
 }
 
 #distribute-btn{
-    margin-right: -5%;
-    margin-left: 10px;
     background-color: #3ca25e;
 }
 
@@ -939,7 +951,7 @@ select:disabled {
 .modal-content {
     background-color: #f8f9fa;
     margin: 10% auto;
-    padding: 20px;
+    padding: 35px;
     border: 1px solid #888;
     width: 80%;
     max-width: 600px;
@@ -1085,4 +1097,3 @@ select:disabled {
 #send-eval:hover {
     background-color: #45a049;
 }
-
