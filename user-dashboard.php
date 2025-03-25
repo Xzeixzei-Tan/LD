@@ -662,8 +662,8 @@ function formatEventDaysData($eventDaysData) {
             <span>Events</span>
         </a>
         <a href="user-notif.php">
-            <i class="fas fa-users"></i>
-            <span>Users</span>
+            <i class="fas fa-bell mr-3"></i>
+            <span>Notification</span>
         </a>
 
 

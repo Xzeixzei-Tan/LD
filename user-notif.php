@@ -607,9 +607,9 @@ if (!$notif_result) {
             <i class="fas fa-calendar-alt"></i>
             <span>Events</span>
         </a>
-        <a href="user-notif.php" class="active">
-            <i class="fas fa-users"></i>
-            <span>Users</span>
+        <a href="user-notif.php">
+            <i class="fas fa-bell mr-3"></i>
+            <span>Notification</span>
         </a>
 
 

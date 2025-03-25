@@ -971,17 +971,17 @@ p{
     font-family: Montserrat;
 }
 .user-profile {
-        padding: 15px;
-        border-top: 1px solid white;
-        display: flex;
-        align-items: center;
-        position: sticky;
-        bottom: 0;
-        background-color: #12753E;
-        width: 100%;
-        cursor: pointer;
-        position: relative;
-    }
+    padding: 15px;
+    border-top: 1px solid white;
+    display: flex;
+    align-items: center;
+    position: absolute; /* Changed from sticky to absolute for more control */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #12753E;
+    cursor: pointer;
+}
 
     .logout-menu {
         position: absolute;
@@ -1082,8 +1082,8 @@ p{
             <span>Events</span>
         </a>
         <a href="user-notif.php">
-            <i class="fas fa-users"></i>
-            <span>Users</span>
+            <i class="fas fa-bell mr-3"></i>
+            <span>Notification</span>
         </a>
 
 

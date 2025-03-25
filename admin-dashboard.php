@@ -44,6 +44,7 @@ if (!$notif_result) {
 </head>
 <body>
 
+
 <div class="sidebar" id="sidebar">
     <div class="logo">
         <button id="toggleSidebar" class="toggle-btn">
@@ -66,7 +67,6 @@ if (!$notif_result) {
         </a>
     </div>
 </div>
-
 <div class="content" id="mainContent">
     <div class="content-header">
         <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
@@ -177,12 +177,6 @@ if (!$notif_result) {
     // Update the sort order label and button text on page load
     document.addEventListener('DOMContentLoaded', function() {
         const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
-        // Using getElementById with a null check since the element might not exist
-        const sortOrderLabel = document.getElementById('sortOrderLabel');
-        if (sortOrderLabel) {
-            sortOrderLabel.textContent = currentSortOrder === 'ASC' ? 'Ascending' : 'Descending';
-        }
-        
         const sortButton = document.getElementById('sortButton');
         if (sortButton) {
             sortButton.textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
