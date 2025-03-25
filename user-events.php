@@ -167,26 +167,70 @@ html {
 
 /* Sidebar styles - unchanged */
 .sidebar {
-    width: 230px;
+    position: fixed;
+    width: 250px;
     height: 100vh;
     background-color: #12753E;
-    color: white;
+    color: #ffffff;
+    padding: 2rem 1rem;
     display: flex;
     flex-direction: column;
+    justify-content: flex-start; /* Changed from space-between to maintain positions */
     transition: width 0.3s ease;
-    position: fixed;
+    z-index: 999;
 }
 
-.sidebar-content {
-    margin-top: 30%;
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    font-family: Tilt Warp;
+.sidebar.collapsed {
+    width: 90px;
+    padding: 2rem 0.5rem;
 }
 
-.sidebar-content a{
-    font-family: 'Tilt Warp';
+.sidebar .logo {
+    margin-bottom: 1rem;
+    margin-left: 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar.collapsed .logo {
+    margin-left: 0;
+    justify-content: center;
+}
+
+.toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Keep the menu at the same position */
+.sidebar .menu {
+    margin-top: 50%;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Allow it to grow but maintain position */
+}
+
+/* Adjust menu items when sidebar is collapsed */
+.sidebar.collapsed .menu {
+    align-items: center;
+    margin-top: 50%; /* Keep the same top margin */
+}
+
+.sidebar .menu a {
     color: #ffffff;
     text-decoration: none;
     padding: 1rem;
@@ -197,39 +241,70 @@ html {
     transition: background 0.3s;
     font-family: Tilt Warp Regular;
     margin-bottom: .5rem;
+    width: 100%;
 }
 
-.sidebar-content span{
-    font-family: Tilt Warp;
-    font-size: 1rem;
+.sidebar.collapsed .menu a {
+    justify-content: center;
+    padding: 1rem 0;
+    width: 90%;
 }
 
-.sidebar-content i{
-    margin-right: 0.5rem;
+.sidebar .menu a span {
+    margin-left: 0.5rem;
+    transition: opacity 0.2s;
+    font-family: Tilt Warp Regular;
 }
 
-.sidebar-content a:hover {
-    background-color: white;
-    color: #12753E; 
+.sidebar.collapsed .menu a span {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    display: none;
 }
 
-.sidebar-content .active{
+.sidebar .menu a:hover,
+.sidebar .menu a.active {
     background-color: white;
     color: #12753E;
 }
 
+.sidebar .menu a i {
+    margin-right: 0.5rem;
+    min-width: 20px;
+    text-align: center;
+}
+
+.sidebar.collapsed .menu a i {
+    margin-right: 0;
+    font-size: 1.2rem;
+}
+
+/* Fix user profile section for collapsed sidebar */
 .user-profile {
     padding: 15px;
     border-top: 1px solid white;
     display: flex;
     align-items: center;
-    position: sticky;
+    position: absolute; /* Changed from sticky to absolute for more control */
     bottom: 0;
+    left: 0;
+    right: 0;
     background-color: #12753E;
-    width: 100%;
+    cursor: pointer;
 }
 
-.user-avatar img{
+.sidebar.collapsed .user-profile {
+    justify-content: center;
+    padding: 15px 0;
+}
+
+.sidebar.collapsed .username {
+    display: none;
+}
+
+.user-avatar img {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -239,47 +314,100 @@ html {
     align-items: center;
     justify-content: center;
     margin-right: 10px;
-    font-family: Tilt Warp;
 }
-
 .username {
+        
     font-family: Tilt Warp;
 }
 
-.main-content {
-    flex: 1;
-    padding: 20px;
-    background-color: #ecf0f1;
+.sidebar.collapsed .user-avatar img {
+    margin-right: 0;
 }
 
-/* Responsive adjustments for sidebar */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 70px;
-    }
-
-    .sidebar-header h2, .menu-text, .username {
-        display: none;
-    }
-
-    .menu-item {
-        display: flex;
-        justify-content: center;
-    }
-
-    .user-profile {
-        justify-content: center;
-    }
+/* Update logout menu position for collapsed sidebar */
+.logout-menu {
+    position: absolute;
+    top: 0;
+    bottom: 100%;
+    border-radius: 5px;
+    padding: 10px;
+    display: none;
+    z-index: 10000;
+    width: 85px;
 }
 
-/* Content area - improved */
+.sidebar.collapsed .logout-menu {
+    left: -50px;
+}
+
+.logout-menu.active {
+    display: block;
+}
+
+.logout-btn {
+    background-color: white;    
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    color: #12753E;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: 'Tilt Warp', sans-serif;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: absolute;
+    top: 80%;
+    left: 248%;
+    z-index: 10001; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.sidebar.collapsed .logout-btn {
+    left: 100%;
+}
+
+/* Content adjustments */
 .content {
     flex: 1;
-    background-color: #f8f9fa;
+    background-color: #ffffff;
     padding: 4rem;
     margin-left: 17%;
-    font-family: Arial, sans-serif;
+    transition: margin-left 0.3s ease;
 }
+
+.content.expanded {
+    margin-left: 90px;
+}
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .sidebar {
+            width: 70px;
+        }
+
+        .sidebar-header h2, .menu-text, .username{
+            display: none;
+        }
+        
+
+        .menu-item {
+            display: flex;
+            justify-content: center;
+        }
+
+        .user-profile {
+            justify-content: center;
+        }
+    }
+
+    .content {
+        flex: 1;
+        background-color: #ffffff;
+        padding: 4rem;
+        margin-left: 17%;
+    }
 
 /* Header styles - unchanged */
 .content-header h1 {
@@ -843,17 +971,17 @@ p{
     font-family: Montserrat;
 }
 .user-profile {
-        padding: 15px;
-        border-top: 1px solid white;
-        display: flex;
-        align-items: center;
-        position: sticky;
-        bottom: 0;
-        background-color: #12753E;
-        width: 100%;
-        cursor: pointer;
-        position: relative;
-    }
+    padding: 15px;
+    border-top: 1px solid white;
+    display: flex;
+    align-items: center;
+    position: absolute; /* Changed from sticky to absolute for more control */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #12753E;
+    cursor: pointer;
+}
 
     .logout-menu {
         position: absolute;
@@ -934,20 +1062,30 @@ p{
 </style>
 </head>
 <body>
-<div class="sidebar">
-        <div class="sidebar-content">
-            <a href="user-dashboard.php" class="menu-item">
-                <span class="menu-icon"><i class="fas fa-home mr-3"></i></span>
-                <span class="menu-text">Home</span>
-            </a>
-            <a href="user-events.php" class="menu-item active">
-                <span class="menu-icon"><i class="fas fa-calendar-alt mr-3"></i></span>
-                <span class="menu-text">Events</span>
-            </a>
-            <a href="user-notif.php" class="menu-item">
-                <span class="menu-icon"><i class="fas fa-bell mr-3"></i></span>
-                <span class="menu-text">Notification</span>
-            </a>
+    <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+    <div class="logo">
+        <button id="toggleSidebar" class="toggle-btn">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+
+
+       <div class="menu">
+        <a href="user-dashboard.php" >
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="user-events.php" class="active">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Events</span>
+        </a>
+        <a href="user-notif.php">
+            <i class="fas fa-bell mr-3"></i>
+            <span>Notification</span>
+        </a>
+
 
             <!-- Add more menu items as needed -->
         </div>
@@ -1193,8 +1331,96 @@ function showStatusAlert(status) {
     alert("You can't register to '" + status + "' events.");
 }
 
-// Auto-scroll to selected event
+function toggleExpand() {
+    let detailsSection = document.getElementById('details-section');
+    let eventsSection = document.querySelector('.events-section');
+    let expandIcon = document.querySelector('.expand-btn');
+    let expandedContent = document.querySelectorAll('.expanded-content');
+
+    if (detailsSection.classList.contains('expand')) {
+        // Collapse
+        detailsSection.classList.remove('expand');
+        eventsSection.classList.remove('hidden');
+        expandIcon.classList.replace('fa-compress', 'fa-expand');
+    } else {
+        // Expand
+        detailsSection.classList.add('expand');
+        eventsSection.classList.add('hidden');
+        expandIcon.classList.replace('fa-expand', 'fa-compress');
+    }
+}
+
+// Document ready function
 document.addEventListener('DOMContentLoaded', function() {
+    // User profile toggle and logout menu
+    const userProfileToggle = document.getElementById('userProfileToggle');
+    const logoutMenu = document.getElementById('logoutMenu');
+    const sidebar = document.getElementById('sidebar');
+    const content = document.querySelector('.content');
+    const toggleBtn = document.getElementById('toggleSidebar');
+
+    // Check if sidebar state is saved in localStorage
+    const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    
+    // Set initial state based on localStorage
+    if (isSidebarCollapsed) {
+        sidebar.classList.add('collapsed');
+        content.classList.add('expanded');
+    }
+
+    // Toggle sidebar when button is clicked
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            content.classList.toggle('expanded');
+            
+            // Save state to localStorage
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        });
+    }
+
+    // Toggle logout menu when user profile is clicked
+    if (userProfileToggle) {
+        userProfileToggle.addEventListener('click', function(event) {
+            event.stopPropagation();
+            logoutMenu.classList.toggle('active');
+        });
+    }
+
+    // Close the logout menu when clicking outside
+    document.addEventListener('click', function(event) {
+        if (logoutMenu && userProfileToggle && !userProfileToggle.contains(event.target)) {
+            logoutMenu.classList.remove('active');
+        }
+    });
+
+    // Sort events functionality
+    const sortButton = document.getElementById('sortButton');
+    if (sortButton) {
+        sortButton.addEventListener('click', function() {
+            // Get the current sort order from the URL
+            const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
+            
+            // Toggle sort order
+            const newSortOrder = (currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
+            
+            // Update the URL to reflect the new sort order
+            window.location.href = window.location.pathname + '?sort=' + newSortOrder;
+        });
+    }
+
+    // Update the sort order label and button text on page load
+    const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
+    // Using getElementById with a null check since the element might not exist
+    const sortOrderLabel = document.getElementById('sortOrderLabel');
+    if (sortOrderLabel) {
+        sortOrderLabel.textContent = currentSortOrder === 'ASC' ? 'Ascending' : 'Descending';
+    }
+    
+    if (sortButton) {
+        sortButton.textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
+    }
+    
     // Check if there's a selected event
     const selectedEvent = document.querySelector('.event.selected');
     
@@ -1217,95 +1443,70 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 700);
         }, 300);
     }
-});
-
-function toggleExpand() {
-    let detailsSection = document.getElementById('details-section');
-    let eventsSection = document.querySelector('.events-section');
-    let expandIcon = document.querySelector('.expand-btn');
-    let expandedContent = document.querySelectorAll('.expanded-content');
-
-    if (detailsSection.classList.contains('expand')) {
-        // Collapse
-        detailsSection.classList.remove('expand');
-        eventsSection.classList.remove('hidden');
-        expandIcon.classList.replace('fa-compress', 'fa-expand');
-    } else {
-        // Expand
-        detailsSection.classList.add('expand');
-        eventsSection.classList.add('hidden');
-        expandIcon.classList.replace('fa-expand', 'fa-compress');
-    }
-}
-<!-- Add JavaScript for the user profile toggle and logout menu -->
-document.getElementById('userProfileToggle').addEventListener('click', function() {
-    document.getElementById('logoutMenu').classList.toggle('active');
-});
-
-// Close the menu when clicking outside
-document.addEventListener('click', function(event) {
-    const profile = document.getElementById('userProfileToggle');
-    const menu = document.getElementById('logoutMenu');
     
-    if (!profile.contains(event.target)) {
-        menu.classList.remove('active');
-    }
-});
-
-
-// Event search function
-document.addEventListener('DOMContentLoaded', function() {
     // Get the search input element
     const searchInput = document.querySelector('.search-input');
     
     // Add event listener for input changes
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase().trim();
-        
-        // Get all event elements from both tabs
-        const registeredEvents = document.querySelectorAll('#registered-tab .event');
-        const unregisteredEvents = document.querySelectorAll('#unregistered-tab .event');
-        
-        // Search function for events
-        function filterEvents(events) {
-            let visibleCount = 0;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
             
-            events.forEach(event => {
-                // Get the event title and other searchable content
-                const title = event.querySelector('h3').textContent.toLowerCase();
-                const specification = event.querySelector('p').textContent.toLowerCase();
-                const date = event.querySelector('.event-dates') ? 
-                    event.querySelector('.event-dates').textContent.toLowerCase() : 
-                    event.querySelectorAll('p')[1].textContent.toLowerCase();
-                const status = event.querySelector('.status-badge').textContent.toLowerCase();
-                
-                // Combine all searchable content
-                const searchableContent = `${title} ${specification} ${date} ${status}`;
-                
-                // Check if the search term exists in any of the content
-                if (searchableContent.includes(searchTerm)) {
-                    event.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    event.style.display = 'none';
-                }
-            });
+            // Get all event elements from both tabs
+            const registeredEvents = document.querySelectorAll('#registered-tab .event');
+            const unregisteredEvents = document.querySelectorAll('#unregistered-tab .event');
             
-            return visibleCount;
-        }
+            // Search function for events
+            function filterEvents(events) {
+                let visibleCount = 0;
+                
+                events.forEach(event => {
+                    // Get the event title and other searchable content
+                    const title = event.querySelector('h3').textContent.toLowerCase();
+                    const specification = event.querySelector('p').textContent.toLowerCase();
+                    const date = event.querySelector('.event-dates') ? 
+                        event.querySelector('.event-dates').textContent.toLowerCase() : 
+                        event.querySelectorAll('p')[1].textContent.toLowerCase();
+                    const status = event.querySelector('.status-badge').textContent.toLowerCase();
+                    
+                    // Combine all searchable content
+                    const searchableContent = `${title} ${specification} ${date} ${status}`;
+                    
+                    // Check if the search term exists in any of the content
+                    if (searchableContent.includes(searchTerm)) {
+                        event.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        event.style.display = 'none';
+                    }
+                });
+                
+                return visibleCount;
+            }
+            
+            // Apply filter to both tabs
+            const registeredCount = filterEvents(registeredEvents);
+            const unregisteredCount = filterEvents(unregisteredEvents);
+            
+            // Update the badge counts
+            updateBadgeCount('registered', registeredCount);
+            updateBadgeCount('unregistered', unregisteredCount);
+            
+            // Show "No results found" message if needed
+            displayNoResultsMessage('registered-tab', registeredCount);
+            displayNoResultsMessage('unregistered-tab', unregisteredCount);
+        });
         
-        // Apply filter to both tabs
-        const registeredCount = filterEvents(registeredEvents);
-        const unregisteredCount = filterEvents(unregisteredEvents);
-        
-        // Update the badge counts
-        updateBadgeCount('registered', registeredCount);
-        updateBadgeCount('unregistered', unregisteredCount);
-        
-        // Show "No results found" message if needed
-        displayNoResultsMessage('registered-tab', registeredCount);
-        displayNoResultsMessage('unregistered-tab', unregisteredCount);
-    });
+        // Add clear button functionality
+        searchInput.addEventListener('keyup', function(e) {
+            // Check if Escape key was pressed or input is empty
+            if (e.key === 'Escape' || this.value === '') {
+                this.value = '';
+                // Trigger the input event to reset the search
+                this.dispatchEvent(new Event('input'));
+            }
+        });
+    }
     
     // Function to update badge count
     function updateBadgeCount(tabName, count) {
@@ -1341,29 +1542,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Add clear button functionality
-    searchInput.addEventListener('keyup', function(e) {
-        // Check if Escape key was pressed or input is empty
-        if (e.key === 'Escape' || this.value === '') {
-            this.value = '';
-            // Trigger the input event to reset the search
-            this.dispatchEvent(new Event('input'));
-        }
-    });
-    
     // When clicking the X (clear) button
-    document.querySelector('.search-container').addEventListener('click', function(e) {
-        // Check if the click was on the after pseudo-element (approximated by position)
-        const searchContainer = this;
-        const rect = searchContainer.getBoundingClientRect();
-        
-        // If click is in the right 30px of the container (where the X appears)
-        if (e.clientX > rect.right - 30 && searchInput.value !== '') {
-            searchInput.value = '';
-            searchInput.dispatchEvent(new Event('input'));
-            searchInput.focus();
-        }
-    });
+    const searchContainer = document.querySelector('.search-container');
+    if (searchContainer) {
+        searchContainer.addEventListener('click', function(e) {
+            // Check if the click was on the after pseudo-element (approximated by position)
+            const rect = searchContainer.getBoundingClientRect();
+            
+            // If click is in the right 30px of the container (where the X appears)
+            if (searchInput && e.clientX > rect.right - 30 && searchInput.value !== '') {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+                searchInput.focus();
+            }
+        });
+    }
 });
 
 </script>
