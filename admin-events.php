@@ -480,7 +480,7 @@ foreach ($eventsData as $event) {
             <label for="eval-link">Evaluation Link:</label>
             <input type="text" id="eval-link" name="eval-link" placeholder="Enter evaluation form URL" required>
         </div>
-      
+         
         <div class="form-group">
             <label>Participants who will receive the link:</label>
             <div class="participant-count">

@@ -57,7 +57,7 @@ $event_header = ['EVENT: ' . $event_title];
 fputcsv($output, $event_header);
 fputcsv($output, []); // Add empty row for spacing
 
-// Prepare days row
+// Prepare days row  
 $days_row = ['', '', '']; // Align with NO., NAME, SEX columns
 $meal_types = ['Breakfast', 'AM Snack', 'Lunch', 'PM Snack'];
 
