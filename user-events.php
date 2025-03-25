@@ -983,15 +983,15 @@ p{
     cursor: pointer;
 }
 
-    .logout-menu {
+.logout-menu {
         position: absolute;
         top: 0;
         bottom: 100%;
         border-radius: 5px;
         padding: 10px;
         display: none;
-        z-index: 1000;
-        width: 85px;
+        z-index: 10000;
+        width: 87px;
     }
 
     .logout-menu.active {
@@ -999,12 +999,12 @@ p{
     }
 
     .logout-btn {
-        background-color: white;    
+        background-color: white; 
+        border: 2px solid #12753E;  
         display: block;
         width: 100%;
         padding: 8px 10px;
         color: #12753E;
-        border: 1px solid #ddd;
         border-radius: 4px;
         font-family: 'Tilt Warp', sans-serif;
         font-size: 14px;
@@ -1013,9 +1013,10 @@ p{
         transition: all 0.3s ease;
         position: absolute;
         top: 80%;
-        left: 248%;
-        z-index: 5;
-    }
+        left: 240%;
+        z-index: 10001 !important; /* Increase this value significantly */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: add shadow for better visibility */
+}
 
     .user-avatar img{
         width: 40px;

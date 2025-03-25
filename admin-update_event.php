@@ -310,9 +310,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <link href="styles/admin-create_events.css" rel="stylesheet">
+    <link href="styles/admin-update-events.css" rel="stylesheet">
     <script src="scripts/admin-create_events.js" defer></script>
     <title>Update Event</title>
+
     
 </head>
 <body>
@@ -331,11 +332,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="content-header">
         <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
         <p>Learning and Development</p>
-        <h1>EVENT UPDATING</h1>
+                <h1>EVENT MANAGEMENT SYSTEM</h1>
     </div>
+    
+    <div class="content-body">
+                <br><br><br><br>
+                <hr><br><br>
 
     <div class="form-container">
-        <h3>Update Event Details</h3>
+        <h3>UPDATE EVENTS DETAILS</h3>
         <?php if (!empty($successMessage)): ?>
             <div class="success-message" style="display: block;"><?php echo $successMessage; ?></div>
         <?php endif; ?>
@@ -343,7 +348,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="post" action="">
             <!-- General Information -->
             <div class="form-group">
-                <div class="section-title">General Information</div>
+                <div class="section-title">Event Details</div>
                 <label for="title">Event Title:</label>
                 <input type="text" id="title" name="title" required value="<?php echo htmlspecialchars($eventData['title']); ?>">
                 
@@ -356,7 +361,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endforeach; ?>
                 </select>
                 
-                <label for="delivery">Delivery Method:</label>
+                <label for="delivery">Delivery:</label>
                 <select id="delivery" name="delivery" required>
                     <?php foreach ($deliveryOptions as $option): ?>
                         <option value="<?php echo htmlspecialchars($option); ?>" <?php echo ($eventData['delivery'] === $option) ? 'selected' : ''; ?>>
@@ -365,89 +370,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endforeach; ?>
                 </select>
                 
-                <div id="venue-container" style="<?php echo ($eventData['delivery'] === 'Face-to-Face' || $eventData['delivery'] === 'Blended') ? 'display:block;' : 'display:none;'; ?>">
-                    <label for="venue">Venue:</label>
-                    <input type="text" id="venue" name="venue" value="<?php echo htmlspecialchars($eventData['venue']); ?>">
-                </div>
-                
-                <label for="proponent">Proponent:</label>
-                <input type="text" id="proponent" name="proponent" required value="<?php echo htmlspecialchars($eventData['proponent']); ?>">
-                
-                <div class="form-row">
-                    <div class="form-col">
-                        <label for="start-date">Start Date:</label>
-                        <input type="date" id="start-date" name="start-date" required value="<?php echo htmlspecialchars($eventData['start_date']); ?>">
-                    </div>
-                    <div class="form-col">
-                        <label for="end-date">End Date:</label>
-                        <input type="date" id="end-date" name="end-date" required value="<?php echo htmlspecialchars($eventData['end_date']); ?>">
-                    </div>
-                </div>
-                
-                <label for="estimated-participants">Estimated Number of Participants:</label>
-                <input type="number" id="estimated-participants" name="estimated_participants" min="1" required value="<?php echo htmlspecialchars($estimatedParticipants); ?>">
-            </div>
-
-            <!-- Event Days -->
-            <div class="form-group">
-                <div class="section-title">Event Days</div>
-                <div class="date-notice">Please ensure that the dates fall within the start and end dates you specified above.</div>
-                <div id="event-days-container">
-                    <?php foreach ($eventDays as $index => $day): ?>
-                        <div class="event-day">
-                            <h4>Day <?php echo $day['day_number']; ?></h4>
-                            <input type="hidden" name="event_days[<?php echo $day['day_number']; ?>][day_number]" value="<?php echo $day['day_number']; ?>">
-                            
-                            <label for="day-date-<?php echo $day['day_number']; ?>">Date:</label>
-                            <input type="date" id="day-date-<?php echo $day['day_number']; ?>" name="event_days[<?php echo $day['day_number']; ?>][date]" required value="<?php echo htmlspecialchars($day['day_date']); ?>">
-                            
-                            <div class="time-inputs">
-                                <div>
-                                    <label for="start-time-<?php echo $day['day_number']; ?>">Start Time:</label>
-                                    <input type="time" id="start-time-<?php echo $day['day_number']; ?>" name="event_days[<?php echo $day['day_number']; ?>][start_time]" required value="<?php echo htmlspecialchars($day['start_time']); ?>">
-                                </div>
-                                <div>
-                                    <label for="end-time-<?php echo $day['day_number']; ?>">End Time:</label>
-                                    <input type="time" id="end-time-<?php echo $day['day_number']; ?>" name="event_days[<?php echo $day['day_number']; ?>][end_time]" required value="<?php echo htmlspecialchars($day['end_time']); ?>">
-                                </div>
+                <div id="venue-field">
+                                <h4>Venue:</h4>
+                                <input type="text" name="venue" placeholder="Enter venue" required value="<?php echo htmlspecialchars($eventData['venue']); ?>">
                             </div>
-                            <?php if ($index > 0): ?>
-                                <button type="button" class="remove-day-btn"><i class="fas fa-times"></i></button>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-                <button type="button" id="add-day-btn" class="add-btn">Add Day</button>
-            </div>
-            
-            <!-- Meal Plan -->
-            <div class="form-group">
-                <div class="section-title">Meal Plan</div>
-                <div id="meal-plans-container">
-                    <?php foreach ($eventDays as $day): ?>
-                        <div class="meal-day" data-day="<?php echo $day['day_number']; ?>">
-                            <h4>Day <?php echo $day['day_number']; ?> - <?php echo date('F j, Y', strtotime($day['day_date'])); ?></h4>
-                            <div class="checkbox-subgroup">
-                                <?php
-                                $dayMeals = isset($mealPlans[$day['day_date']]) ? $mealPlans[$day['day_date']] : [];
-                                $mealOptions = ['Breakfast', 'AM Snack', 'Lunch', 'PM Snack', 'Dinner'];
-                                foreach ($mealOptions as $meal):
-                                ?>
-                                    <label>
-                                        <input type="checkbox" name="meal_plan[<?php echo $day['day_number']; ?>][]" value="<?php echo $meal; ?>" 
-                                            <?php echo (is_array($dayMeals) && in_array($meal, $dayMeals)) ? 'checked' : ''; ?>>
-                                        <?php echo $meal; ?>
-                                    </label>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-
-                        <!-- Funding Sources -->
-                        <div class="form-group">
-                <div class="section-title">Funding Sources</div>
+                
+                <!-- Funding Sources -->
+                <h4>Funding Sources</h4>
                 <div class="funding-options-row">
                     <?php foreach ($fundingOptions as $option): ?>
                         <div class="funding-option">
@@ -456,6 +385,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <?php echo (isset($fundingSources[$option])) ? 'checked' : ''; ?>>
                                 <?php echo htmlspecialchars($option); ?>
                             </label>
+                            
                             <div class="amount-field" <?php echo (isset($fundingSources[$option])) ? 'style="display:block;"' : 'style="display:none;"'; ?>>
                                 <label for="<?php echo htmlspecialchars($option); ?>_amount">Amount (₱):</label>
                                 <div class="input-with-symbol">
@@ -468,35 +398,108 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     <?php endforeach; ?>
                 </div>
+                    </div>
+            <div class="form-group">
+            <div class="form-row">
+                                <div class="form-col">
+                                    <h4 for="start-date">Start Date:</h4>
+                                    <input type="date" id="start-date" name="start-date" required value="<?php echo htmlspecialchars($eventData['start_date']); ?>" onchange="generateDayFields()">
+                                </div>
+
+                                <div class="form-col">
+                                    <h4 for="end-date">End Date:</h4>
+                                    <input type="date" id="end-date" name="end-date" required value="<?php echo htmlspecialchars($eventData['end_date']); ?>" onchange="generateDayFields()">
+
+
+                                </div>
+                    </div>
+                            <!-- Event Days Section -->
+                            <div class="section-title">Event Days Schedule</div>
+                            <div id="event-days-container"></div>
+                    </div>
+                        <!-- INSERT MEAL PLAN SECTION HERE -->
+                         <?php
+                        // Meal Plan section of your form
+                        echo '<div class="form-group">';
+                        echo '<div class="section-title">Meal Plan</div>';
+                        echo '<div id="meal-plan-container">';
+                        // Only generate this if start and end dates are set
+                        if (!empty($_POST['start-date']) && !empty($_POST['end-date'])) {
+                            $startDate = new DateTime($_POST['start-date']);
+                            $endDate = new DateTime($_POST['end-date']);
+                            $dayDiff = $endDate->diff($startDate)->days + 1;
+                            
+                            for ($i = 1; $i <= $dayDiff; $i++) {
+                                $currentDate = clone $startDate;
+                                $currentDate->modify('+' . ($i - 1) . ' days');
+                                $dateString = $currentDate->format('Y-m-d');
+                                
+                                echo '<div class="meal-day">';
+                                echo '<h4>Meals for Day ' . $i . ' - ' . $dateString . '</h4>';
+                                echo '<div class="checkbox-subgroup">';
+                                
+                                $mealOptions = ['Breakfast', 'AM Snack', 'Lunch', 'PM Snack', 'Dinner'];
+                                foreach ($mealOptions as $meal) {
+                                    echo '<label>';
+                                    echo '<input type="checkbox" name="meal_plan[' . $i . '][]" value="' . $meal . '"> ' . $meal;
+                                    echo '</label>';
+                                }
+                                
+                                echo '</div>';
+                                echo '</div>';
+                            }
+                        }
+                        echo '</div>';
+                        echo '</div>';
+                        ?>
+
+
+             <div class="form-group">
+             <div class="form-col">
+                <h4>No. of Estimated Participants:</h4>
+                <input type="number" id="estimated-participants" name="estimated_participants" min="1" placeholder="Enter estimated number of participants" required value="<?php echo htmlspecialchars($estimatedParticipants); ?>">
             </div>
-            
+            </div>
+
             <!-- Speakers -->
             <div class="form-group">
-                <div class="section-title">Speakers</div>
-                <div id="speakers-container">
-                    <?php if (!empty($speakers)): ?>
-                        <?php foreach ($speakers as $index => $speaker): ?>
-                            <div class="speaker-input">
-                                <input type="text" name="speaker[]" value="<?php echo htmlspecialchars($speaker); ?>" placeholder="Enter speaker name">
-                                <?php if ($index > 0): ?>
-                                    <button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>
-                                <?php endif; ?>
+                            <div class="section-title">Organizers & Trainers</div>
+                                
+                            <h4>Proponents:</h4>
+                            <input type="text" name="proponent" placeholder="Enter organizer name" required value="<?php echo htmlspecialchars($eventData['proponent']); ?>">
+                                
+                            <div id="speakers-container">
+                                <div class="speakers-header">
+                                    <h4>Speaker/Resource Person:</h4>
+                                    <button type="button" class="add-speaker-btn" onclick="addSpeakerField()">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
                             </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <div class="speaker-input">
-                            <input type="text" name="speaker[]" placeholder="Enter speaker name">
+                                                        <?php 
+                    // If there are existing speakers, create input fields for them
+                    if (!empty($speakers)) {
+                        foreach ($speakers as $index => $speaker) {
+                            echo '<div class="speaker-input-group">';
+                            echo '<input type="text" name="speaker[]" placeholder="Enter speaker/resource person" value="' . htmlspecialchars($speaker) . '">';
+                            // Allow removing speakers if more than one exists
+                            if (count($speakers) > 1 || $index > 0) {
+                                echo '<button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>';
+                            }
+                            echo '</div>';
+                        }
+                    } else {
+                        // If no speakers, show a default empty input with an option to remove if empty
+                        echo '<div class="speaker-input-group">';
+                        echo '<input type="text" name="speaker[]" placeholder="Enter speaker/resource person">';
+                        echo '</div>';
+                    }
+                    ?>
                         </div>
-                    <?php endif; ?>
-                </div>
-                <button type="button" id="add-speaker-btn" class="add-btn">Add Speaker</button>
-            </div>
             
             <!-- Target Personnel -->
-            <div class="form-group">
                 <div class="section-title">Target Personnel</div>
                 <div class="personnel-selection">
-                    <label for="target-personnel">Target Audience:</label>
+                    <label for="target-personnel">Target Participants:</label>
                     <select id="target-personnel" name="target_personnel" class="target" required>
                         <option value="">Select Target</option>
                         <?php foreach ($targetOptions as $option): ?>
@@ -558,10 +561,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
-            
+    
             <button type="submit" class="submit-btn">Update Event</button>
         </form>
     </div>
+</div>
+</div>
 </div>
 
 <script>
@@ -598,6 +603,39 @@ document.addEventListener('DOMContentLoaded', function() {
             divisionOptions.style.display = 'none';
         }
     });
+
+    // Toggle funding amount fields based on checkbox selection
+    function toggleFundingAmountField() {
+        const fundingCheckboxes = document.querySelectorAll('input[name="funding_source[]"]');
+        
+        fundingCheckboxes.forEach(function(checkbox) {
+            const amountField = checkbox.closest('.funding-option').querySelector('.amount-field');
+            
+            // Initially set display based on checkbox state
+            if (checkbox.checked) {
+                amountField.style.display = 'block';
+            } else {
+                amountField.style.display = 'none';
+            }
+            
+            // Add change event listener
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    amountField.style.display = 'block';
+                } else {
+                    amountField.style.display = 'none';
+                    // Clear the amount input when unchecked
+                    const amountInput = amountField.querySelector('input[type="number"]');
+                    if (amountInput) {
+                        amountInput.value = '';
+                    }
+                }
+            });
+        });
+    }
+
+    // Call funding source toggle on page load
+    toggleFundingAmountField();
     
     // Add event day button functionality
     const addDayBtn = document.getElementById('add-day-btn');
@@ -747,44 +785,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Add speaker button functionality
-    const addSpeakerBtn = document.getElementById('add-speaker-btn');
+    function addSpeakerField() {
+    const speakersContainer = document.getElementById('speakers-container');
+    const newSpeaker = document.createElement('div');
+    newSpeaker.className = 'speaker-input-group';
+    newSpeaker.innerHTML = `
+        <input type="text" name="speaker[]" placeholder="Enter speaker name">
+        <button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>
+    `;
+    speakersContainer.appendChild(newSpeaker);
+    
+    // Add remove functionality to the new button
+    const removeBtn = newSpeaker.querySelector('.remove-speaker-btn');
+    removeBtn.addEventListener('click', function() {
+        newSpeaker.remove();
+    });
+}
+
+// Existing event listener for remove speaker buttons
+document.addEventListener('DOMContentLoaded', function() {
     const speakersContainer = document.getElementById('speakers-container');
     
-    addSpeakerBtn.addEventListener('click', function() {
-        const newSpeaker = document.createElement('div');
-        newSpeaker.className = 'speaker-input';
-        newSpeaker.innerHTML = `
-            <input type="text" name="speaker[]" placeholder="Enter speaker name">
-            <button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>
-        `;
-        speakersContainer.appendChild(newSpeaker);
-        
-        // Add event listener for the remove button
-        const removeBtn = newSpeaker.querySelector('.remove-speaker-btn');
-        removeBtn.addEventListener('click', function() {
-            newSpeaker.remove();
-        });
-    });
-    
-    // Add remove functionality to existing speaker remove buttons
-    document.querySelectorAll('.remove-speaker-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            this.closest('.speaker-input').remove();
-        });
-    });
-    
-    // Toggle funding amount fields based on checkbox selection
-    document.querySelectorAll('input[name="funding_source[]"]').forEach(function(checkbox) {
-        checkbox.addEventListener('change', function() {
-            const amountField = this.closest('.funding-option').querySelector('.amount-field');
-            if (this.checked) {
-                amountField.style.display = 'block';
+    speakersContainer.addEventListener('click', function(event) {
+        const removeBtn = event.target.closest('.remove-speaker-btn');
+        if (removeBtn) {
+            const speakerGroup = removeBtn.closest('.speaker-input-group');
+            const speakerGroups = speakersContainer.querySelectorAll('.speaker-input-group');
+            
+            // Always allow removal if more than one speaker group exists
+            if (speakerGroups.length > 1) {
+                speakerGroup.remove();
             } else {
-                amountField.style.display = 'none';
+                // If it's the last input, just clear its value
+                const input = speakerGroup.querySelector('input');
+                input.value = '';
             }
-        });
+        }
     });
+});
     
     // Set min and max dates for event days based on start and end dates
     const startDateInput = document.getElementById('start-date');
@@ -828,166 +866,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize date constraints on page load
     updateDateConstraints();
 });
-    
-    // Initialize existing remove day buttons
-    document.querySelectorAll('.remove-day-btn').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            const dayElement = this.closest('.event-day');
-            const dayNumber = dayElement.querySelector('input[name$="[day_number]"]').value;
-            dayElement.remove();
-            
-            // Remove corresponding meal plan
-            const mealDay = document.querySelector(`.meal-day[data-day="${dayNumber}"]`);
-            if (mealDay) mealDay.remove();
-        });
-    });
-});
-        
-        // Add meal plan for a specific day
-        function addMealPlanForDay(dayNumber) {
-            const mealPlansContainer = document.getElementById('meal-plans-container');
-            const newMealDay = document.createElement('div');
-            newMealDay.className = 'meal-day';
-            newMealDay.setAttribute('data-day', dayNumber);
-            newMealDay.innerHTML = `
-                <h4>Day ${dayNumber} - <span class="date-placeholder">Select date above</span></h4>
-                <div class="checkbox-subgroup">
-                    <label>
-                        <input type="checkbox" name="meal_plan[${dayNumber}][]" value="Breakfast">
-                        Breakfast
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${dayNumber}][]" value="AM Snack">
-                        AM Snack
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${dayNumber}][]" value="Lunch">
-                        Lunch
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${dayNumber}][]" value="PM Snack">
-                        PM Snack
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${dayNumber}][]" value="Dinner">
-                        Dinner
-                    </label>
-                </div>
-            `;
-            mealPlansContainer.appendChild(newMealDay);
-            
-            // Update meal plan date when event day date changes
-            // Update meal plan date display when event day date changes
-function updateMealPlanDate(dayNumber, dateValue) {
-    const mealDay = document.querySelector(`.meal-day[data-day="${dayNumber}"]`);
-    if (mealDay) {
-        const heading = mealDay.querySelector('h4');
-        if (heading && dateValue) {
-            const formattedDate = new Date(dateValue).toLocaleDateString('en-US', {
-                month: 'long', 
-                day: 'numeric', 
-                year: 'numeric'
-            });
-            heading.textContent = `Day ${dayNumber} - ${formattedDate}`;
-        } else if (heading) {
-            heading.textContent = `Day ${dayNumber} - Select date above`;
-        }
-    }
-}
-
-// Set up event listeners for existing event days
-document.querySelectorAll('.event-day').forEach(function(dayElement) {
-    const dayNumberInput = dayElement.querySelector('input[name$="[day_number]"]');
-    if (!dayNumberInput) return;
-    
-    const dayNumber = dayNumberInput.value;
-    const dateInput = dayElement.querySelector(`input[name="event_days[${dayNumber}][date]"]`);
-    
-    if (dateInput) {
-        // Ensure this event listener is only added once
-        dateInput.addEventListener('change', function() {
-            updateMealPlanDate(dayNumber, this.value);
-        });
-        
-        // Initialize meal plan date display with current value
-        updateMealPlanDate(dayNumber, dateInput.value);
-    }
-});
-        
-        // Add speaker button functionality
-        const addSpeakerBtn = document.getElementById('add-speaker-btn');
-        const speakersContainer = document.getElementById('speakers-container');
-        
-        addSpeakerBtn.addEventListener('click', function() {
-            const newSpeaker = document.createElement('div');
-            newSpeaker.className = 'speaker-input';
-            newSpeaker.innerHTML = `
-                <input type="text" name="speaker[]" placeholder="Enter speaker name">
-                <button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>
-            `;
-            speakersContainer.appendChild(newSpeaker);
-            
-            // Add event listener for the remove button
-            const removeBtn = newSpeaker.querySelector('.remove-speaker-btn');
-            removeBtn.addEventListener('click', function() {
-                newSpeaker.remove();
-            });
-        });
-        
-        // Add remove functionality to existing speaker remove buttons
-        document.querySelectorAll('.remove-speaker-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                this.closest('.speaker-input').remove();
-            });
-        });
-        
-        // Toggle funding amount fields based on checkbox selection
-        document.querySelectorAll('input[name="funding_source[]"]').forEach(function(checkbox) {
-            checkbox.addEventListener('change', function() {
-                const amountField = this.closest('.funding-option').querySelector('.amount-field');
-                if (this.checked) {
-                    amountField.style.display = 'block';
-                } else {
-                    amountField.style.display = 'none';
-                }
-            });
-        });
-        
-        // Set min and max dates for event days based on start and end dates
-        const startDateInput = document.getElementById('start-date');
-        const endDateInput = document.getElementById('end-date');
-        
-        function updateDateConstraints() {
-            const startDate = startDateInput.value;
-            const endDate = endDateInput.value;
-            
-            if (startDate && endDate) {
-                document.querySelectorAll('input[name$="[date]"]').forEach(function(input) {
-                    input.min = startDate;
-                    input.max = endDate;
-                });
-            }
-        }
-        
-        startDateInput.addEventListener('change', updateDateConstraints);
-        endDateInput.addEventListener('change', updateDateConstraints);
-        
-        // Initialize date constraints on page load
-        updateDateConstraints();
-        
-        // Initialize existing remove day buttons
-        document.querySelectorAll('.remove-day-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const dayElement = this.closest('.event-day');
-                const dayNumber = dayElement.querySelector('input[name$="[day_number]"]').value;
-                dayElement.remove();
-                
-                // Remove corresponding meal plan
-                const mealDay = document.querySelector(`.meal-day[data-day="${dayNumber}"]`);
-                if (mealDay) mealDay.remove();
-            });
-        });
-    });
 </script>
 
 </div>
