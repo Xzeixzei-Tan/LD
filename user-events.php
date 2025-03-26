@@ -314,6 +314,7 @@ html {
     align-items: center;
     justify-content: center;
     margin-right: 10px;
+    transition: opacity 0.3s ease;
 }
 .username {
         
@@ -322,6 +323,7 @@ html {
 
 .sidebar.collapsed .user-avatar img {
     margin-right: 0;
+    cursor: default;
 }
 
 /* Update logout menu position for collapsed sidebar */
@@ -345,28 +347,26 @@ html {
 }
 
 .logout-btn {
-    background-color: white;    
-    display: block;
-    width: 100%;
-    padding: 8px 10px;
-    color: #12753E;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-family: 'Tilt Warp', sans-serif;
-    font-size: 14px;
-    text-align: center;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: absolute;
-    top: 80%;
-    left: 248%;
-    z-index: 10001; 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        background-color: white; 
+        border: 2px solid #12753E;  
+        display: block;
+        width: 100%;
+        padding: 8px 10px;
+        color: #12753E;
+        border-radius: 4px;
+        font-family: 'Tilt Warp', sans-serif;
+        font-size: 14px;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 80%;
+        left: 250%;
+        z-index: 10005 !important; /* Increase this value significantly */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: add shadow for better visibility */
 }
 
-.sidebar.collapsed .logout-btn {
-    left: 100%;
-}
+
 
 /* Content adjustments */
 .content {
@@ -1013,8 +1013,8 @@ p{
         transition: all 0.3s ease;
         position: absolute;
         top: 80%;
-        left: 240%;
-        z-index: 10001 !important; /* Increase this value significantly */
+        left: 260%;
+        z-index: 10005 !important; /* Increase this value significantly */
         box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: add shadow for better visibility */
 }
 
@@ -1086,13 +1086,10 @@ p{
             <i class="fas fa-bell mr-3"></i>
             <span>Notification</span>
         </a>
-
-
-            <!-- Add more menu items as needed -->
         </div>
-        <!-- Modified user profile with logout menu -->
+ <!-- Modified user profile with logout menu -->
         <div class="user-profile" id="userProfileToggle">
-            <div class="user-avatar"><img src="styles/photos/default.png"></div>
+            <div class="user-avatar"><img src="styles/photos/me.jpg"></div>
             <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
             <!-- Add logout menu -->
             <div class="logout-menu" id="logoutMenu">
@@ -1359,6 +1356,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('sidebar');
     const content = document.querySelector('.content');
     const toggleBtn = document.getElementById('toggleSidebar');
+    const userAvatar = document.querySelector('.user-avatar');
 
     // Check if sidebar state is saved in localStorage
     const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -1367,6 +1365,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isSidebarCollapsed) {
         sidebar.classList.add('collapsed');
         content.classList.add('expanded');
+        userAvatar.style.cursor = 'default'; // Make avatar non-clickable
+        userProfileToggle.style.pointerEvents = 'none'; // Disable click events
+    } else {
+        userAvatar.style.cursor = 'pointer'; // Make avatar clickable
+        userProfileToggle.style.pointerEvents = 'auto'; // Enable click events
     }
 
     // Toggle sidebar when button is clicked
@@ -1374,6 +1377,15 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleBtn.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
             content.classList.toggle('expanded');
+
+            // Update avatar clickability based on sidebar state
+            if (sidebar.classList.contains('collapsed')) {
+                userAvatar.style.cursor = 'default';
+                userProfileToggle.style.pointerEvents = 'none';
+            } else {
+                userAvatar.style.cursor = 'pointer';
+                userProfileToggle.style.pointerEvents = 'auto';
+            }
             
             // Save state to localStorage
             localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
@@ -1383,8 +1395,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle logout menu when user profile is clicked
     if (userProfileToggle) {
         userProfileToggle.addEventListener('click', function(event) {
-            event.stopPropagation();
-            logoutMenu.classList.toggle('active');
+            // Only toggle logout menu if sidebar is not collapsed
+            if (!sidebar.classList.contains('collapsed')) {
+                event.stopPropagation();
+                logoutMenu.classList.toggle('active');
+            }
         });
     }
 

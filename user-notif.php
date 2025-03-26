@@ -99,10 +99,6 @@ if (!$notif_result) {
     z-index: 999;
 }
 
-.sidebar.collapsed {
-    width: 90px;
-    padding: 2rem 0.5rem;
-}
 
 .sidebar .logo {
     margin-bottom: 1rem;
@@ -234,15 +230,20 @@ if (!$notif_result) {
     justify-content: center;
     margin-right: 10px;
 }
+
+.user-avatar {
+    transition: cursor 0.3s ease;
+}
+
 .username {
         
     font-family: Tilt Warp;
 }
 
 .sidebar.collapsed .user-avatar img {
-    margin-right: 0;
+    margin-right: 0;s
+    cursor: default
 }
-
 /* Update logout menu position for collapsed sidebar */
 .logout-menu {
     position: absolute;
@@ -264,29 +265,29 @@ if (!$notif_result) {
 }
 
 .logout-btn {
-    background-color: white;    
-    display: block;
-    width: 100%;
-    padding: 8px 10px;
-    color: #12753E;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-family: 'Tilt Warp', sans-serif;
-    font-size: 14px;
-    text-align: center;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: absolute;
-    top: 80%;
-    left: 248%;
-    z-index: 10001; 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        background-color: white; 
+        border: 2px solid #12753E;  
+        display: block;
+        width: 105%;
+        padding: 8px 10px;
+        color: #12753E;
+        border-radius: 4px;
+        font-family: 'Tilt Warp', sans-serif;
+        font-size: 14px;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 80%;
+        left: 265%;
+        z-index: 10001 !important; /* Increase this value significantly */
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: add shadow for better visibility */
 }
 
-.sidebar.collapsed .logout-btn {
-    left: 100%;
+.sidebar.collapsed {
+    width: 90px;
+    padding: 2rem 0.5rem;
 }
-
 /* Content adjustments */
 .content {
     flex: 1;
@@ -320,6 +321,7 @@ if (!$notif_result) {
             justify-content: center;
         }
     }
+
 
     .content {
         flex: 1;
@@ -608,8 +610,8 @@ if (!$notif_result) {
             <span>Events</span>
         </a>
         <a href="user-notif.php" class="active">
-            <i class="fas fa-users"></i>
-            <span>Users</span>
+            <i class="fas fa-bell mr-3"></i>
+            <span>Notification</span>
         </a>
 
 
@@ -617,7 +619,7 @@ if (!$notif_result) {
         </div>
         <!-- Modified user profile with logout menu -->
         <div class="user-profile" id="userProfileToggle">
-            <div class="user-avatar"><img src="styles/photos/default.png"></div>
+            <div class="user-avatar"><img src="styles/photos/me.jpg"></div>
             <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
             <!-- Add logout menu -->
             <div class="logout-menu" id="logoutMenu">
@@ -736,12 +738,12 @@ if (!$notif_result) {
 
 // Document ready function
 document.addEventListener('DOMContentLoaded', function() {
-    // User profile toggle and logout menu
     const userProfileToggle = document.getElementById('userProfileToggle');
     const logoutMenu = document.getElementById('logoutMenu');
     const sidebar = document.getElementById('sidebar');
     const content = document.querySelector('.content');
     const toggleBtn = document.getElementById('toggleSidebar');
+    const userAvatar = document.querySelector('.user-avatar');
 
     // Check if sidebar state is saved in localStorage
     const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -750,6 +752,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isSidebarCollapsed) {
         sidebar.classList.add('collapsed');
         content.classList.add('expanded');
+        userAvatar.style.cursor = 'default'; // Make avatar non-clickable
+        userProfileToggle.style.pointerEvents = 'none'; // Disable click events
+    } else {
+        userAvatar.style.cursor = 'pointer'; // Make avatar clickable
+        userProfileToggle.style.pointerEvents = 'auto'; // Enable click events
     }
 
     // Toggle sidebar when button is clicked
@@ -757,6 +764,15 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleBtn.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
             content.classList.toggle('expanded');
+            
+            // Update avatar clickability based on sidebar state
+            if (sidebar.classList.contains('collapsed')) {
+                userAvatar.style.cursor = 'default';
+                userProfileToggle.style.pointerEvents = 'none';
+            } else {
+                userAvatar.style.cursor = 'pointer';
+                userProfileToggle.style.pointerEvents = 'auto';
+            }
             
             // Save state to localStorage
             localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
@@ -766,8 +782,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle logout menu when user profile is clicked
     if (userProfileToggle) {
         userProfileToggle.addEventListener('click', function(event) {
-            event.stopPropagation();
-            logoutMenu.classList.toggle('active');
+            // Only toggle logout menu if sidebar is not collapsed
+            if (!sidebar.classList.contains('collapsed')) {
+                event.stopPropagation();
+                logoutMenu.classList.toggle('active');
+            }
         });
     }
 
@@ -777,14 +796,6 @@ document.addEventListener('DOMContentLoaded', function() {
             logoutMenu.classList.remove('active');
         }
     });
-
-    // Modal functionality
-    var modal = document.getElementById("eventModal");
-
-    // Auto-open modal if loaded with modal=true parameter
-    <?php if (isset($_GET['modal']) && $_GET['modal'] == 'true'): ?>
-    modal.style.display = "flex";
-    <?php endif; ?>
 });
 
 // Modal functions (defined outside the DOMContentLoaded event for global access)
@@ -863,25 +874,7 @@ var modal = document.getElementById("eventModal");
 document.addEventListener('DOMContentLoaded', function() {
     modal.style.display = "flex";
 });
-<?php endif; ?>
-
-
-
-  
-        <!-- Add JavaScript for the user profile toggle and logout menu -->
-document.getElementById('userProfileToggle').addEventListener('click', function() {
-    document.getElementById('logoutMenu').classList.toggle('active');
-});
-
-// Close the menu when clicking outside
-document.addEventListener('click', function(event) {
-    const profile = document.getElementById('userProfileToggle');
-    const menu = document.getElementById('logoutMenu');
-    
-    if (!profile.contains(event.target)) {
-        menu.classList.remove('active');
-    }
-});
+<?php endif; ?>  
 </script>
 </body>
 </html>
