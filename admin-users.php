@@ -72,7 +72,7 @@ $divResult = $divCount->get_result();
             <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
             <p>Learning and Development</p>
             <h1>EVENT MANAGEMENT SYSTEM</h1>
-        </div><br><br><br><br><br>
+        </div><br><br><br>
 
         <div class="content-body">
             <h1>Users</h1>
@@ -170,6 +170,15 @@ $divResult = $divCount->get_result();
             const sidebar = document.querySelector('.sidebar');
             const content = document.getElementById('content');
             const toggleBtn = document.getElementById('toggleSidebar');
+
+            // Check if sidebar state is saved in localStorage
+            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            
+            // Set initial state based on localStorage
+            if (isSidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                content.classList.add('expanded');
+            }
             
             toggleBtn.addEventListener('click', function() {
                 sidebar.classList.toggle('collapsed');

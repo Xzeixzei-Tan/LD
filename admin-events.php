@@ -36,7 +36,7 @@ $baseSQL = "SELECT
             CASE 
                 WHEN DATE(NOW()) = DATE(e.start_date) AND DATE(NOW()) = DATE(e.end_date) THEN 'Ongoing'
                 WHEN NOW() BETWEEN e.start_date AND e.end_date THEN 'Ongoing'
-                WHEN e.archived = 1 THEN 'Past'
+                WHEN e.end_date < DATE(NOW()) THEN 'Past'  
                 ELSE 'Upcoming'
             END AS status
         FROM events e
@@ -275,19 +275,65 @@ foreach ($eventsData as $event) {
     <script src="scripts/admin-events.js" defer></script>
     <title>Event Management System</title>
 </head>
+<style>
+.btn-disabled {
+    background-color: #e0e0e0 !important;
+    color: #868686 !important;
+    cursor: not-allowed;
+    position: relative;
+    pointer-events: none;
+}
+.tooltip-disabled {
+    position: relative;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
 
+.tooltip-disabled::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip-disabled:hover::after {
+    opacity: 1;
+}
+</style>
 <body>
 
-<div class="container">
-    <div class="sidebar">
-        <div class="menu">
-            <a href="admin-dashboard.php"><i class="fas fa-home mr-3"></i>Home</a>
-            <a href="admin-events.php" class="active"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
-            <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
-        </div>
+<div class="sidebar" id="sidebar">
+    <div class="logo">
+        <button id="toggleSidebar" class="toggle-btn">
+            <i class="fas fa-bars"></i>
+        </button>
     </div>
+        
+    <div class="menu">
+        <a href="admin-dashboard.php">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="admin-events.php"  class="active">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Events</span>
+        </a>
+        <a href="admin-users.php">
+            <i class="fas fa-users"></i>
+            <span>Users</span>
+        </a>
+    </div>
+</div>
 
-    <div class="content">
+    <div class="content" id="mainContent">
         <div class="content-header">
             <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
             <p>Learning and Development</p>
@@ -301,6 +347,11 @@ foreach ($eventsData as $event) {
             <?php if (!$viewArchived): ?>
                 <a class="create-btn" href="admin-create_events.php">Create an Event!</a>
             <?php endif; ?>
+
+            <div class="search-container">
+                <span class="search-icon"><i class="fa fa-search" aria-hidden="true"></i></span>
+                <input type="text" class="search-input" placeholder="Search for events...">
+            </div>
 
             <div class="archive-toggle">
                 <a href="admin-events.php" class="<?php echo !$viewArchived ? 'active' : ''; ?>">Current Events</a>
@@ -418,8 +469,6 @@ foreach ($eventsData as $event) {
                     </div>
                 </div>
 
-                <!-- Add this new section for registered users table -->
-                 
                 <div class="detail-item expanded-content" style="width: 100%;">
                     <div class="registered-users">
                         <h4 style="margin: 0;">Registered Users: <span id="detail-user_count"></span></h4>
@@ -513,62 +562,89 @@ foreach ($eventsData as $event) {
     </div>
 </div>
 
-<!-- Meal Plan Attendance Modal HTML -->
-<div id="meal-modal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span class="close">&times;</span>
-            <h2>Meal Plan Attendance</h2>
-        </div>
-        <div class="modal-body">
-            <div class="meal-filters">
-                <div class="filter-group">
-                    <label for="meal-day-filter">Filter by Day:</label>
-                    <select id="meal-day-filter">
-                        <option value="">All Days</option>
-                        <option value="Day 1">Day 1</option>
-                        <option value="Day 2">Day 2</option>
-                        <option value="Day 3">Day 3</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="meal-type-filter">Filter by Meal Type:</label>
-                    <select id="meal-type-filter">
-                        <option value="">All Types</option>
-                        <option value="Breakfast">Breakfast</option>
-                        <option value="Lunch">Lunch</option>
-                        <option value="Dinner">Dinner</option>
-                    </select>
-                </div>
-                <button id="apply-meal-filters" class="btn-primary">Apply Filters</button>
-            </div>
-            <div class="table-container">
-                <table id="meal-attendance-table">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>Name</th>
-                            <th>Sex</th>
-                            <th>Meal Day</th>
-                            <th>Meal Type</th>
-                            <th>Attended</th>
-                        </tr>
-                    </thead>
-                    <tbody id="meal-attendance-body">
-                        <!-- Meal attendance data will be populated here -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button id="save-attendance" class="btn-primary">Save Changes</button>
-            <button id="close-meal-modal" class="btn-secondary">Close</button>
-        </div>
-    </div>
-</div>
-
 <script>
     let currentEvent = null;
+
+    // Function to toggle sidebar
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const content = document.getElementById('mainContent');
+        const toggleBtn = document.getElementById('toggleSidebar');
+
+        // Check if sidebar state is saved in localStorage
+        const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        
+        // Set initial state based on localStorage
+        if (isSidebarCollapsed) {
+            sidebar.classList.add('collapsed');
+            content.classList.add('expanded');
+        }
+
+        toggleBtn.addEventListener('click', function() {
+            sidebar.classList.toggle('collapsed');
+            content.classList.toggle('expanded');
+            
+            // Save state to localStorage
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        });
+    });
+
+    function toggleSortOrder() {
+        // Get the current sort order from the URL
+        const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
+
+        // Toggle sort order
+        const newSortOrder = (currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
+
+        // Update the URL to reflect the new sort order
+        window.location.href = window.location.pathname + '?sort=' + newSortOrder;
+    }
+
+    // Update the sort order label and button text on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentSortOrder = new URLSearchParams(window.location.search).get('sort') || 'ASC';
+        const sortButton = document.getElementById('sortButton');
+        if (sortButton) {
+            sortButton.textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
+        }
+    });
+
+    function updateButtonState() {
+    const linkBtn = document.getElementById('link-btn');
+    const distributeBtn = document.getElementById('distribute-btn');
+    
+    function setupTooltip(button, message) {
+        button.classList.add('tooltip-disabled');
+        button.setAttribute('data-tooltip', message);
+        button.disabled = true;
+    }
+
+    function removeTooltip(button) {
+        button.classList.remove('tooltip-disabled');
+        button.removeAttribute('data-tooltip');
+        button.disabled = false;
+    }
+
+    // Check if an event is selected and its status
+    if (!currentEvent) {
+        // No event selected
+        setupTooltip(linkBtn, 'Enabled after the event is completed');
+        setupTooltip(distributeBtn, 'Enabled after the event is completed');
+    } else {
+        // An event is selected
+        const eventData = <?php echo json_encode($eventsData); ?>.find(event => event.id == currentEvent);
+        
+        if (eventData && eventData.status !== 'Past') {
+            // Event is not a past event
+            setupTooltip(linkBtn, 'Enabled after the event is completed');
+            setupTooltip(distributeBtn, 'Enabled after the event is completed');
+        } else {
+            // Past event
+            removeTooltip(linkBtn);
+            removeTooltip(distributeBtn);
+        }
+    }
+}
 
     function showDetails(eventData) {
     const detailsSection = document.getElementById('details-section');
@@ -601,12 +677,39 @@ foreach ($eventsData as $event) {
         
         // Fetch registered users for this event
         fetchRegisteredUsers(eventData.id);
+
+        updateButtonState();
         
         // In the showDetails function, replace the participant select code with this:
 
     // Process the eligible participants data to show all types at once
     const detailsContainer = document.getElementById('participant-details-container');
     detailsContainer.innerHTML = ''; // Clear previous content
+    
+    // Disable or enable distribution buttons based on event status
+    const linkBtn = document.getElementById('link-btn');
+    const distributeBtn = document.getElementById('distribute-btn');
+
+    // Modify the existing code that handles button visibility
+    if (eventData.status !== 'Past') {
+        // Disable buttons for events not yet completed
+        linkBtn.disabled = true;
+        linkBtn.classList.add('tooltip-disabled');
+        linkBtn.setAttribute('data-tooltip', 'Enabled after the event is completed');
+
+        distributeBtn.disabled = true;
+        distributeBtn.classList.add('tooltip-disabled');
+        distributeBtn.setAttribute('data-tooltip', 'Enabled after the event is completed');
+    } else {
+        // Ensure buttons are enabled for completed events
+        linkBtn.disabled = false;
+        linkBtn.classList.remove('tooltip-disabled');
+        linkBtn.removeAttribute('data-tooltip');
+
+        distributeBtn.disabled = false;
+        distributeBtn.classList.remove('tooltip-disabled');
+        distributeBtn.removeAttribute('data-tooltip');
+    }
 
     try {
         if (eventData.processed_eligible_data) {
@@ -632,7 +735,30 @@ foreach ($eventsData as $event) {
                                     if (school.type) {
                                         detailsHTML += `<span class="participant-tag"><i class="fas fa-tag"></i> ${school.type}</span>`;
                                     }
-                                    detailsHTML += `<div class="specialization"><strong>Specialization:</strong> ${school.specialization || 'N/A'}</div>`;
+                                    
+                                    // New code: Display specialization in bullet form
+                                    if (school.specialization) {
+                                        detailsHTML += `<div class="specialization"><strong>Specialization:</strong>`;
+                                        detailsHTML += `<ul class="specialization-list">`;
+                                        
+                                        // Handle different input types for specialization
+                                        let specs = [];
+                                        if (Array.isArray(school.specialization)) {
+                                            specs = school.specialization;
+                                        } else if (typeof school.specialization === 'string') {
+                                            // Split by comma and trim each specialization
+                                            specs = school.specialization.split(',').map(spec => spec.trim());
+                                        }
+                                        
+                                        // Create a bullet for each specialization
+                                        specs.forEach((spec) => {
+                                            detailsHTML += `<li>${spec}</li>`;
+                                        });
+                                        
+                                        detailsHTML += `</ul></div>`;
+                                    } else {
+                                        detailsHTML += `<div class="specialization"><strong>Specialization:</strong> N/A</div>`;
+                                    }
                                 } else {
                                     detailsHTML += `${school}`;
                                 }
@@ -643,6 +769,7 @@ foreach ($eventsData as $event) {
                         }
                         detailsHTML += '</div>';
                     } else if (participant.target === 'Division') {
+                        // Division section remains unchanged
                         detailsHTML += '<div class="participant-details-container">';
                         detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-building mr-2"></i> Division Office Personnel</div>';
                         
@@ -664,76 +791,95 @@ foreach ($eventsData as $event) {
                             detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All Division Units are eligible</div>';
                         }
                         detailsHTML += '</div>';
-                    }  else if (participant.target === 'Both') {
-    detailsHTML += '<div class="participant-details-container">';
-    detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-users mr-2"></i> All Personnel</div>';
-    
-    // First, check if we have specific data
-    if (participant.specificParticipants && typeof participant.specificParticipants === 'object') {
-        // Display school participants
-        if (participant.specificParticipants.school && participant.specificParticipants.school.length > 0) {
-            detailsHTML += '<div class="participant-group">';
-            detailsHTML += '<div class="participant-type-subheader"><i class="fas fa-school mr-2"></i> School Personnel</div>';
-            
-            participant.specificParticipants.school.forEach((school) => {
-                detailsHTML += `<div class="participant-item">`;
-                if (typeof school === 'object') {
-                    if (school.level) {
-                        detailsHTML += `<span class="participant-tag"><i class="fas fa-layer-group"></i> ${school.level}</span>`;
+                    } else if (participant.target === 'Both') {
+                        detailsHTML += '<div class="participant-details-container">';
+                        detailsHTML += '<div class="participant-type-indicator"><i class="fas fa-users mr-2"></i> All Personnel</div>';
+                        
+                        // First, check if we have specific data
+                        if (participant.specificParticipants && typeof participant.specificParticipants === 'object') {
+                            // Display school participants
+                            if (participant.specificParticipants.school && participant.specificParticipants.school.length > 0) {
+                                detailsHTML += '<div class="participant-group">';
+                                detailsHTML += '<div class="participant-type-subheader"><i class="fas fa-school mr-2"></i> School Personnel</div>';
+                                
+                                participant.specificParticipants.school.forEach((school) => {
+                                    detailsHTML += `<div class="participant-item">`;
+                                    if (typeof school === 'object') {
+                                        if (school.level) {
+                                            detailsHTML += `<span class="participant-tag"><i class="fas fa-layer-group"></i> ${school.level}</span>`;
+                                        }
+                                        if (school.type) {
+                                            detailsHTML += `<span class="participant-tag"><i class="fas fa-tag"></i> ${school.type}</span>`;
+                                        }
+                                        
+                                        // New code: Display specialization in bullet form
+                                        if (school.specialization) {
+                                            detailsHTML += `<div class="specialization"><strong>Specialization:</strong>`;
+                                            detailsHTML += `<ul class="specialization-list">`;
+                                            
+                                            // If specialization is an array, create a bullet for each
+                                            if (Array.isArray(school.specialization)) {
+                                                school.specialization.forEach((spec) => {
+                                                    detailsHTML += `<li>${spec}</li>`;
+                                                });
+                                            } else {
+                                                // If it's a single string, create one bullet
+                                                detailsHTML += `<li>${school.specialization}</li>`;
+                                            }
+                                            
+                                            detailsHTML += `</ul></div>`;
+                                        } else {
+                                            detailsHTML += `<div class="specialization"><strong>Specialization:</strong> N/A</div>`;
+                                        }
+                                    } else {
+                                        detailsHTML += `${school}`;
+                                    }
+                                    detailsHTML += '</div>';
+                                });
+                                detailsHTML += '</div>';
+                            } else {
+                                detailsHTML += '<div class="participant-group">';
+                                detailsHTML += '<div class="participant-type-subheader"><i class="fas fa-school mr-2"></i> School Personnel</div>';
+                                detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All School Personnel are eligible</div>';
+                                detailsHTML += '</div>';
+                            }
+                            
+                            // Division section remains unchanged
+                            if (participant.specificParticipants.division && participant.specificParticipants.division.length > 0) {
+                                detailsHTML += '<div class="participant-group">';
+                                detailsHTML += '<div class="participant-type-subheader"><i class="fas fa-building mr-2"></i> Division Office Personnel</div>';
+                                detailsHTML += '<ul class="participant-list">';
+                                
+                                participant.specificParticipants.division.forEach((division) => {
+                                    detailsHTML += `<li class="participant-list-item">`;
+                                    if (typeof division === 'object') {
+                                        // Get the department name (usually the only/first property)
+                                        const deptName = Object.values(division)[0] || 'N/A';
+                                        detailsHTML += `${deptName}`;
+                                    } else {
+                                        detailsHTML += `${division}`;
+                                    }
+                                    detailsHTML += '</li>';
+                                });
+                                
+                                detailsHTML += '</ul>';
+                                detailsHTML += '</div>';
+                            } else {
+                                detailsHTML += '<div class="participant-group">';
+                                detailsHTML += '<div class="participant-type-subheader"><i class="fas fa-building mr-2"></i> Division Office Personnel</div>';
+                                detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All Division Units are eligible</div>';
+                                detailsHTML += '</div>';
+                            }
+                        } else {
+                            // Fallback for when specific participant data isn't available
+                            detailsHTML += '<div class="participant-item" style="text-align: center;">';
+                            detailsHTML += '<i class="fas fa-check-circle mr-2" style="color: #28a745;"></i>';
+                            detailsHTML += 'This event is open to all personnel from both Schools and Division units.';
+                            detailsHTML += '</div>';
+                        }
+                        
+                        detailsHTML += '</div>';
                     }
-                    if (school.type) {
-                        detailsHTML += `<span class="participant-tag"><i class="fas fa-tag"></i> ${school.type}</span>`;
-                    }
-                    detailsHTML += `<div class="specialization"><strong>Specialization:</strong> ${school.specialization || 'N/A'}</div>`;
-                } else {
-                    detailsHTML += `${school}`;
-                }
-                detailsHTML += '</div>';
-            });
-            detailsHTML += '</div>';
-        } else {
-            detailsHTML += '<div class="participant-group">';
-            detailsHTML += '<div class="participant-type-subheader"><i class="fas fa-school mr-2"></i> School Personnel</div>';
-            detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All School Personnel are eligible</div>';
-            detailsHTML += '</div>';
-        }
-        
-        // Display division participants
-        if (participant.specificParticipants.division && participant.specificParticipants.division.length > 0) {
-            detailsHTML += '<div class="participant-group">';
-            detailsHTML += '<div class="participant-type-subheader"><i class="fas fa-building mr-2"></i> Division Office Personnel</div>';
-            detailsHTML += '<ul class="participant-list">';
-            
-            participant.specificParticipants.division.forEach((division) => {
-                detailsHTML += `<li class="participant-list-item">`;
-                if (typeof division === 'object') {
-                    // Get the department name (usually the only/first property)
-                    const deptName = Object.values(division)[0] || 'N/A';
-                    detailsHTML += `${deptName}`;
-                } else {
-                    detailsHTML += `${division}`;
-                }
-                detailsHTML += '</li>';
-            });
-            
-            detailsHTML += '</ul>';
-            detailsHTML += '</div>';
-        } else {
-            detailsHTML += '<div class="participant-group">';
-            detailsHTML += '<div class="participant-type-subheader"><i class="fas fa-building mr-2"></i> Division Office Personnel</div>';
-            detailsHTML += '<div class="participant-item" style="text-align: center;"><i class="fas fa-info-circle mr-2"></i> All Division Units are eligible</div>';
-            detailsHTML += '</div>';
-        }
-    } else {
-        // Fallback for when specific participant data isn't available
-        detailsHTML += '<div class="participant-item" style="text-align: center;">';
-        detailsHTML += '<i class="fas fa-check-circle mr-2" style="color: #28a745;"></i>';
-        detailsHTML += 'This event is open to all personnel from both Schools and Division units.';
-        detailsHTML += '</div>';
-    }
-    
-    detailsHTML += '</div>';
-}
                 });
             }
             
@@ -923,6 +1069,80 @@ foreach ($eventsData as $event) {
         }, 1500);
         }
 
+        const searchInput = document.querySelector('.search-input');
+    const eventButtons = document.querySelectorAll('.events-btn');
+    const eventsSection = document.querySelector('.events-section');
+
+    // Function to filter events
+    function filterEvents(searchTerm) {
+        eventButtons.forEach(function(eventButton) {
+            const eventTitle = eventButton.querySelector('h3').textContent.toLowerCase();
+            const eventSpecification = eventButton.querySelector('p').textContent.toLowerCase();
+            const eventDate = eventButton.querySelector('.event-dates p').textContent.toLowerCase();
+            
+            // Check if the search term matches the title, specification, or date
+            if (
+                searchTerm === '' || 
+                eventTitle.includes(searchTerm) || 
+                eventSpecification.includes(searchTerm) || 
+                eventDate.includes(searchTerm)
+            ) {
+                eventButton.style.display = 'block';
+            } else {
+                eventButton.style.display = 'none';
+            }
+        });
+
+        // If no events match the search, show a "No results" message
+        const visibleEvents = Array.from(eventButtons).filter(btn => btn.style.display !== 'none');
+        
+        // Remove any existing "no results" message
+        const existingNoResultsMessage = document.querySelector('.no-results-message');
+        if (existingNoResultsMessage) {
+            existingNoResultsMessage.remove();
+        }
+
+        if (visibleEvents.length === 0 && searchTerm !== '') {
+            const noResultsMessage = document.createElement('div');
+            noResultsMessage.classList.add('no-results-message');
+            noResultsMessage.innerHTML = `
+                <p><i class="fas fa-search"></i> No events found matching "<strong>${searchTerm}</strong>"</p>
+            `;
+            
+            // Insert the message inside the events section
+            eventsSection.appendChild(noResultsMessage);
+        }
+    }
+
+    // Event listener for input changes
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        filterEvents(searchTerm);
+    });
+
+    // Handle clear button (x) in search input
+    searchInput.addEventListener('search', function() {
+        // This event is triggered when the search input is cleared
+        const searchTerm = this.value.toLowerCase().trim();
+        filterEvents(searchTerm);
+    });
+
+        // When clicking the X (clear) button
+        const searchContainer = document.querySelector('.search-container');
+    if (searchContainer) {
+        searchContainer.addEventListener('click', function(e) {
+            // Check if the click was on the after pseudo-element (approximated by position)
+            const rect = searchContainer.getBoundingClientRect();
+            
+            // If click is in the right 30px of the container (where the X appears)
+            if (searchInput && e.clientX > rect.right - 30 && searchInput.value !== '') {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+                searchInput.focus();
+            }
+        });
+    }
+
         function distributeCertificates() {
             const eventId = document.getElementById('distribute-btn').getAttribute('data-id');
             if (confirm('Are you sure you want to distribute certificates to all participants of this event?')) {
@@ -1006,7 +1226,6 @@ foreach ($eventsData as $event) {
             }
         }
 
-        download_meal_attendance.php
         function archiveEvent() {
             const eventId = document.getElementById('archive-btn').getAttribute('data-id');
             if (confirm('Are you sure you want to archive this event?')) {

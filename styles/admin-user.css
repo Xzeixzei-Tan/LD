@@ -124,28 +124,31 @@ body, html {
   font-size: 1.2rem;
 }
 
-
-
-.profile {
-    text-decoration: none;
-    margin-top: 2%;
-    margin-bottom: 7%;
-    margin-left: 1.3rem;
-    color: white;
-    font-family: Tilt Warp;
-    font-size: 1rem;
-}
-
-.profile i{
-    font-size: 18px;
-    margin-right: 0.5rem;
-}
-
 .content {
-    flex: 1;
-    background-color: #f5f7ff;
-    padding: 4rem;
-    margin-left: 17%;
+  flex: 1;
+  background-color: #ffffff;
+  padding: 4rem;
+  margin-left: 17%;
+  transition: margin-left 0.3s ease;
+}
+
+.content.expanded {
+  margin-left: 90px;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+      width: 70px;
+  }
+
+  .sidebar-header h2, .menu-text {
+      display: none;
+  }
+
+  .menu-item {
+      display: flex;
+      justify-content: center;
+  }
 }
 
 .content-header h1 {
