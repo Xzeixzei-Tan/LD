@@ -497,8 +497,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     ?>
 </div>
+                </div>
             
+
             <!-- Target Personnel -->
+            <div class="form-container">
                 <div class="section-title">Target Personnel</div>
                 <div class="personnel-selection">
                     <label for="target-personnel">Target Participants:</label>
@@ -511,7 +514,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </option>
                         <?php endforeach; ?>
                     </select>
-                </div>
+                
                 
                 <!-- School Personnel Options -->
                 <div id="school-personnel" style="<?php echo (isset($targetParticipant['target']) && ($targetParticipant['target'] === 'School' || $targetParticipant['target'] === 'Both')) ? 'display:block;' : 'display:none;'; ?>">
