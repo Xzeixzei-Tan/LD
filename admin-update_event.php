@@ -387,7 +387,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </label>
                             
                             <div class="amount-field" <?php echo (isset($fundingSources[$option])) ? 'style="display:block;"' : 'style="display:none;"'; ?>>
-                                <label for="<?php echo htmlspecialchars($option); ?>_amount">Amount (₱):</label>
+                                <label for="<?php echo htmlspecialchars($option); ?>_amount">Amount</label>
                                 <div class="input-with-symbol">
                                     <span class="currency-symbol">₱</span>
                                     <input type="number" step="0.01" min="0" id="<?php echo htmlspecialchars($option); ?>_amount" 
@@ -412,15 +412,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
                                 </div>
-                    </div>
+                    <br>
                             <!-- Event Days Section -->
                             <div class="section-title">Event Days Schedule</div>
+                            
                             <div id="event-days-container"></div>
                     </div>
+                    <br>
                         <!-- INSERT MEAL PLAN SECTION HERE -->
                          <?php
                         // Meal Plan section of your form
-                        echo '<div class="form-group">';
+                       
                         echo '<div class="section-title">Meal Plan</div>';
                         echo '<div id="meal-plan-container">';
                         // Only generate this if start and end dates are set
@@ -452,7 +454,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         echo '</div>';
                         echo '</div>';
                         ?>
-
+</div>
 
              <div class="form-group">
              <div class="form-col">
@@ -469,32 +471,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="text" name="proponent" placeholder="Enter organizer name" required value="<?php echo htmlspecialchars($eventData['proponent']); ?>">
                                 
                             <div id="speakers-container">
-                                <div class="speakers-header">
-                                    <h4>Speaker/Resource Person:</h4>
-                                    <button type="button" class="add-speaker-btn" onclick="addSpeakerField()">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                            </div>
-                                                        <?php 
+                                    <div class="speakers-header">
+                                        <h4>Speaker/Resource Person:</h4>
+                                        <button type="button" class="add-speaker-btn" onclick="addNewSpeaker()">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                    <?php 
                     // If there are existing speakers, create input fields for them
                     if (!empty($speakers)) {
                         foreach ($speakers as $index => $speaker) {
                             echo '<div class="speaker-input-group">';
                             echo '<input type="text" name="speaker[]" placeholder="Enter speaker/resource person" value="' . htmlspecialchars($speaker) . '">';
-                            // Allow removing speakers if more than one exists
-                            if (count($speakers) > 1 || $index > 0) {
+                            // Add remove button for all speakers except the first one
+                            if ($index > 0) {
                                 echo '<button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>';
                             }
                             echo '</div>';
                         }
                     } else {
-                        // If no speakers, show a default empty input with an option to remove if empty
+                        // Default empty input
                         echo '<div class="speaker-input-group">';
                         echo '<input type="text" name="speaker[]" placeholder="Enter speaker/resource person">';
                         echo '</div>';
                     }
                     ?>
-                        </div>
+</div>
             
             <!-- Target Personnel -->
                 <div class="section-title">Target Personnel</div>
@@ -514,6 +516,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- School Personnel Options -->
                 <div id="school-personnel" style="<?php echo (isset($targetParticipant['target']) && ($targetParticipant['target'] === 'School' || $targetParticipant['target'] === 'Both')) ? 'display:block;' : 'display:none;'; ?>">
                     <h4>School Level</h4>
+                    <br>
                     <div class="checkbox-subgroup">
                         <?php foreach ($schoolLevelOptions as $option): ?>
                             <label>
@@ -523,8 +526,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </label>
                         <?php endforeach; ?>
                     </div>
+                    <br>
                     
                     <h4>School Classification</h4>
+                    <br>
                     <div class="checkbox-subgroup">
                         <?php foreach ($typeOptions as $option): ?>
                             <label>
@@ -534,8 +539,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </label>
                         <?php endforeach; ?>
                     </div>
+                    <br>
                     
                     <h4>School Specialization</h4>
+                    <br>
                     <div class="checkbox-subgroup">
                         <?php foreach ($specializationOptions as $option): ?>
                             <label>
@@ -546,10 +553,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php endforeach; ?>
                     </div>
                 </div>
-                
+                <br>
                 <!-- Division Personnel Options -->
                 <div id="division-personnel" style="<?php echo (isset($targetParticipant['target']) && ($targetParticipant['target'] === 'Division' || $targetParticipant['target'] === 'Both')) ? 'display:block;' : 'display:none;'; ?>">
                     <h4>Departments</h4>
+                    <br>
                     <div class="checkbox-subgroup">
                         <?php foreach ($departmentOptions as $option): ?>
                             <label>
@@ -561,6 +569,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
             </div>
+            
     
             <button type="submit" class="submit-btn">Update Event</button>
         </form>
@@ -570,303 +579,178 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Delivery method controls venue field visibility
-    const deliverySelect = document.getElementById('delivery');
-    const venueContainer = document.getElementById('venue-container');
-    
-    deliverySelect.addEventListener('change', function() {
-        if (this.value === 'Face-to-Face' || this.value === 'Blended') {
-            venueContainer.style.display = 'block';
-        } else {
-            venueContainer.style.display = 'none';
-        }
-    });
-    
-    // Target personnel selection controls visibility of related sections
-    const targetSelect = document.getElementById('target-personnel');
-    const schoolOptions = document.getElementById('school-personnel');
-    const divisionOptions = document.getElementById('division-personnel');
-    
-    targetSelect.addEventListener('change', function() {
-        if (this.value === 'School') {
-            schoolOptions.style.display = 'block';
-            divisionOptions.style.display = 'none';
-        } else if (this.value === 'Division') {
-            schoolOptions.style.display = 'none';
-            divisionOptions.style.display = 'block';
-        } else if (this.value === 'Both') {
-            schoolOptions.style.display = 'block';
-            divisionOptions.style.display = 'block';
-        } else {
-            schoolOptions.style.display = 'none';
-            divisionOptions.style.display = 'none';
-        }
-    });
+    function addNewSpeaker() {
+        const speakersContainer = document.getElementById('speakers-container');
+        const newSpeaker = document.createElement('div');
+        newSpeaker.className = 'speaker-input-group';
+        newSpeaker.innerHTML = `
+            <input type="text" name="speaker[]" placeholder="Enter speaker/resource person">
+            <button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>
+        `;
+        speakersContainer.appendChild(newSpeaker);
+    }
 
-    // Toggle funding amount fields based on checkbox selection
-    function toggleFundingAmountField() {
-        const fundingCheckboxes = document.querySelectorAll('input[name="funding_source[]"]');
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delivery method controls venue field visibility
+        const deliverySelect = document.getElementById('delivery');
+        const venueContainer = document.getElementById('venue-container');
         
-        fundingCheckboxes.forEach(function(checkbox) {
-            const amountField = checkbox.closest('.funding-option').querySelector('.amount-field');
-            
-            // Initially set display based on checkbox state
-            if (checkbox.checked) {
-                amountField.style.display = 'block';
+        deliverySelect.addEventListener('change', function() {
+            if (this.value === 'Face-to-Face' || this.value === 'Blended') {
+                venueContainer.style.display = 'block';
             } else {
-                amountField.style.display = 'none';
+                venueContainer.style.display = 'none';
             }
+        });
+        
+        // Target personnel selection controls visibility of related sections
+        const targetSelect = document.getElementById('target-personnel');
+        const schoolOptions = document.getElementById('school-personnel');
+        const divisionOptions = document.getElementById('division-personnel');
+        
+        targetSelect.addEventListener('change', function() {
+            if (this.value === 'School') {
+                schoolOptions.style.display = 'block';
+                divisionOptions.style.display = 'none';
+            } else if (this.value === 'Division') {
+                schoolOptions.style.display = 'none';
+                divisionOptions.style.display = 'block';
+            } else if (this.value === 'Both') {
+                schoolOptions.style.display = 'block';
+                divisionOptions.style.display = 'block';
+            } else {
+                schoolOptions.style.display = 'none';
+                divisionOptions.style.display = 'none';
+            }
+        });
+
+        // Toggle funding amount fields based on checkbox selection
+        function toggleFundingAmountField() {
+            const fundingCheckboxes = document.querySelectorAll('input[name="funding_source[]"]');
             
-            // Add change event listener
-            checkbox.addEventListener('change', function() {
-                if (this.checked) {
+            fundingCheckboxes.forEach(function(checkbox) {
+                const amountField = checkbox.closest('.funding-option').querySelector('.amount-field');
+                
+                // Initially set display based on checkbox state
+                if (checkbox.checked) {
                     amountField.style.display = 'block';
                 } else {
                     amountField.style.display = 'none';
-                    // Clear the amount input when unchecked
-                    const amountInput = amountField.querySelector('input[type="number"]');
-                    if (amountInput) {
-                        amountInput.value = '';
-                    }
                 }
-            });
-        });
-    }
-
-    // Call funding source toggle on page load
-    toggleFundingAmountField();
-    
-    // Add event day button functionality
-    const addDayBtn = document.getElementById('add-day-btn');
-    const eventDaysContainer = document.getElementById('event-days-container');
-    const mealPlansContainer = document.getElementById('meal-plans-container');
-    
-    // Find the highest day number to continue from
-    let dayCount = 0;
-    document.querySelectorAll('.event-day').forEach(function(dayElement) {
-        const dayNumberInput = dayElement.querySelector('input[name$="[day_number]"]');
-        if (dayNumberInput) {
-            const currentDayNumber = parseInt(dayNumberInput.value);
-            if (currentDayNumber > dayCount) {
-                dayCount = currentDayNumber;
-            }
-        }
-    });
-    
-    // Format date for display in a more readable format
-    function formatDate(dateString) {
-        if (!dateString) return 'Select date above';
-        
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', {
-            month: 'long', 
-            day: 'numeric', 
-            year: 'numeric'
-        });
-    }
-    
-    // Update meal plan date display when event day date changes
-    function updateMealPlanDate(dayNumber, dateValue) {
-        const mealDay = document.querySelector(`.meal-day[data-day="${dayNumber}"]`);
-        if (mealDay) {
-            const heading = mealDay.querySelector('h4');
-            if (heading) {
-                heading.textContent = `Day ${dayNumber} - ${formatDate(dateValue)}`;
-            }
-        }
-    }
-    
-    // Add a new event day
-    addDayBtn.addEventListener('click', function() {
-        dayCount++;
-        
-        // Create new event day element
-        const newDay = document.createElement('div');
-        newDay.className = 'event-day';
-        newDay.innerHTML = `
-            <h4>Day ${dayCount}</h4>
-            <input type="hidden" name="event_days[${dayCount}][day_number]" value="${dayCount}">
-            
-            <label for="day-date-${dayCount}">Date:</label>
-            <input type="date" id="day-date-${dayCount}" name="event_days[${dayCount}][date]" required>
-            
-            <div class="time-inputs">
-                <div>
-                    <label for="start-time-${dayCount}">Start Time:</label>
-                    <input type="time" id="start-time-${dayCount}" name="event_days[${dayCount}][start_time]" required value="08:00">
-                </div>
-                <div>
-                    <label for="end-time-${dayCount}">End Time:</label>
-                    <input type="time" id="end-time-${dayCount}" name="event_days[${dayCount}][end_time]" required value="17:00">
-                </div>
-            </div>
-            <button type="button" class="remove-day-btn"><i class="fas fa-times"></i></button>
-        `;
-        eventDaysContainer.appendChild(newDay);
-        
-        // Apply date constraints to the new day
-        updateDateConstraints();
-        
-        // Create new meal plan for this day
-        const newMealDay = document.createElement('div');
-        newMealDay.className = 'meal-day';
-        newMealDay.setAttribute('data-day', dayCount);
-        newMealDay.innerHTML = `
-            <h4>Day ${dayCount} - Select date above</h4>
-            <div class="checkbox-subgroup">
-                <label>
-                    <input type="checkbox" name="meal_plan[${dayCount}][]" value="Breakfast">
-                    Breakfast
-                </label>
-                <label>
-                    <input type="checkbox" name="meal_plan[${dayCount}][]" value="AM Snack">
-                    AM Snack
-                </label>
-                <label>
-                    <input type="checkbox" name="meal_plan[${dayCount}][]" value="Lunch">
-                    Lunch
-                </label>
-                <label>
-                    <input type="checkbox" name="meal_plan[${dayCount}][]" value="PM Snack">
-                    PM Snack
-                </label>
-                <label>
-                    <input type="checkbox" name="meal_plan[${dayCount}][]" value="Dinner">
-                    Dinner
-                </label>
-            </div>
-        `;
-        mealPlansContainer.appendChild(newMealDay);
-        
-        // Add event listener for the date input
-        const dateInput = newDay.querySelector(`input[name="event_days[${dayCount}][date]"]`);
-        dateInput.addEventListener('change', function() {
-            updateMealPlanDate(dayCount, this.value);
-        });
-        
-        // Add event listener for the remove button
-        const removeBtn = newDay.querySelector('.remove-day-btn');
-        removeBtn.addEventListener('click', function() {
-            newDay.remove();
-            // Remove corresponding meal plan
-            const mealDay = document.querySelector(`.meal-day[data-day="${dayCount}"]`);
-            if (mealDay) mealDay.remove();
-        });
-    });
-    
-    // Set up event listeners for existing event days
-    document.querySelectorAll('.event-day').forEach(function(dayElement) {
-        const dayNumberInput = dayElement.querySelector('input[name$="[day_number]"]');
-        if (!dayNumberInput) return;
-        
-        const dayNumber = dayNumberInput.value;
-        const dateInput = dayElement.querySelector(`input[name="event_days[${dayNumber}][date]"]`);
-        
-        if (dateInput) {
-            // Add change listener to update meal plan date display
-            dateInput.addEventListener('change', function() {
-                updateMealPlanDate(dayNumber, this.value);
-            });
-            
-            // Initialize meal plan date display
-            updateMealPlanDate(dayNumber, dateInput.value);
-        }
-        
-        // Set up remove button for existing day if it exists
-        const removeBtn = dayElement.querySelector('.remove-day-btn');
-        if (removeBtn) {
-            removeBtn.addEventListener('click', function() {
-                dayElement.remove();
-                // Remove corresponding meal plan
-                const mealDay = document.querySelector(`.meal-day[data-day="${dayNumber}"]`);
-                if (mealDay) mealDay.remove();
-            });
-        }
-    });
-    
-    function addSpeakerField() {
-    const speakersContainer = document.getElementById('speakers-container');
-    const newSpeaker = document.createElement('div');
-    newSpeaker.className = 'speaker-input-group';
-    newSpeaker.innerHTML = `
-        <input type="text" name="speaker[]" placeholder="Enter speaker name">
-        <button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>
-    `;
-    speakersContainer.appendChild(newSpeaker);
-    
-    // Add remove functionality to the new button
-    const removeBtn = newSpeaker.querySelector('.remove-speaker-btn');
-    removeBtn.addEventListener('click', function() {
-        newSpeaker.remove();
-    });
-}
-
-// Existing event listener for remove speaker buttons
-document.addEventListener('DOMContentLoaded', function() {
-    const speakersContainer = document.getElementById('speakers-container');
-    
-    speakersContainer.addEventListener('click', function(event) {
-        const removeBtn = event.target.closest('.remove-speaker-btn');
-        if (removeBtn) {
-            const speakerGroup = removeBtn.closest('.speaker-input-group');
-            const speakerGroups = speakersContainer.querySelectorAll('.speaker-input-group');
-            
-            // Always allow removal if more than one speaker group exists
-            if (speakerGroups.length > 1) {
-                speakerGroup.remove();
-            } else {
-                // If it's the last input, just clear its value
-                const input = speakerGroup.querySelector('input');
-                input.value = '';
-            }
-        }
-    });
-});
-    
-    // Set min and max dates for event days based on start and end dates
-    const startDateInput = document.getElementById('start-date');
-    const endDateInput = document.getElementById('end-date');
-    
-    function updateDateConstraints() {
-        const startDate = startDateInput.value;
-        const endDate = endDateInput.value;
-        
-        if (startDate && endDate) {
-            document.querySelectorAll('input[name$="[date]"]').forEach(function(input) {
-                input.min = startDate;
-                input.max = endDate;
                 
-                // Check if current value is outside the new range
-                if (input.value) {
-                    const inputDate = new Date(input.value);
-                    const minDate = new Date(startDate);
-                    const maxDate = new Date(endDate);
-                    
-                    if (inputDate < minDate) {
-                        input.value = startDate;
-                        // Trigger change event to update meal plan
-                        const event = new Event('change');
-                        input.dispatchEvent(event);
-                    } else if (inputDate > maxDate) {
-                        input.value = endDate;
-                        // Trigger change event to update meal plan
-                        const event = new Event('change');
-                        input.dispatchEvent(event);
+                // Add change event listener
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        amountField.style.display = 'block';
+                    } else {
+                        amountField.style.display = 'none';
+                        // Clear the amount input when unchecked
+                        const amountInput = amountField.querySelector('input[type="number"]');
+                        if (amountInput) {
+                            amountInput.value = '';
+                        }
                     }
-                }
+                });
             });
         }
+
+        // Call funding source toggle on page load
+        toggleFundingAmountField();
+
+        // Speaker management
+        const speakersContainer = document.getElementById('speakers-container');
+        
+        speakersContainer.addEventListener('click', function(event) {
+            const removeBtn = event.target.closest('.remove-speaker-btn');
+            if (removeBtn) {
+                const speakerGroups = speakersContainer.querySelectorAll('.speaker-input-group');
+                const speakerGroup = removeBtn.closest('.speaker-input-group');
+                
+                // If there's only one speaker group
+                if (speakerGroups.length === 1) {
+                    const input = speakerGroup.querySelector('input');
+                    input.value = ''; // Clear the input
+                } else {
+                    // Remove the speaker group
+                    speakerGroup.remove();
+                }
+            }
+        });
+
+        // Add event listener to generate event days dynamically
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+        
+        [startDateInput, endDateInput].forEach(input => {
+            input.addEventListener('change', generateDayFields);
+        });
+    });
+
+    function generateDayFields() {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        const eventDaysContainer = document.getElementById('event-days-container');
+        const mealPlanContainer = document.getElementById('meal-plan-container');
+
+        // Clear existing fields
+        eventDaysContainer.innerHTML = '';
+        mealPlanContainer.innerHTML = '';
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const dayDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+            for (let i = 1; i <= dayDiff; i++) {
+                const currentDate = new Date(start);
+                currentDate.setDate(start.getDate() + i - 1);
+                const formattedDate = currentDate.toISOString().split('T')[0];
+
+                // Event Days Section
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'event-day';
+                dayDiv.innerHTML = `
+                    <h4>Day ${i} - ${formattedDate}</h4>
+                    <input type="hidden" name="event_days[${i}][date]" value="${formattedDate}">
+                    <div class="time-inputs">
+                        <label>Start Time:
+                            <input type="time" name="event_days[${i}][start_time]" value="08:00">
+                        </label>
+                        <label>End Time:
+                            <input type="time" name="event_days[${i}][end_time]" value="17:00">
+                        </label>
+                    </div>
+                `;
+                eventDaysContainer.appendChild(dayDiv);
+
+                // Meal Plan Section
+                const mealDiv = document.createElement('div');
+                mealDiv.className = 'meal-day';
+                mealDiv.innerHTML = `
+                    <h4>Meals for Day ${i} - ${formattedDate}</h4>
+                    <div class="checkbox-subgroup">
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="Breakfast"> Breakfast
+                        </label>
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="AM Snack"> AM Snack
+                        </label>
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="Lunch"> Lunch
+                        </label>
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="PM Snack"> PM Snack
+                        </label>
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="Dinner"> Dinner
+                        </label>
+                    </div>
+                `;
+                mealPlanContainer.appendChild(mealDiv);
+            }
+        }
     }
-    
-    // Update date constraints when start or end date changes
-    startDateInput.addEventListener('change', updateDateConstraints);
-    endDateInput.addEventListener('change', updateDateConstraints);
-    
-    // Initialize date constraints on page load
-    updateDateConstraints();
-});
-</script>
+    </script>
 
 </div>
 </body>
