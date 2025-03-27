@@ -128,7 +128,7 @@ hr {
 }
 
 .form-container {
-    background-color: #f9f9f9;
+    background-color: white;
     padding: 2rem;
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -150,9 +150,12 @@ hr {
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
-    font-family: Montserrat;
-}
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
 
 .form-group label {
     font-family: Montserrat Medium;
@@ -214,6 +217,7 @@ hr {
     margin-bottom: 0.5rem;
     font-weight: normal;
     min-width: 100px;
+    font-family: Montserrat
 }
 
 .radio-group input,
@@ -258,9 +262,9 @@ hr {
     margin-left: 5;
 }
 
-.meal-plan {
+.meal-plan-container {
     margin: auto;
-    background-color: rgb(215, 222, 247);
+    background-color: rgb(238, 241, 253);
     padding: 1rem;
     border-radius: 0.25rem;
     margin-top: 0.5rem;
@@ -273,6 +277,7 @@ hr {
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+    
 }
 
 .meal-day:last-child {
@@ -596,6 +601,7 @@ hr {
 }
 
 .personnel-selection {
+   
     display: flex;
     gap: 1rem;
     margin-bottom: 2rem;
@@ -603,6 +609,7 @@ hr {
 }
 .personnel-selection label {
     color: #2b3a8f;
+    font-family: Montserrat ;
 }
 
 .personnel-btn {
@@ -647,6 +654,11 @@ hr {
 
 .division-personnel-section {
     display: block;
+
+}
+.division-personnel h4 {
+    display: block;
+    font-family: Montserrat Medium;
 
 }
 
@@ -814,19 +826,12 @@ hr {
         
     }
     
-    .meal-day {
-        margin-bottom: 15px;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
     
     .event-day {
-        background-color: white;
+        background-color: rgb(238, 241, 253);
         margin-bottom: 15px;
         padding: 30px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        border-radius: 10px;
     }
     
     .time-inputs {
@@ -903,13 +908,6 @@ hr {
         border-color: #4CAF 
     }
 
-    .meal-day {
-        background-color: white;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        
-    }
 
     .meal-day h4 {
         
@@ -976,7 +974,7 @@ font-family: Montserrat Light;
 
    /* For the specialization sections - making them two rows */
 .checkbox-subgroup {
-background-color: white;
+    background-color: rgb(238, 241, 253);
 display: flex;
 flex-wrap: wrap;
 gap: 5px;
@@ -996,7 +994,7 @@ transition: all 0.2s ease;
 min-width: 120px;
 width: calc(50% - 10px); /* Make each item take up half the width minus the gap */
 box-sizing: border-box;
-background-color: white;
+
 }
 
 .checkbox-subgroup input[type="checkbox"] {
@@ -1008,10 +1006,13 @@ margin-right: 8px;
 display: grid;
 grid-template-columns: repeat(2, 1fr);
 gap: 10px;
+font-family: Montserrat Medium;
 }
 
 #division-personnel .checkbox-subgroup label {
 width: 100%;
+font-family: Montserrat Medium;
+color: ;
 }
 
 /* For school personnel sections */
@@ -1026,6 +1027,7 @@ box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 
 #school-personnel .checkbox-subgroup label {
 width: 100%;
+font-family: Montserrat Medium;
 }
 
 /* Keep meal plan styles intact */
@@ -1034,6 +1036,11 @@ padding: 30px;
 border-radius: 8px;
 box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 margin-bottom: 15px;
+display: flex;
+flex-direction: row;
+flex-wrap: wrap;
+gap: 10px;
+background-color: rgb(238, 241, 253);
 }
 
 .meal-day h4 {
@@ -1042,14 +1049,10 @@ margin-bottom: -2%;
 color: #2b3a8f;
 font-size: 16px;
 padding-bottom: 8px;
+
 }
 
-.meal-day  {
-display: flex;
-flex-direction: row;
-flex-wrap: wrap;
-gap: 10px;
-}
+
 
 .meal-day .checkbox-subgroup label {
 width: auto;
@@ -1058,18 +1061,5 @@ flex-grow: 1;
 }
 
 /* Improved styling for form sections */
-.form-group {
-background-color: #f8f9fa;
-padding: 20px;
-border-radius: 8px;
-margin-bottom: 25px;
-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
 
-.form-group {
-background-color: #f8f9fa;
-padding: 20px;
-border-radius: 8px;
-margin-bottom: 25px;
-box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
+

@@ -619,6 +619,29 @@ $divResult = $divCount->get_result();
                     window.location.reload();
                 }
             }, 500)); // 500ms debounce
+
+             // Handle clear button (x) in search input
+    searchInput.addEventListener('search', function() {
+        // This event is triggered when the search input is cleared
+        const searchTerm = this.value.toLowerCase().trim();
+        filterEvents(searchTerm);
+    });
+
+        // When clicking the X (clear) button
+        const searchContainer = document.querySelector('.search-container');
+    if (searchContainer) {
+        searchContainer.addEventListener('click', function(e) {
+            // Check if the click was on the after pseudo-element (approximated by position)
+            const rect = searchContainer.getBoundingClientRect();
+            
+            // If click is in the right 30px of the container (where the X appears)
+            if (searchInput && e.clientX > rect.right - 30 && searchInput.value !== '') {
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input'));
+                searchInput.focus();
+            }
+        });
+    }
         });
     </script>
 </body>
