@@ -594,25 +594,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
-     // Sidebar toggle functionality
-     document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.querySelector('.sidebar');
-            const content = document.getElementById('content');
-            const toggleBtn = document.getElementById('toggleSidebar');
 
-            // Check if sidebar state is saved in localStorage
-            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            
-            // Set initial state based on localStorage
-            if (isSidebarCollapsed) {
-                sidebar.classList.add('collapsed');
-                content.classList.add('expanded');
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Sidebar toggle functionality
+    const sidebar = document.querySelector('.sidebar');
+    const content = document.getElementById('content');
+    const toggleBtn = document.getElementById('toggleSidebar');
+
+    // Check if sidebar state is saved in localStorage
+    const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    
+    // Set initial state based on localStorage
+    if (isSidebarCollapsed) {
+        sidebar.classList.add('collapsed');
+        content.classList.add('expanded');
+    }
+    
+    toggleBtn.addEventListener('click', function() {
+        sidebar.classList.toggle('collapsed');
+        content.classList.toggle('expanded');
+    });
+
+    // Enhanced list of conjunction and preposition words
+    const lowercaseWords = [
+        'and', 'or', 'but', 'nor', 'for', 'yet', 'so', 
+        'the', 'a', 'an', 'as', 'at', 'by', 'for', 'in',
+        'in', 'on', 'at', 'to', 'of', 'with', 'by', 
+        'from', 'into', 'onto', 'over', 'under', 'if', 'once', 
+        'how', 'no', 'not', 'off', 'out', 'up', 'down',
+    ];
+
+    function smartTitleCase(input) {
+        // Trim and split the input into words
+        const words = input.trim().split(/\s+/);
+
+        // Special words mapping
+        const specialWords = {
+            'ph': 'PH',
+            'do': 'DO',
+            'it': 'IT',
+            'hr': 'HR'
+        };
+
+        // Process each word
+        const processedWords = words.map((word, index) => {
+            // Convert to lowercase
+            let processedWord = word.toLowerCase();
+
+            // Check special words first
+            if (specialWords[processedWord]) {
+                return specialWords[processedWord];
             }
             
-            toggleBtn.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                content.classList.toggle('expanded');
+            // If first word or not a lowercase word, capitalize first letter
+            if (index === 0 || !lowercaseWords.includes(processedWord)) {
+                processedWord = processedWord.charAt(0).toUpperCase() + processedWord.slice(1);
+            }
+            
+            return processedWord;
+        });
+
+        // Join the words back together
+        return processedWords.join(' ');
+    }
+
+    function applySmartCase(input) {
+        // Only apply if input is not empty and not just whitespace
+        if (input.value.trim()) {
+            input.value = smartTitleCase(input.value);
+        }
+    }
+
+    // Apply to specific inputs
+    const inputsToCapitalize = [
+        document.querySelector('input[name="title"]'),
+        document.querySelector('input[name="proponent"]'),
+        document.querySelector('input[name="venue"]')
+    ];
+
+    // Add blur event listeners
+    inputsToCapitalize.forEach(input => {
+        if (input) {
+            input.addEventListener('blur', function() {
+                applySmartCase(this);
             });
+        }
+    });
+
+    // For dynamically added speaker inputs
+    document.getElementById('speakers-container')?.addEventListener('blur', function(event) {
+        if (event.target.name === 'speaker[]') {
+            applySmartCase(event.target);
+        }
+    }, true);
 
     function addNewSpeaker() {
         const speakersContainer = document.getElementById('speakers-container');
@@ -623,102 +698,106 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>
         `;
         speakersContainer.appendChild(newSpeaker);
+
+        // Add smart case to new speaker input
+        const newInput = newSpeaker.querySelector('input[name="speaker[]"]');
+        newInput.addEventListener('blur', function() {
+            applySmartCase(this);
+        });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Delivery method controls venue field visibility
-        const deliverySelect = document.getElementById('delivery');
-        const venueContainer = document.getElementById('venue-container');
-        
-        deliverySelect.addEventListener('change', function() {
-            if (this.value === 'Face-to-Face' || this.value === 'Blended') {
-                venueContainer.style.display = 'block';
-            } else {
-                venueContainer.style.display = 'none';
-            }
-        });
-        
-        // Target personnel selection controls visibility of related sections
-        const targetSelect = document.getElementById('target-personnel');
-        const schoolOptions = document.getElementById('school-personnel');
-        const divisionOptions = document.getElementById('division-personnel');
-        
-        targetSelect.addEventListener('change', function() {
-            if (this.value === 'School') {
-                schoolOptions.style.display = 'block';
-                divisionOptions.style.display = 'none';
-            } else if (this.value === 'Division') {
-                schoolOptions.style.display = 'none';
-                divisionOptions.style.display = 'block';
-            } else if (this.value === 'Both') {
-                schoolOptions.style.display = 'block';
-                divisionOptions.style.display = 'block';
-            } else {
-                schoolOptions.style.display = 'none';
-                divisionOptions.style.display = 'none';
-            }
-        });
+    // Delivery method controls venue field visibility
+    const deliverySelect = document.getElementById('delivery');
+    const venueContainer = document.getElementById('venue-container');
+    
+    deliverySelect.addEventListener('change', function() {
+        if (this.value === 'Face-to-Face' || this.value === 'Blended') {
+            venueContainer.style.display = 'block';
+        } else {
+            venueContainer.style.display = 'none';
+        }
+    });
+    
+    // Target personnel selection controls visibility of related sections
+    const targetSelect = document.getElementById('target-personnel');
+    const schoolOptions = document.getElementById('school-personnel');
+    const divisionOptions = document.getElementById('division-personnel');
+    
+    targetSelect.addEventListener('change', function() {
+        if (this.value === 'School') {
+            schoolOptions.style.display = 'block';
+            divisionOptions.style.display = 'none';
+        } else if (this.value === 'Division') {
+            schoolOptions.style.display = 'none';
+            divisionOptions.style.display = 'block';
+        } else if (this.value === 'Both') {
+            schoolOptions.style.display = 'block';
+            divisionOptions.style.display = 'block';
+        } else {
+            schoolOptions.style.display = 'none';
+            divisionOptions.style.display = 'none';
+        }
+    });
 
-        // Toggle funding amount fields based on checkbox selection
-        function toggleFundingAmountField() {
-            const fundingCheckboxes = document.querySelectorAll('input[name="funding_source[]"]');
+    // Toggle funding amount fields based on checkbox selection
+    function toggleFundingAmountField() {
+        const fundingCheckboxes = document.querySelectorAll('input[name="funding_source[]"]');
+        
+        fundingCheckboxes.forEach(function(checkbox) {
+            const amountField = checkbox.closest('.funding-option').querySelector('.amount-field');
             
-            fundingCheckboxes.forEach(function(checkbox) {
-                const amountField = checkbox.closest('.funding-option').querySelector('.amount-field');
-                
-                // Initially set display based on checkbox state
-                if (checkbox.checked) {
+            // Initially set display based on checkbox state
+            if (checkbox.checked) {
+                amountField.style.display = 'block';
+            } else {
+                amountField.style.display = 'none';
+            }
+            
+            // Add change event listener
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
                     amountField.style.display = 'block';
                 } else {
                     amountField.style.display = 'none';
-                }
-                
-                // Add change event listener
-                checkbox.addEventListener('change', function() {
-                    if (this.checked) {
-                        amountField.style.display = 'block';
-                    } else {
-                        amountField.style.display = 'none';
-                        // Clear the amount input when unchecked
-                        const amountInput = amountField.querySelector('input[type="number"]');
-                        if (amountInput) {
-                            amountInput.value = '';
-                        }
+                    // Clear the amount input when unchecked
+                    const amountInput = amountField.querySelector('input[type="number"]');
+                    if (amountInput) {
+                        amountInput.value = '';
                     }
-                });
-            });
-        }
-
-        // Call funding source toggle on page load
-        toggleFundingAmountField();
-
-        // Speaker management
-        const speakersContainer = document.getElementById('speakers-container');
-        
-        speakersContainer.addEventListener('click', function(event) {
-            const removeBtn = event.target.closest('.remove-speaker-btn');
-            if (removeBtn) {
-                const speakerGroups = speakersContainer.querySelectorAll('.speaker-input-group');
-                const speakerGroup = removeBtn.closest('.speaker-input-group');
-                
-                // If there's only one speaker group
-                if (speakerGroups.length === 1) {
-                    const input = speakerGroup.querySelector('input');
-                    input.value = ''; // Clear the input
-                } else {
-                    // Remove the speaker group
-                    speakerGroup.remove();
                 }
-            }
+            });
         });
+    }
 
-        // Add event listener to generate event days dynamically
-        const startDateInput = document.getElementById('start-date');
-        const endDateInput = document.getElementById('end-date');
-        
-        [startDateInput, endDateInput].forEach(input => {
-            input.addEventListener('change', generateDayFields);
-        });
+    // Call funding source toggle on page load
+    toggleFundingAmountField();
+
+    // Speaker management
+    const speakersContainer = document.getElementById('speakers-container');
+    
+    speakersContainer.addEventListener('click', function(event) {
+        const removeBtn = event.target.closest('.remove-speaker-btn');
+        if (removeBtn) {
+            const speakerGroups = speakersContainer.querySelectorAll('.speaker-input-group');
+            const speakerGroup = removeBtn.closest('.speaker-input-group');
+            
+            // If there's only one speaker group
+            if (speakerGroups.length === 1) {
+                const input = speakerGroup.querySelector('input');
+                input.value = ''; // Clear the input
+            } else {
+                // Remove the speaker group
+                speakerGroup.remove();
+            }
+        }
+    });
+
+    // Add event listener to generate event days dynamically
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+    
+    [startDateInput, endDateInput].forEach(input => {
+        input.addEventListener('change', generateDayFields);
     });
 
     function generateDayFields() {
@@ -785,9 +864,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+
+    // Expose functions globally
+    window.addNewSpeaker = addNewSpeaker;
+    window.generateDayFields = generateDayFields;
 });
-
-
 </script>
 
 </div>

@@ -259,7 +259,6 @@ html {
 
 .form-group input[type="text"],
 .form-group input[type="email"],
-.form-group input[type="datetime-local"],
 .form-group textarea,
 .form-group select {
     width: 100%;
@@ -268,8 +267,9 @@ html {
     border-radius: 5px;
     margin-bottom: 1rem;
     font-family: Montserrat Light;
-    text-transform: capitalize;
+    text-transform: none; /* Change from capitalize to none */
 }
+
 
 .form-group textarea {
     resize: vertical;
