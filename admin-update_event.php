@@ -317,18 +317,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
 </head>
 <body>
-    <div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="menu">
-                <a href="admin-dashboard.php"><i class="fas fa-home mr-3"></i>Home</a>
-                <a href="admin-events.php" class="active"><i class="fas fa-calendar-alt mr-3"></i>Events</a>
-                <a href="admin-users.php"><i class="fas fa-users mr-3"></i>Users</a>
-                <a href="admin-notif.php"><i class="fas fa-bell mr-3"></i>Notification</a> 
-            </div>
-        </div>
+<div class="sidebar" id="sidebar">
+    <div class="logo">
+        <button id="toggleSidebar" class="toggle-btn">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+        
+    <div class="menu">
+        <a href="admin-dashboard.php">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="admin-events.php" class="active">
+            <i class="fas fa-calendar-alt"></i>
+            <span>Events</span>
+        </a>
+        <a href="admin-users.php">
+            <i class="fas fa-users"></i>
+            <span>Users</span>
+        </a>
+    </div>
+</div>
 
-        <div class="content">
+<div class="content" id="content">
     <div class="content-header">
         <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
         <p>Learning and Development</p>
@@ -337,7 +349,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     <div class="content-body">
                 <br><br><br><br>
-                <hr><br><br>
+                <br>
 
     <div class="form-container">
         <h3>UPDATE EVENTS DETAILS</h3>
@@ -454,7 +466,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         echo '</div>';
                         echo '</div>';
                         ?>
-</div>
+
 
              <div class="form-group">
              <div class="form-col">
@@ -501,7 +513,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
 
             <!-- Target Personnel -->
-            <div class="form-container">
+            <div class="form-group">
                 <div class="section-title">Target Personnel</div>
                 <div class="personnel-selection">
                     <label for="target-personnel">Target Participants:</label>
@@ -518,7 +530,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <!-- School Personnel Options -->
                 <div id="school-personnel" style="<?php echo (isset($targetParticipant['target']) && ($targetParticipant['target'] === 'School' || $targetParticipant['target'] === 'Both')) ? 'display:block;' : 'display:none;'; ?>">
-                    <h4>School Level</h4>
+                    <h4>School Level:</h4>
                     <br>
                     <div class="checkbox-subgroup">
                         <?php foreach ($schoolLevelOptions as $option): ?>
@@ -531,7 +543,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <br>
                     
-                    <h4>School Classification</h4>
+                    <h4>Type:</h4>
                     <br>
                     <div class="checkbox-subgroup">
                         <?php foreach ($typeOptions as $option): ?>
@@ -544,7 +556,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <br>
                     
-                    <h4>School Specialization</h4>
+                    <h4>Specialization:</h4>
                     <br>
                     <div class="checkbox-subgroup">
                         <?php foreach ($specializationOptions as $option): ?>
@@ -582,6 +594,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
+     // Sidebar toggle functionality
+     document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const content = document.getElementById('content');
+            const toggleBtn = document.getElementById('toggleSidebar');
+
+            // Check if sidebar state is saved in localStorage
+            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            
+            // Set initial state based on localStorage
+            if (isSidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                content.classList.add('expanded');
+            }
+            
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                content.classList.toggle('expanded');
+            });
+
     function addNewSpeaker() {
         const speakersContainer = document.getElementById('speakers-container');
         const newSpeaker = document.createElement('div');
@@ -753,7 +785,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-    </script>
+});
+
+
+</script>
 
 </div>
 </body>
