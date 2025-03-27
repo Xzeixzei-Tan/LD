@@ -128,7 +128,7 @@ html {
 
 .content {
     flex: 1;
-    background-color: #ffffff;
+    background-color: #f5f7ff;;
     padding: 4rem;
     margin-left: 17%;
     transition: margin-left 0.3s ease;

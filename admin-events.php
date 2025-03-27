@@ -275,39 +275,6 @@ foreach ($eventsData as $event) {
     <script src="scripts/admin-events.js" defer></script>
     <title>Event Management System</title>
 </head>
-<style>
-.btn-disabled {
-    background-color: #e0e0e0 !important;
-    color: #868686 !important;
-    cursor: not-allowed;
-    position: relative;
-    pointer-events: none;
-}
-.tooltip-disabled {
-    position: relative;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.tooltip-disabled::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 130%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #333;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 4px;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.tooltip-disabled:hover::after {
-    opacity: 1;
-}
-</style>
 <body>
 
 <div class="sidebar" id="sidebar">
@@ -412,7 +379,7 @@ foreach ($eventsData as $event) {
             <h3 id="detail-title"></h3>
                 <div class="detail-items">
                     <div class="detail-items-1">
-                        <div class="detail-item">
+                        <div class="detail-item expanded-content">
                             <h4>Event Specification:</h4>
                             <p id="detail-event_specification"></p>
                         </div>
@@ -420,11 +387,11 @@ foreach ($eventsData as $event) {
                             <h4>Delivery:</h4>
                             <p id="detail-delivery"></p>
                         </div>
-                        <div class="detail-item">
+                        <div class="detail-item expanded-content">
                             <h4>Start:</h4>
                             <p id="detail-start"></p>
                         </div>
-                        <div class="detail-item">
+                        <div class="detail-item expanded-content">
                             <h4>End:</h4>
                             <p id="detail-end"></p>
                         </div>
@@ -432,7 +399,7 @@ foreach ($eventsData as $event) {
                             <h4>Event Schedule:</h4>
                             <p id="detail-event-days"></p>
                         </div>
-                        <div class="detail-item">
+                        <div class="detail-item expanded-content">
                             <h4>Status:</h4>
                             <p id="detail-status"></p>
                         </div>
