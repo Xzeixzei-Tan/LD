@@ -52,7 +52,8 @@ $nameCheckStmt->execute();
 $nameCheckStmt->store_result();
 
 if ($nameCheckStmt->num_rows > 0) {
-    echo "<script>alert('A user with the same name already exists! If this is you, please log in or use the password recovery option.'); window.location.href='signup.php';</script>";
+    $_SESSION['status'] = 'User already exists';
+    header("Location: signup.php");
     exit();
 }
 $nameCheckStmt->close();
