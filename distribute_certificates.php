@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require 'vendor/autoload.php';
 
 // Get event ID from URL
 $event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : 0;
@@ -59,6 +60,7 @@ $stmt->execute();
 $participantsResult = $stmt->get_result();
 
 $certificateCount = 0;
+$emailsSent = 0;
 // Use event title for folder name (sanitize it for file system)
 $eventTitleSafe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $event_title);
 $certificatesDir = 'certificates/' . $eventTitleSafe;
@@ -108,14 +110,107 @@ while ($participant = $participantsResult->fetch_assoc()) {
     $notifStmt->bind_param("isi", $user_id, $notificationMessage, $event_id);
     $notifStmt->execute();
     
+    // Send email notification with certificate attachment
+    if (sendCertificateEmail($email, $participant_name, $event_title, $outputFile)) {
+        $emailsSent++;
+    }
+    
     $certificateCount++;
 }
 
-// Redirect back to the event page with a success message
-header("Location: admin-events.php?event_id=$event_id&certificates=$certificateCount");
+// Redirect back to the event page with a success message including email info
+header("Location: admin-events.php?event_id=$event_id&certificates=$certificateCount&emails=$emailsSent");
 exit();
 
-// Our PDF certificate generation function without using libraries
+/**
+ * Sends an email with certificate attachment to a participant
+ * 
+ * @param string $email Recipient email address
+ * @param string $participant_name Participant's full name
+ * @param string $event_title Title of the event
+ * @param string $certificatePath Path to the generated certificate PDF
+ * @return bool Whether the email was sent successfully
+ */
+function sendCertificateEmail($email, $participant_name, $event_title, $certificatePath) {
+    // Prevent sending to invalid email addresses
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        error_log("Invalid email address: $email");
+        return false;
+    }
+
+    // Check if PHPMailer exists
+    if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+        error_log("PHPMailer not found. Please install via Composer.");
+        return false;
+    }
+
+    // Load PHPMailer
+    require_once 'vendor/autoload.php';
+    
+    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+    
+    try {
+        // Debug settings (remove in production)
+        $mail->SMTPDebug = PHPMailer\PHPMailer\SMTP::DEBUG_OFF; // Set to DEBUG_SERVER for full debug info
+        
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com'; // Your SMTP server
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'jeznooo@gmail.com'; // REPLACE WITH YOUR EMAIL
+        $mail->Password   = 'hvkg vecv wuzu mepl'; // REPLACE WITH YOUR APP PASSWORD
+        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+        
+        // Enable detailed error logging
+        $mail->Debugoutput = function($str, $level) {
+            error_log("PHPMailer Debug Level $level: $str");
+        };
+        
+        // Recipients
+        $mail->setFrom('jeznooo@gmail.com', 'DepEd General Trias City'); // REPLACE WITH YOUR EMAIL
+        $mail->addAddress($email, $participant_name);
+        $mail->addReplyTo('support@depedgentriascity.ph', 'Support');
+        
+        // Attachments
+        if (file_exists($certificatePath)) {
+            $mail->addAttachment($certificatePath, basename($certificatePath));
+        } else {
+            error_log("Certificate file not found: $certificatePath");
+            return false;
+        }
+        
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = "Your Certificate for: $event_title";
+        $mail->Body    = "
+        <html>
+        <body style='font-family: Arial, sans-serif;'>
+            <p>Dear $participant_name,</p>
+            <p>Thank you for participating in the <strong>\"$event_title\"</strong>.</p>
+            <p>Please find your certificate of participation attached to this email.</p>
+            <p>You can also view and download your certificate by logging into your account on the DepEd General Trias City website.</p>
+            <p>Best regards,<br>DepEd General Trias City</p>
+        </body>
+        </html>";
+        $mail->AltBody = "Dear $participant_name, Thank you for participating in the $event_title. Your certificate is attached.";
+        
+        // Send the email
+        if($mail->send()) {
+            error_log("Certificate email sent successfully to: $email for event: $event_title");
+            return true;
+        } else {
+            error_log("Failed to send certificate email to: $email. Error: " . $mail->ErrorInfo);
+            return false;
+        }
+        
+    } catch (Exception $e) {
+        error_log("Email exception for $email: " . $e->getMessage());
+        return false;
+    }
+}
+
+// PDF certificate generation function remains the same as in your original script
 function generateCertificatePDF($templatePath, $outputFile, $replacements) {
     // Method using HTML/CSS to create PDF via command-line tool
     
