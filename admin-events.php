@@ -1020,56 +1020,67 @@ foreach ($eventsData as $event) {
         }
         }
 
+        // Function to validate URL
+        function isValidUrl(url) {
+            try {
+                new URL(url);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+
         // Handle form submission
         evalForm.onsubmit = function(e) {
         e.preventDefault();
         const eventId = this.getAttribute('data-event-id');
         const evalLink = document.getElementById('eval-link').value;
 
+         // Validate evaluation link
+        if (!isValidUrl(evalLink)) {
+            alert('Please enter a valid URL for the evaluation link.');
+            return;
+        }
+
+        // Confirm before sending
+        if (!confirm('Are you sure you want to send the evaluation link to all participants?')) {
+            return;
+        }
+
         // Show loading state
         document.getElementById('send-eval').textContent = "Sending...";
         document.getElementById('send-eval').disabled = true;
 
-        // You would typically send this data to the server via AJAX
-        // For now, we'll just simulate a server request
-        setTimeout(() => {
-            alert(`Evaluation link has been sent to all participants' email addresses.`);
-            evalModal.style.display = "none";
-            // Reset form
-            evalForm.reset();
-            document.getElementById('send-eval').textContent = "Send Evaluation Link";
-            document.getElementById('send-eval').disabled = false;
-            
-            // For a real implementation, you would use something like:
-            /*
-            fetch('send_evaluation_link.php', {
-            method: 'POST',
-            body: JSON.stringify({
-                event_id: eventId,
-                eval_link: evalLink
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
+        fetch(`send_eval_link.php?event_id=${eventId}&eval_link=${encodeURIComponent(evalLink)}`, {
+                method: 'GET'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text(); // or response.json() depending on your PHP script
+            })
             .then(data => {
-            alert(data.message);
-            evalModal.style.display = "none";
-            evalForm.reset();
+                // Parse the response or show a generic success message
+                alert('Evaluation link sent successfully to all participants!');
+                evalModal.style.display = "none";
+               
+                // Reset form
+                evalForm.reset();
             })
             .catch(error => {
-            alert('Error sending evaluation links: ' + error);
+                console.error('Error:', error);
+                alert('Failed to send evaluation link. Please try again.');
             })
             .finally(() => {
-            document.getElementById('send-eval').textContent = "Send Evaluation Link";
-            document.getElementById('send-eval').disabled = false;
+                // Restore button state
+                sendButton.textContent = "Send Evaluation Link";
+                sendButton.disabled = false;
             });
-            */
-        }, 1500);
         }
 
-        const searchInput = document.querySelector('.search-input');
+    const searchInput = document.querySelector('.search-input');
     const eventButtons = document.querySelectorAll('.events-btn');
     const eventsSection = document.querySelector('.events-section');
 
@@ -1143,95 +1154,95 @@ foreach ($eventsData as $event) {
         });
     }
 
-        function distributeCertificates() {
-            const eventId = document.getElementById('distribute-btn').getAttribute('data-id');
-            if (confirm('Are you sure you want to distribute certificates to all participants of this event?')) {
-                window.location.href = 'distribute_certificates.php?event_id=' + eventId;
-            }
+    function distributeCertificates() {
+        const eventId = document.getElementById('distribute-btn').getAttribute('data-id');
+        if (confirm('Are you sure you want to distribute certificates to all participants of this event?')) {
+            window.location.href = 'distribute_certificates.php?event_id=' + eventId;
         }
+    }
 
-        function fetchRegisteredUsers(eventId) {
-            // Show loading indicator
-            document.getElementById('registered-users-table-body').innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading...</td></tr>';
-            
-            // Fetch registered users using AJAX
-            fetch('get_registered_users.php?event_id=' + eventId)
-                .then(response => response.json())
-                .then(data => {
-                    const tableBody = document.getElementById('registered-users-table-body');
-                    
-                    // Clear loading indicator
-                    tableBody.innerHTML = '';
-                    
-                    if (data.length === 0) {
-                        tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
-                        return;
-                    }
-                    
-                    // Populate table with user data
-                    data.forEach(user => {
-                        const row = document.createElement('tr');
-                        
-                        // Format the registration date
-                        const regDate = new Date(user.registration_date);
-                        const formattedDate = regDate.toLocaleString();
-                        
-                        row.innerHTML = `
-                            <td>${user.name}</td>
-                            <td>${user.email}</td>
-                            <td>${user.phone || 'N/A'}</td>
-                            <td>${user.designation || 'N/A'}</td>
-                            <td>${formattedDate}</td>
-                        `;
-                        
-                        tableBody.appendChild(row);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching registered users:', error);
-                    document.getElementById('registered-users-table-body').innerHTML = 
-                        '<tr><td colspan="5" style="text-align: center;">Error loading registered users</td></tr>';
-                });
-        }
-
-        function toggleRegisteredUsersTable() {
-            const tableContainer = document.getElementById('registered-users-table-container');
-            const toggleButton = document.getElementById('toggle-users-table-btn');
-            
-            if (tableContainer.style.display === 'none' || tableContainer.style.display === '') {
-                tableContainer.style.display = 'block';
-                toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i> Hide List of Registered Users';
-                // Fetch users data if not already loaded
-                const eventId = currentEvent;
-                if (eventId) {
-                    fetchRegisteredUsers(eventId);
+    function fetchRegisteredUsers(eventId) {
+        // Show loading indicator
+        document.getElementById('registered-users-table-body').innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading...</td></tr>';
+        
+        // Fetch registered users using AJAX
+        fetch('get_registered_users.php?event_id=' + eventId)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('registered-users-table-body');
+                
+                // Clear loading indicator
+                tableBody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
+                    return;
                 }
-            } else {
-                tableContainer.style.display = 'none';
-                toggleButton.innerHTML = '<i class="fas fa-eye"></i> View Registered Users';
-            }
-        }
+                
+                // Populate table with user data
+                data.forEach(user => {
+                    const row = document.createElement('tr');
+                    
+                    // Format the registration date
+                    const regDate = new Date(user.registration_date);
+                    const formattedDate = regDate.toLocaleString();
+                    
+                    row.innerHTML = `
+                        <td>${user.name}</td>
+                        <td>${user.email}</td>
+                        <td>${user.phone || 'N/A'}</td>
+                        <td>${user.designation || 'N/A'}</td>
+                        <td>${formattedDate}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching registered users:', error);
+                document.getElementById('registered-users-table-body').innerHTML = 
+                    '<tr><td colspan="5" style="text-align: center;">Error loading registered users</td></tr>';
+            });
+    }
 
-        function downloadParticipantsList() {
-            const eventId = document.getElementById('download-btn').getAttribute('data-id');
+    function toggleRegisteredUsersTable() {
+        const tableContainer = document.getElementById('registered-users-table-container');
+        const toggleButton = document.getElementById('toggle-users-table-btn');
+        
+        if (tableContainer.style.display === 'none' || tableContainer.style.display === '') {
+            tableContainer.style.display = 'block';
+            toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i> Hide List of Registered Users';
+            // Fetch users data if not already loaded
+            const eventId = currentEvent;
             if (eventId) {
-                window.location.href = 'download_participants.php?event_id=' + eventId;
+                fetchRegisteredUsers(eventId);
             }
+        } else {
+            tableContainer.style.display = 'none';
+            toggleButton.innerHTML = '<i class="fas fa-eye"></i> View Registered Users';
         }
+    }
 
-        function downloadMealAttendance() {
-            const eventId = document.getElementById('download-btn').getAttribute('data-id');
-            if (eventId) {
-                window.location.href = 'download_meal_attendance.php?event_id=' + eventId;
-            }
+    function downloadParticipantsList() {
+        const eventId = document.getElementById('download-btn').getAttribute('data-id');
+        if (eventId) {
+            window.location.href = 'download_participants.php?event_id=' + eventId;
         }
+    }
 
-        function archiveEvent() {
-            const eventId = document.getElementById('archive-btn').getAttribute('data-id');
-            if (confirm('Are you sure you want to archive this event?')) {
-                window.location.href = 'archive-event.php?id=' + eventId + '&action=archive';
-            }
+    function downloadMealAttendance() {
+        const eventId = document.getElementById('download-btn').getAttribute('data-id');
+        if (eventId) {
+            window.location.href = 'download_meal_attendance.php?event_id=' + eventId;
         }
+    }
+
+    function archiveEvent() {
+        const eventId = document.getElementById('archive-btn').getAttribute('data-id');
+        if (confirm('Are you sure you want to archive this event?')) {
+            window.location.href = 'archive-event.php?id=' + eventId + '&action=archive';
+        }
+    }
 
         function unarchiveEvent() {
             const eventId = document.getElementById('unarchive-btn').getAttribute('data-id');
