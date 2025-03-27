@@ -1046,7 +1046,7 @@ foreach ($eventsData as $event) {
         // Confirm before sending
         if (!confirm('Are you sure you want to send the evaluation link to all participants?')) {
             return;
-        }
+        }  
 
         // Show loading state
         document.getElementById('send-eval').textContent = "Sending...";
