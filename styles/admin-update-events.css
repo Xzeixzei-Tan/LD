@@ -259,6 +259,7 @@ html {
 
 .form-group input[type="text"],
 .form-group input[type="email"],
+.form-group input[type="datetime-local"],
 .form-group textarea,
 .form-group select {
     width: 100%;
@@ -602,7 +603,7 @@ html {
 .form-row .form-col button:active {
     transform: translateY(1px);
     box-shadow: 0 1px 2px rgba(43, 58, 143, 0.2);
-    #2b3a8f;
+   
 }
 
 /* New styles for the speaker input group */
@@ -911,20 +912,24 @@ html {
     
     
     .event-day {
+        width: 100%;
+        margin-bottom: 20px;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         background-color: rgb(238, 241, 253);
-        margin-bottom: 15px;
-        padding: 30px;
-        border-radius: 10px;
     }
     
     .time-inputs {
+        margin: auto;
         display: flex;
         gap: 20px;
-        margin-top: 10px;
+        width: 100%;
     }
 
     .time-inputs div {
-        flex: 1;
+        display: flex;
+        width: 100%;
     }
 
     .time-inputs label {
