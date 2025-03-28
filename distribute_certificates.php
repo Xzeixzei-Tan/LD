@@ -45,7 +45,9 @@ $participantsSQL = "SELECT
                     ru.id AS registration_id,
                     ru.user_id,
                     CONCAT(u.first_name, ' ', 
-                        CASE WHEN u.middle_name IS NOT NULL AND u.middle_name != '' THEN CONCAT(u.middle_name, ' ') ELSE '' END,
+                        CASE WHEN u.middle_name IS NOT NULL AND u.middle_name != '' 
+                             THEN CONCAT(UPPER(SUBSTRING(u.middle_name, 1, 1)), '. ') 
+                             ELSE '' END,
                         u.last_name,
                         CASE WHEN u.suffix IS NOT NULL AND u.suffix != '' THEN CONCAT(' ', u.suffix) ELSE '' END
                     ) AS name,
@@ -109,7 +111,7 @@ while ($participant = $participantsResult->fetch_assoc()) {
     $notifStmt = $conn->prepare($notificationSQL);
     $notifStmt->bind_param("isi", $user_id, $notificationMessage, $event_id);
     $notifStmt->execute();
-    
+
     // Send email notification with certificate attachment
     if (sendCertificateEmail($email, $participant_name, $event_title, $outputFile)) {
         $emailsSent++;
@@ -123,15 +125,15 @@ header("Location: admin-events.php?event_id=$event_id&certificates=$certificateC
 exit();
 
 /**
- * Sends an email with certificate attachment to a participant
+ * Generates a PDF certificate for a participant
  * 
- * @param string $email Recipient email address
- * @param string $participant_name Participant's full name
- * @param string $event_title Title of the event
- * @param string $certificatePath Path to the generated certificate PDF
- * @return bool Whether the email was sent successfully
+ * @param string $templatePath Path to the certificate template
+ * @param string $outputFile Path where the generated certificate will be saved
+ * @param array $replacements Associative array of replacement values
+ * @return bool Whether the certificate was generated successfully
  */
-function sendCertificateEmail($email, $participant_name, $event_title, $certificatePath) {
+
+ function sendCertificateEmail($email, $participant_name, $event_title, $certificatePath) {
     // Prevent sending to invalid email addresses
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         error_log("Invalid email address: $email");
@@ -210,31 +212,31 @@ function sendCertificateEmail($email, $participant_name, $event_title, $certific
     }
 }
 
-// PDF certificate generation function remains the same as in your original script
 function generateCertificatePDF($templatePath, $outputFile, $replacements) {
-    // Method using HTML/CSS to create PDF via command-line tool
-    
     // Create a temporary HTML file
     $tempHtml = 'temp_' . uniqid() . '.html';
 
-    // Get the logo and encode it to base64 - use just the filename since it's in the same folder
+    // Get the logo and encode it to base64
     $logoPath = 'styles/photos/DEPED-LOGO.png';
     if (file_exists($logoPath)) {
         $logoData = base64_encode(file_get_contents($logoPath));
         $logoSrc = 'data:image/png;base64,' . $logoData;
     } else {
-        // Log the error but continue without the logo
         error_log("Logo file not found: $logoPath");
         $logoSrc = '';
     }
-    
-    // HTML Template matching exactly the PDF template format
+
+    // HTML Template with enhanced responsive CSS for long names
     $html = '<!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
         <title>Certificate of Participation</title>
         <style>
+            @page {
+                size: landscape;
+                margin: 0;
+            }
             body {
                 font-family: Bookman Old Style;
                 text-align: center;
@@ -253,10 +255,14 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
                 padding: 20px;
                 box-sizing: border-box;
                 position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
             }
             .header {
                 font-size: 16px;
                 line-height: 1.4;
+                margin-bottom: 10px;
             }
 
             .header-1 {
@@ -283,41 +289,59 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
                 font-family: Old English Text MT;
                 font-size: 62px;
                 color: black;
+                margin: 10px 0;
             }
             .awarded-to {
                 font-family: Times New Roman;
                 font-size: 23px;
-                margin: 15px 0;
+                margin: 10px 0;
             }
             .recipient {
                 font-family: Bookman Old Style;
                 font-weight: Bold;
-                font-size: 70px;
-                display: inline-block;
+                font-size: 55px; /* Base font size */
+                max-width: 900px; /* Limit width */
+                line-height: 1.1; /* Tighter line height */
+                margin: 10px 0;
+                word-break: break-word; /* Allow breaking of long words */
+                hyphens: auto; /* Enable hyphenation */
                 text-transform: uppercase;
+                display: inline-block;
+                white-space: normal; /* Allow wrapping */
+            }
+
+            /* Responsive font sizing for very long names */
+            .recipient.extra-long {
+                font-size: 55px;
+            }
+            .recipient.super-long {
+                font-size: 45px;
             }
 
             .description {
                 font-family: Bookman Old Style;
                 font-size: 23px;
                 line-height: 1.5;
+                max-width: 900px; /* Limit width of description */
+                margin: 5px 0;
             }
 
-            strong{
+            strong {
                 font-weight: 1000;
             }
 
-            .event-title{
+            .event-title {
                 font-size: 28px;
                 font-weight: 2000;
             }
 
             .date {
-                margin-top: 35px;
+                margin-top: 50px;
                 font-size: 24px;
+                margin-bottom: -20px;
             }
             .signature {
-                margin-top: 5px;
+                margin-top: 20px;
             }
             .superintendent {
                 letter-spacing: 1px;
@@ -334,7 +358,7 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
                 margin: auto;
                 top: 10px;
                 left: 20px;
-                width: 130px; /* Adjust size as needed */
+                width: 130px; 
                 height: 130px;
             }
         </style>
@@ -343,8 +367,18 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
     <center>
         <div class="certificate">';
     
-    $html .='<div class="header">
+    // Determine name length and apply appropriate class
+    $participant_name = $replacements['participant_name'];
+    $name_class = 'recipient';
+    if (strlen($participant_name) > 30) {
+        $name_class .= ' extra-long';
+    }
+    if (strlen($participant_name) > 40) {
+        $name_class .= ' super-long';
+    }
 
+    $html .= '
+            <div class="header">
                 <img src="' . $logoSrc . '" class="logo" alt="DEPED Logo"><br>
                 <div class="header-1">
                 Republic of the Philippines</div>
@@ -357,7 +391,7 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
             
             <div class="awarded-to">is awarded to</div>
             
-            <div class="recipient">' . $replacements['participant_name'] . '</div>
+            <div class="' . $name_class . '">' . $participant_name . '</div>
             
             <div class="description">
                 for the meaningful engagement as <strong>PARTICIPANT</strong> during the<br>
@@ -381,17 +415,15 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
     </center>    
     </body>
     </html>';
-    
+
     // Write HTML to file
     file_put_contents($tempHtml, $html);
     
     // Convert HTML to PDF using command-line tool (wkhtmltopdf)
-    // You need to have wkhtmltopdf installed on your server
     $command = "\"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe\" --page-size A4 --orientation Landscape $tempHtml $outputFile";
     exec($command);
     
     // Alternative: If wkhtmltopdf isn't available, copy the template and use it as is
-    // This doesn't allow for customization but provides a fallback
     if (!file_exists($outputFile)) {
         copy($templatePath, $outputFile);
     }
