@@ -143,8 +143,8 @@ function sendEvaluationLinkEmail($email, $participant_name, $event_title, $evalu
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'jeznooo@gmail.com'; // REPLACE WITH YOUR EMAIL
-        $mail->Password   = 'hvkg vecv wuzu mepl'; // REPLACE WITH YOUR APP PASSWORD
+        $mail->Username   = 'lrnnganddev@gmail.com'; // REPLACE WITH YOUR EMAIL
+        $mail->Password   = 'njda argh nxpi pbiw'; // REPLACE WITH YOUR APP PASSWORD
         $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
         
@@ -154,7 +154,7 @@ function sendEvaluationLinkEmail($email, $participant_name, $event_title, $evalu
         };
         
         // Recipients
-        $mail->setFrom('jeznooo@gmail.com', 'DepEd General Trias City'); // REPLACE WITH YOUR EMAIL
+        $mail->setFrom('lrnnganddev@gmail.com', 'DepEd General Trias City'); // REPLACE WITH YOUR EMAIL
         $mail->addAddress($email, $participant_name);
         $mail->addReplyTo('support@depedgentriascity.ph', 'Support');
         

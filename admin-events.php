@@ -13,7 +13,7 @@ $viewArchived = isset($_GET['view']) && $_GET['view'] === 'archived';
 $baseSQL = "SELECT 
             e.id, e.title, e.specification, e.delivery, 
             e.start_date, e.end_date, e.venue, e.proponent, e.archived, e.estimated_participants,
-            (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id) AS user_count,
+            (SELECT COUNT(DISTINCT ru.user_id) FROM registered_users ru WHERE ru.event_id = e.id) AS user_count,
             GROUP_CONCAT(DISTINCT CONCAT(fs.source, ' -  ₱', FORMAT(fs.amount, 2), '') SEPARATOR ', ') AS funding_sources,
             GROUP_CONCAT(DISTINCT s.name SEPARATOR ', ') AS speakers,  
             GROUP_CONCAT(DISTINCT 
@@ -183,6 +183,7 @@ function getRegisteredUsers($conn, $eventId) {
             LEFT JOIN users_lnd ul ON ru.user_id = ul.user_id
             LEFT JOIN class_position cp ON ul.position_id = cp.id
             WHERE ru.event_id = ?
+            GROUP BY u.id, u.email
             ORDER BY ru.registration_date DESC";
     
     $stmt = $conn->prepare($sql);

@@ -29,6 +29,7 @@ $sql = "SELECT
         LEFT JOIN users_lnd ul ON ru.user_id = ul.user_id
         LEFT JOIN class_position cp ON ul.position_id = cp.id
         WHERE ru.event_id = ?
+        GROUP BY u.id, u.email
         ORDER BY ru.registration_date DESC";
 
 $stmt = $conn->prepare($sql);
@@ -37,9 +38,15 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 $users = [];
+$uniqueEmails = [];
 
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
+        if (in_array($row['email'], $uniqueEmails)) {
+            continue;
+        }
+        $uniqueEmails[] = $row['email'];
+        
         // Create designation from position and classification if available
         $designation = '';
         if (!empty($row['position'])) {

@@ -754,12 +754,14 @@ html {
 
 .date-notice {
     padding: 15px;
-    background-color: #f8f9fa;
+    background-color: rgb(238, 241, 253);
     border-radius: 6px;
-    border: 1px dashed #ddd;
+    border: 1px dashed #919090;
     color: #6c757d;
     text-align: center;
-    font-family: "Montserrat Medium", sans-serif;
+    font-family: Montserrat;
+    font-style: italic;
+    font-size: 14px;
     margin: 15px 0;
 }
 
@@ -972,18 +974,6 @@ html {
 
 .specializations-1{
     display: flex;
-}
-
-.date-notice {
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
-    border: 1px dashed #ddd;
-    color: #6c757d;
-    text-align: center;
-    font-family: Montserrat;
-    font-style: italic;
-    margin: 15px 0;
 }
 
 .personnel-selection {
