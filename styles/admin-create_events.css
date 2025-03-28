@@ -1083,6 +1083,25 @@ html {
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
+.form-group-1 input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-family: Montserrat Light;
+    text-transform: none; /* Explicitly set to none to prevent automatic capitalization */
+}
+
+.form-group-3 input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-family: Montserrat Light;
+    text-transform: none; /* Explicitly set to none to prevent automatic capitalization */
+}
 /* Improved input styling */
 input[type="text"], 
 input[type="number"], 
@@ -1097,7 +1116,6 @@ width: 100%;
 box-sizing: border-box;
 transition: border-color 0.3s, box-shadow 0.3s;
 margin-bottom: 15px;
-text-transform: capitalize;
 }
 
 input[type="text"]:focus, 
