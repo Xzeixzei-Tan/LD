@@ -23,27 +23,27 @@ html {
     transition: width 0.3s ease;
     z-index: 999;
      
-  }
-  
-  .sidebar.collapsed {
+}
+
+.sidebar.collapsed {
     width: 90px;
     padding: 2rem 0.5rem;
-  }
-  
-  .sidebar .logo {
+}
+
+.sidebar .logo {
     margin-bottom: 1rem;
     margin-left: 5%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-  
-  .sidebar.collapsed .logo {
+}
+
+.sidebar.collapsed .logo {
     margin-left: 0;
     justify-content: center;
-  }
-  
-  .toggle-btn {
+}
+
+.toggle-btn {
     background: none;
     border: none;
     color: white; /* Slightly muted color */
@@ -55,25 +55,25 @@ html {
     padding: 4px;
     border-radius: 4px;
     transition: background 0.2s;
-  }
-  
-  .toggle-btn:hover {
+}
+
+.toggle-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .sidebar .menu {
+}
+
+.sidebar .menu {
     margin-top: 50%;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-  }
-  
-  .sidebar.collapsed .menu {
+}
+
+.sidebar.collapsed .menu {
     align-items: center;
     margin-top: 50%;
-  }
-  
-  .sidebar .menu a {
+}
+
+.sidebar .menu a {
     color: #ffffff; /* Adjusted for admin theme */
     text-decoration: none;
     padding: 1rem;
@@ -85,70 +85,43 @@ html {
     font-family: Tilt Warp Regular;
     margin-bottom: .5rem;
     width: 100%;
-  }
-  
-  .sidebar.collapsed .menu a {
+}
+
+.sidebar.collapsed .menu a {
     justify-content: center;
     padding: 1rem 0;
     width: 90%;
-  }
-  
-  .sidebar .menu a span {
+}
+
+.sidebar .menu a span {
     margin-left: 0.5rem;
     transition: opacity 0.2s;
     font-family: Tilt Warp Regular;
-  }
-  
-  .sidebar.collapsed .menu a span {
+}
+
+.sidebar.collapsed .menu a span {
     opacity: 0;
     width: 0;
     height: 0;
     overflow: hidden;
     display: none;
-  }
-  
-  .sidebar .menu a:hover,
-  .sidebar .menu a.active {
+}
+
+.sidebar .menu a:hover,
+.sidebar .menu a.active {
     background-color: white;
     color: #2b3a8f;
-  }
-  
-  .sidebar .menu a i {
+}
+
+.sidebar .menu a i {
     margin-right: 0.5rem;
     min-width: 20px;
     text-align: center;
-  }
-  
-  .sidebar.collapsed .menu a i {
+}
+
+.sidebar.collapsed .menu a i {
     margin-right: 0;
     font-size: 1.2rem;
-  }
-  
-.submit-btn {
-    font-family: Montserrat ExtraBold;
-    background-color: #4CAF50;
-    color: white;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    width: 60%;
-    transition: background-color 0.3s;
-    margin-top: 20px;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-}
-
-.submit-btn:hover {
-    background-color: #45a049;
-}
-
-.submit-btn:active {
-    background-color: #3e8e41;
-    transform: translateY(1px);
 }
 
 .content {
@@ -157,26 +130,26 @@ html {
     padding: 4rem;
     margin-left: 17%;
     transition: margin-left 0.3s ease;
-  }
-  
-  .content.expanded {
+}
+
+.content.expanded {
     margin-left: 90px;
-  }
-  
-  @media (max-width: 768px) {
+}
+
+@media (max-width: 768px) {
     .sidebar {
         width: 70px;
     }
-  
+
     .sidebar-header h2, .menu-text {
         display: none;
     }
-  
+
     .menu-item {
         display: flex;
         justify-content: center;
     }
-  }
+}
 
 .content-header h1 {
     font-size: 1.5rem;
@@ -222,7 +195,7 @@ html {
     text-align: center;
     font-size: 1.5rem;
     font-weight: bold;
-    color: #28a745;
+    color: #155724;
     margin-bottom: 1.5rem;
     font-family: Montserrat ExtraBold;
 }
@@ -232,23 +205,33 @@ html {
     flex-direction: column;
 }
 
-.form-group {
+.form-group-1, .form-group-2, .form-group-3, .form-group-4{
     background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 25px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-    }
+    padding: 25px;
+    font-family: Montserrat;
+    border-radius: 10px;
+    margin-bottom: 3%;
+}
 
-.form-group label {
+.form-group-1 h4, .form-group-2 h4, .form-group-3 h4, .form-group-4 h4 {
     font-family: Montserrat Medium;
+    font-size: 14px;
     display: block;
-    color: #2b3a8f;
+    font-weight: bold;
+    color: rgb(67, 66, 66);
     margin-bottom: 0.2rem;
     margin-top: 5px;
 }
 
-.form-group option {
+.form-group-1 label, .form-group-2 label, .form-group-3 label, .form-group-4 label{
+    font-family: Montserrat;
+    display: block;
+    color: #4f5663;
+    margin-bottom: 0.5rem;
+}
+
+.form-group-1 option, .form-group-4 option {
     font-family: Montserrat Medium;
 }
 
@@ -257,20 +240,32 @@ html {
     color: #555;
 }
 
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="datetime-local"],
-.form-group textarea,
-.form-group select {
+.form-group-1 input[type="text"],
+.form-group-1 input[type="email"],
+.form-group-1 input[type="datetime-local"],
+.form-group-1 textarea,
+.form-group-1 select {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #d1d5db;
     border-radius: 5px;
     margin-bottom: 1rem;
     font-family: Montserrat Light;
-    text-transform: none; /* Change from capitalize to none */
+    text-transform: capitalize;
 }
 
+.form-group-3 input[type="text"],
+.form-group-3 input[type="email"],
+.form-group-3 textarea,
+.form-group-3 select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-family: Montserrat Light;
+    text-transform: capitalize;
+}
 
 .form-group textarea {
     resize: vertical;
@@ -298,8 +293,8 @@ html {
     align-items: center;
     margin-right: 0;
     margin-bottom: 0.5rem;
+    font-weight: normal;
     min-width: 100px;
-    
 }
 
 .radio-group input,
@@ -322,14 +317,6 @@ html {
     }
 }
 
-.form-group h4 {
-    font-family: Montserrat Medium;
-    display: block;
-    font-weight: bold;
-    color: #2b3a8f;
-    margin-bottom: 0.2rem;
-    margin-top: 5px;
-}
 /* For the date indicator */
 .date-indicator {
     font-size: 0.85rem;
@@ -338,28 +325,52 @@ html {
     margin-left: 4px;
 }
 
+
+.form-col {
+    flex: 1;
+    min-width: 250px;
+    margin-bottom: auto;
+    margin-right: 1rem;
+}
+
 .form-elig {
     display: flex;
     margin: auto;
     margin-left: 5;
 }
 
-.meal-plan-container {
+.meal-plan {
     margin: auto;
-    background-color: rgb(238, 241, 253);
+    background-color: rgb(215, 222, 247);
     padding: 1rem;
     border-radius: 0.25rem;
     margin-top: 0.5rem;
 }
 
 .meal-day {
-    display: flex;
     flex-wrap: wrap;
+    flex-direction: row;
     align-items: flex-start;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+    margin-bottom: 2%;
+    padding: 20px;
+    gap: 10px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background-color: rgb(238, 241, 253);
+}
     
+
+.meal-day h4 {
+    font-family: Montserrat ExtraBold;
+    margin-top: -0%;
+    color: #2b3a8f;
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.meal-day:first-child{
+    border-top: none;
+    margin-top: 0;
 }
 
 .meal-day:last-child {
@@ -374,6 +385,15 @@ html {
     display: flex;
     align-items: center;
 }
+       
+.meal-day .checkbox-subgroup label {
+    font-size: 15px;
+    width: auto;
+    min-width: 100px;
+    flex-grow: 1;
+    font-family: Montserrat Medium;
+}
+    
 
 .meal-options {
     display: flex;
@@ -385,6 +405,22 @@ html {
     display: flex;
     align-items: center;
     margin-right: 10px;
+}
+
+.submit-btn button {
+    background-color: #12753E;
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: background-color 0.3s;
+}
+
+.submit-btn button:hover {
+    background-color: #15803d;
 }
 
 .section-title {
@@ -433,17 +469,16 @@ html {
         margin-left: 25%;
     }
 
+    .form-row {
+        flex-direction: column;
+    }
+
     .form-col {
         margin: auto;
         width: 100%;
         margin-left: 5%;
-        flex: 1;
-        min-width: 250px;
-        margin-bottom: auto;
-        margin-right: 1rem;
     }
 }
-
 
 @media (max-width: 576px) {
     .sidebar {
@@ -474,26 +509,6 @@ html {
     .content-header p {
         margin-left: 0;
     }
-}
-
-.certificate-template.dragover {
-    border-color: #16a34a;
-    background-color: #f0fdf4;
-}
-
-.file-preview {
-    margin-top: 1rem;
-    display: flex;
-    align-items: center;
-    background-color: #f0f9ff;
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-}
-
-.file-preview img {
-    max-width: 50px;
-    max-height: 50px;
-    margin-right: 1rem;
 }
 
 .dynamic-dates {
@@ -564,13 +579,15 @@ html {
     font-size: 0.75rem;
 }
 
-.form-row .form-col {
-    margin-bottom: 10px;
+.form-row {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
 }
 
+.form-row .form-col {
+    margin-bottom: 10px;
+}
 
 .form-row .form-col button {
     background-color: #2b3a8f;
@@ -603,10 +620,23 @@ html {
 .form-row .form-col button:active {
     transform: translateY(1px);
     box-shadow: 0 1px 2px rgba(43, 58, 143, 0.2);
-   
 }
 
 /* New styles for the speaker input group */
+.speaker-input-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.speaker-input-group input {
+    flex-grow: 1;
+    margin-right: 10px; 
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
 .add-speaker-btn {
     background-color: #2b3a8f;
     color: white;
@@ -661,19 +691,6 @@ html {
     font-size: 16px;
 }
 
-.speaker-input-group {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.speaker-input-group input {
-    flex-grow: 1;
-    margin-right: 10px; 
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
 /* Date indicator for meal plan days */
 .date-indicator {
     font-size: 0.85rem;
@@ -683,17 +700,9 @@ html {
 }
 
 .personnel-selection {
-   
     display: flex;
     gap: 1rem;
     margin-bottom: 2rem;
-    color: #2b3a8f;
-}
-.personnel-selection label {
-    color: #2b3a8f;
-    margin-bottom: 0.5rem;
-    font-family: Montserrat Medium;
-    
 }
 
 .personnel-btn {
@@ -740,11 +749,6 @@ html {
     display: block;
 
 }
-#division-personnel h4 {
-    font-family: Montserrat Medium;
-    font-size: 16px;
-   
-}
 
 .school-personnel-sections,
 .division-personnel-section {
@@ -783,21 +787,42 @@ html {
 
 .date-notice {
     padding: 15px;
-    background-color: #f8f9fa;
+    background-color: rgb(238, 241, 253);
     border-radius: 6px;
-    border: 1px dashed #ddd;
+    border: 1px dashed #919090;
     color: #6c757d;
     text-align: center;
-    font-family: "Montserrat Medium", sans-serif;
+    font-family: Montserrat;
+    font-style: italic;
+    font-size: 14px;
     margin: 15px 0;
 }
 
-
-
-/*dagdag*/
-
- /* Row layout for funding options */
- .funding-options-row {
+.remove-speaker-btn{
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    padding: 7px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    border-left: 5px solid #28a745;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    animation: fadeIn 0.5s;
+    position: relative;
+    display: none;
+}
+    /* Row layout for funding options */
+.funding-options-row {
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
@@ -834,7 +859,6 @@ html {
     height: 18px;
     cursor: pointer;
     margiin-left: 5px;s
-    
 }
 
 /* Style for the amount field */
@@ -859,11 +883,10 @@ html {
 .amount-field .currency-symbol {
     position: absolute;
     left: 12px;
-    top: 50%;
+    top: 35%;
     transform: translateY(-50%);
     color: #666;
     font-weight: 500;
-    
 }
 
 .amount-field input[type="number"] {
@@ -871,7 +894,6 @@ html {
     padding: 8px 12px 8px 30px;
     border-radius: 4px;
     font-size: 15px;
-
 }
 
 .amount-field input[type="number"]:focus {
@@ -881,198 +903,153 @@ html {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .funding-options-row {
-        flex-direction: column;
-        gap: 10px;
-        padding: 5px;
-    }
-    
-    .funding-option {
-        width: 100%;
-        min-width: auto;
-        padding: 15px;
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-    }
+.funding-options-row {
+    flex-direction: column;
+    gap: 10px;
+    padding: 5px;
 }
 
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .section-title {
-        font-family: Montserrat ExtraBold;
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        
-    }
-    
-    
-    .event-day {
-        width: 100%;
-        margin-bottom: 20px;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        background-color: rgb(238, 241, 253);
-    }
-    
-    .time-inputs {
-        margin: auto;
-        display: flex;
-        gap: 20px;
-        width: 100%;
-    }
-
-    .time-inputs div {
-        display: flex;
-        width: 100%;
-    }
-
-    .time-inputs label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: 500;
-        font-size: 14px;
-        color: #555;
-    }
-
-    .time-inputs input[type="time"] {
-        width: 100%;
-        padding: 8px 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-        background-color: white;
-        cursor: pointer;
-        transition: border-color 0.3s, box-shadow 0.3s;
-    }
-
-    .time-inputs input[type="time"]:hover {
-        border-color: #aaa;
-    }
-
-    .time-inputs input[type="time"]:focus {
-        border-color: #4CAF50;
-        outline: none;
-        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
-    }
-
-    .time-inputs input[type="time"]::-webkit-calendar-picker-indicator {
-        cursor: pointer;
-        opacity: 0.8;
-    }
-
-    .time-inputs input[type="time"]::-webkit-calendar-picker-indicator:hover {
-        opacity: 1;
-    }
-
-    .form-col label {
-        display: block;
-        margin-bottom: 8px;
-
-    }
-
-    .form-col input[type="date"],
-    .form-col input[type="number"] {
-        width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-        background-color: white;
-        cursor: pointer;
-        transition: border-color 0.3s, box-shadow 0.3s;
-    }
-
-    .form-col input[type="date"]:hover {
-        border-color: #aaa;
-    }
-
-    .form-col input[type="date"]:focus {
-        border-color: #4CAF 
-    }
-
-
-    .meal-day h4 {
-        
-        margin-top: -0%;
-        color: #2b3a8f;
-        font-size: 16px;
-        padding-bottom: 8px;
-       
-    
-    }
-
-    .specializations-1{
-        display: flex;
-    }
-
-    /* Adjust the Target Personnel section layout */
-.form-group .section-title {
-margin-bottom: 1rem;
+.funding-option {
+    width: 100%;
+    min-width: auto;
+    padding: 15px;
+}
 }
 
-.date-notice {
-padding: 15px;
-background-color: #f8f9fa;
-border-radius: 6px;
-border: 1px dashed #ddd;
-color: #6c757d;
-text-align: center;
-font-family: Montserrat;
-font-style: italic;
-margin: 15px 0;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.time-inputs {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.time-inputs div {
+    flex: 1;
+}
+
+.time-inputs label {
+    width: 100%;
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 13px;
+    color: #555;
+    font-family: Montserrat Medium;
+}
+
+.time-inputs input[type="time"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.time-inputs input[type="time"]:hover {
+    border-color: #aaa;
+}
+
+.time-inputs input[type="time"]:focus {
+    border-color: #4CAF50;
+    outline: none;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.time-inputs input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.time-inputs input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.form-col {
+    flex: 1;
+}
+
+.form-col label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.form-col input[type="date"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-col input[type="date"]:hover {
+    border-color: #aaa;
+}
+
+.form-col input[type="date"]:focus {
+    border-color: #4CAF 
+}
+
+.specializations-1{
+    display: flex;
 }
 
 .personnel-selection {
-display: flex;
-flex-direction: column;
-gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-
+.personnel-selection label {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
 
 .target {
-width: 100%;
+    width: 100%;
 }
 
 #target-personnel {
-width: 100%;
-padding: 0.75rem;
-border: 1px solid #d1d5db;
-border-radius: 5px;
-font-family: Montserrat Light;
-margin-top: 0rem;
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    font-family: Montserrat Light;
+    margin-top: 0rem;
 }
 
 /* Style the dropdown options */
 #target-personnel option {
-padding: 0.5rem;
-font-family: Montserrat Light;
+    padding: 0.5rem;
+    font-family: Montserrat Light;
 }
 
-
-
-   /* For the specialization sections - making them two rows */
+/* For the specialization sections - making them two rows */
 .checkbox-subgroup {
-    background-color: rgb(238, 241, 253);
-display: flex;
-flex-wrap: wrap;
-gap: 5px;
-padding: 15px;
-font-family: Montserrat;
-
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 15px;
 }
 
 .checkbox-subgroup label {
     display: flex;
-    color: black;
-    font-family: Montserrat;
-    font-weight: 0;
     align-items: center;
     padding: 12px;
     border-radius: 4px;
@@ -1084,77 +1061,190 @@ font-family: Montserrat;
 }
 
 .checkbox-subgroup input[type="checkbox"] {
-margin-right: 8px;
+    margin-right: 8px;
 }
 
 /* Specific layout adjustments for division personnel section */
 #division-personnel .checkbox-subgroup {
-display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 10px;
-font-family: Montserrat Medium;
-border-radius: 5px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    background-color: rgb(238, 241, 253);
+    border-radius: 5px;
 }
 
 #division-personnel .checkbox-subgroup label {
-width: 100%;
-font-family: Montserrat Medium;
-color: black;
-font-size: 15px;
+    font-size: 15px;
+    width: 100%;
+    font-family: Montserrat Medium;
 }
 
 /* For school personnel sections */
 #school-personnel .checkbox-subgroup {
-display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 10px;
-padding: 20px;
-border-radius: 8px;
-box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    border-radius: 5px;
+    background-color: rgb(238, 241, 253);
 }
 
-#school-personnel h4 {
+#school-personnel .checkbox-subgroup label {
+    font-size: 15px;
+    width: 100%;
     font-family: Montserrat Medium;
 }
 
-
-
-#school-personnel .checkbox-subgroup label {
-width: 100%;
-font-family: Montserrat Medium;
-font-size: 15px;
-}
-
-/* Keep meal plan styles intact */
-.meal-day {
-padding: 30px;
-border-radius: 8px;
-box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-margin-bottom: 15px;
-display: flex;
-flex-direction: row;
-flex-wrap: wrap;
-gap: 10px;
-background-color: rgb(238, 241, 253);
-}
-
-.meal-day h4 {
-margin-top: 0;
-margin-bottom: -2%;
-color: #2b3a8f;
-font-size: 16px;
-padding-bottom: 8px;
-
-}
-
-
-
-.meal-day .checkbox-subgroup label {
-width: auto;
-min-width: 100px;
-flex-grow: 1;
+#school-personnel h4, #division-personnel h4{
+    font-family: Montserrat ExtraBold;
+    color: #2b3a8f;
+    font-size: 14px;
 }
 
 /* Improved styling for form sections */
+.form-group {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
 
+.form-group {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
 
+.form-group-1 input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-family: Montserrat Light;
+    text-transform: none; /* Explicitly set to none to prevent automatic capitalization */
+}
+
+.form-group-3 input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-family: Montserrat Light;
+    text-transform: none; /* Explicitly set to none to prevent automatic capitalization */
+}
+/* Improved input styling */
+input[type="text"], 
+input[type="number"], 
+input[type="date"],
+input[type="time"],
+select {
+border: 1px solid #ddd;
+padding: 12px;
+border-radius: 6px;
+background-color: white;
+width: 100%;
+box-sizing: border-box;
+transition: border-color 0.3s, box-shadow 0.3s;
+margin-bottom: 15px;
+}
+
+input[type="text"]:focus, 
+input[type="number"]:focus, 
+input[type="date"]:focus,
+input[type="time"]:focus,
+select:focus {
+border-color: #2b3a8f;
+outline: none;
+box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+/* Better responsive layout */
+@media (max-width: 768px) {
+#school-personnel 
+#division-personnel .checkbox-subgroup {
+grid-template-columns: 1fr;
+padding: 10px;
+
+}
+.checkbox-subgroup {
+background-color: white;
+display: flex;
+flex-wrap: wrap;
+gap: 10px;
+padding: 5px;
+}
+
+label {
+width: 100%;
+font-family: Montserrat Medium;
+
+}
+.check-subgroup label {
+width: 100%;
+
+}
+
+.form-row {
+flex-direction: column;
+}
+}
+
+/* Consistent styling for event days */
+.event-day {
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background-color: rgb(238, 241, 253);
+}
+
+.event-day h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #2b3a8f;
+    font-size: 16px;
+    padding-bottom: 8px;
+    font-family: Montserrat ExtraBold;
+}
+.submit-btn {
+    font-family: Montserrat ExtraBold;
+    background-color: #26803b;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    width: 60%;
+    transition: background-color 0.3s;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.submit-btn:hover {
+    background-color: #45a049;
+}
+
+.submit-btn:active {
+    background-color: #3e8e41;
+    transform: translateY(1px);
+}
+.form-container h3{
+    color: #4CAF50;
+    font-family: Montserrat ExtraBold;
+}
+
+.form-group h4 {
+margin-bottom: 10px;
+}
+input[type=number] {
+font-family: Montserrat Light; 
+}

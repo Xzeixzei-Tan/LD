@@ -635,27 +635,54 @@ html {
     background-color: #2b3a8f;
     color: white;
     border: none;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%; /* Circular shape */
+    cursor: pointer;
     display: flex;
+    float: right;
+    margin-top: 1%;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-bottom: 1rem;
-    margin-top: -4%;
-    align-self: flex-end;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .add-speaker-btn:hover {
-    background-color: #1e2a6f;
-    transform: scale(1.1);
+    background-color: #6A5ACD; /* Slightly darker purple on hover */
+    transform: scale(1.05);
 }
 
 .add-speaker-btn i {
-    margin-bottom: 2%;
-    font-size: 0.875rem;
+    margin: 0;
+    font-size: 20px;
+}
+
+.remove-speaker-btn {
+    background-color: #ff4d4d; /* Red color for remove button */
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%; /* Circular shape */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    margin-top: -2%;
+    justify-content: center;
+    margin-left: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.remove-speaker-btn:hover {
+    background-color: #ff1a1a; /* Slightly darker red on hover */
+    transform: scale(1.05);
+}
+
+.remove-speaker-btn i {
+    margin: 0;
+    font-size: 16px;
 }
 
 /* Date indicator for meal plan days */
