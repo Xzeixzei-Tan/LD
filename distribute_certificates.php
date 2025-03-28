@@ -1,6 +1,7 @@
 <?php
 require_once 'config.php';
 require 'vendor/autoload.php';
+session_start();
 
 // Get event ID from URL
 $event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : 0;
@@ -63,6 +64,8 @@ $participantsResult = $stmt->get_result();
 
 $certificateCount = 0;
 $emailsSent = 0;
+$errors = [];
+
 // Use event title for folder name (sanitize it for file system)
 $eventTitleSafe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $event_title);
 $certificatesDir = 'certificates/' . $eventTitleSafe;
@@ -72,60 +75,83 @@ if (!file_exists($certificatesDir)) {
     mkdir($certificatesDir, 0777, true);
 }
 
-// Generate certificates for each participant
-while ($participant = $participantsResult->fetch_assoc()) {
-    $participant_name = $participant['name'];
-    $email = $participant['email'];
-    $participant_id = $participant['registration_id'];
-    $user_id = $participant['user_id'];
-    
-    // Define replacements
-    $replacements = [
-        'participant_name' => $participant_name,
-        'event_title' => $event_title,
-        'event_start_date and end_date' => $date_range,
-        'venue' => $venue,
-        'end_date' => $event_end_date,
-        'date_month' => $date_month,
-        'event_year' => $event_year
-    ];
-    
-    // Use participant name for file name (sanitize it for file system)
-    $participantNameSafe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $participant_name);
-    $outputFile = $certificatesDir . '/' . $participantNameSafe . '.pdf';
-    
-    // Generate certificate using our custom function
-    generateCertificatePDF('certificate.pdf', $outputFile, $replacements);
-    
-    // Record certificate generation in database
-    $certSQL = "INSERT INTO certificates (user_id, event_id, generated_date, certificate_path) 
-                VALUES (?, ?, NOW(), ?)";
-    $certStmt = $conn->prepare($certSQL);
-    $certStmt->bind_param("iis", $user_id, $event_id, $outputFile);
-    $certStmt->execute();
-    
-    // Insert notification for the user
-    $notificationMessage = "Your certificate for event: {$event_title} is now available to download";
-    $notificationSQL = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype, event_id) 
-                        VALUES (?, ?, NOW(), 0, 'user', 'certificate', ?)";
-    $notifStmt = $conn->prepare($notificationSQL);
-    $notifStmt->bind_param("isi", $user_id, $notificationMessage, $event_id);
-    $notifStmt->execute();
+try {
+    // Generate certificates for each participant
+    while ($participant = $participantsResult->fetch_assoc()) {
+        $participant_name = $participant['name'];
+        $email = $participant['email'];
+        $participant_id = $participant['registration_id'];
+        $user_id = $participant['user_id'];
+        
+        // Define replacements
+        $replacements = [
+            'participant_name' => $participant_name,
+            'event_title' => $event_title,
+            'event_start_date and end_date' => $date_range,
+            'venue' => $venue,
+            'end_date' => $event_end_date,
+            'date_month' => $date_month,
+            'event_year' => $event_year
+        ];
+        
+        // Use participant name for file name (sanitize it for file system)
+        $participantNameSafe = preg_replace('/[^a-zA-Z0-9_-]/', '_', $participant_name);
+        $outputFile = $certificatesDir . '/' . $participantNameSafe . '.pdf';
+        
+        // Generate certificate using our custom function
+        if (generateCertificatePDF('certificate.pdf', $outputFile, $replacements)) {
+            // Record certificate generation in database
+            $certSQL = "INSERT INTO certificates (user_id, event_id, generated_date, certificate_path) 
+                        VALUES (?, ?, NOW(), ?)";
+            $certStmt = $conn->prepare($certSQL);
+            $certStmt->bind_param("iis", $user_id, $event_id, $outputFile);
+            $certStmt->execute();
+            
+            // Insert notification for the user
+            $notificationMessage = "Your certificate for event: {$event_title} is now available to download";
+            $notificationSQL = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype, event_id) 
+                                VALUES (?, ?, NOW(), 0, 'user', 'certificate', ?)";
+            $notifStmt = $conn->prepare($notificationSQL);
+            $notifStmt->bind_param("isi", $user_id, $notificationMessage, $event_id);
+            $notifStmt->execute();
 
-    // Send email notification with certificate attachment
-    if (sendCertificateEmail($email, $participant_name, $event_title, $outputFile)) {
-        $emailsSent++;
+            // Send email notification with certificate attachment
+            if (sendCertificateEmail($email, $participant_name, $event_title, $outputFile)) {
+                $emailsSent++;
+            }
+            
+            $certificateCount++;
+        } else {
+            $errors[] = "Failed to generate certificate for {$participant_name}";
+        }
     }
-    
-    $certificateCount++;
+
+    // Prepare session message with comprehensive information
+    $_SESSION['confirm_message'] = [
+        'status' => count($errors) > 0 ? 'partial_error' : 'success',
+        'message' => count($errors) > 0 
+            ? 'Event processed with some errors' 
+            : 'Event processed successfully',
+        'certificates' => $certificateCount,
+        'emails' => $emailsSent,
+        'event_id' => $event_id,
+        'errors' => $errors
+    ];
+
+} catch (Exception $e) {
+    // Catch any unexpected errors
+    $_SESSION['confirm_message'] = [
+        'status' => 'error',
+        'message' => 'Unexpected error: ' . $e->getMessage(),
+        'event_id' => $event_id
+    ];
 }
 
-// Redirect back to the event page with a success message including email info
-header("Location: admin-events.php?event_id=$event_id&certificates=$certificateCount&emails=$emailsSent");
+// Redirect back to the event page
+header("Location: admin-events.php?event_id=$event_id");
 exit();
 
-/**
- * Generates a PDF certificate for a participant
+ /* Generates a PDF certificate for a participant
  * 
  * @param string $templatePath Path to the certificate template
  * @param string $outputFile Path where the generated certificate will be saved
@@ -226,7 +252,7 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
         $logoSrc = '';
     }
 
-    // HTML Template with enhanced responsive CSS for long names
+    // HTML Template with enhanced responsive CSS
     $html = '<!DOCTYPE html>
     <html>
     <head>
@@ -285,17 +311,30 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
                 line-height: 1.4;
             }
 
+            .certificate {
+                width: 100%;
+                height: 100%;
+                padding: 20px;
+                box-sizing: border-box;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
             .title {
                 font-family: Old English Text MT;
                 font-size: 62px;
                 color: black;
                 margin: 10px 0;
             }
+
             .awarded-to {
                 font-family: Times New Roman;
                 font-size: 23px;
                 margin: 10px 0;
             }
+
             .recipient {
                 font-family: Bookman Old Style;
                 font-weight: Bold;
@@ -303,42 +342,73 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
                 max-width: 900px; /* Limit width */
                 line-height: 1.1; /* Tighter line height */
                 margin: 10px 0;
-                word-break: break-word; /* Allow breaking of long words */
-                hyphens: auto; /* Enable hyphenation */
+                word-break: break-word;
+                hyphens: auto;
                 text-transform: uppercase;
                 display: inline-block;
-                white-space: normal; /* Allow wrapping */
+                white-space: normal;
             }
-
-            /* Responsive font sizing for very long names */
             .recipient.extra-long {
-                font-size: 55px;
-            }
-            .recipient.super-long {
                 font-size: 45px;
             }
+            .recipient.super-long {
+                font-size: 35px;
+            }
 
-            .description {
-                font-family: Bookman Old Style;
+            .event-title {
+                font-size: 26px;
+                font-weight: 2000;
+                max-width: 900px;
+                word-break: break-word;
+                hyphens: auto;
+            }
+            .event-title.long {
+                font-size: 25px;
+                font-weight: 3000;
+            }
+            .event-title.extra-long {
                 font-size: 23px;
-                line-height: 1.5;
-                max-width: 900px; /* Limit width of description */
-                margin: 5px 0;
+                font-weight: 3000;
             }
 
             strong {
                 font-weight: 1000;
             }
 
-            .event-title {
-                font-size: 28px;
-                font-weight: 2000;
+            .description {
+                font-family: Bookman Old Style;
+                font-size: 24px;
+                line-height: 1.5;
+                max-width: 900px;
+                margin: 10px 0;
+                word-break: break-word;
+                hyphens: auto;
+            }
+            .description.long {
+                font-size: 23px;
+            }
+            .description.extra-long {
+                font-size: 21px;
+                line-height: 1.3;
+            }
+
+            .venue {
+                font-size: 26px;
+                max-width: 900px;
+                word-break: break-word;
+                hyphens: auto;
+            }
+            .venue.long {
+                font-size: 25px;
+            }
+            .venue.extra-long {
+                font-size: 23px;
             }
 
             .date {
-                margin-top: 50px;
+                margin-top: 40px;
                 font-size: 24px;
-                margin-bottom: -20px;
+                margin-bottom: -23px;
             }
             .signature {
                 margin-top: 20px;
@@ -361,6 +431,8 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
                 width: 130px; 
                 height: 130px;
             }
+
+            
         </style>
     </head>
     <body>
@@ -375,6 +447,38 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
     }
     if (strlen($participant_name) > 40) {
         $name_class .= ' super-long';
+    }
+
+    // Determine event title length and apply appropriate class
+    $event_title = $replacements['event_title'];
+    $event_title_class = 'event-title';
+    if (strlen($event_title) > 30) {
+        $event_title_class .= ' long';
+    }
+    if (strlen($event_title) > 40) {
+        $event_title_class .= ' extra-long';
+    }
+
+    // Determine venue length and apply appropriate class
+    $venue = $replacements['venue'];
+    $venue_class = 'venue';
+    if (strlen($venue) > 30) {
+        $venue_class .= ' long';
+    }
+    if (strlen($venue) > 40) {
+        $venue_class .= ' extra-long';
+    }
+
+    // Determine description length and apply appropriate class
+    $description = "for the meaningful engagement as <strong>PARTICIPANT</strong> during the<br>
+        <strong class=\"{$event_title_class}\">\"" . $event_title . "\" </strong> conducted by the Department of Education-Schools Division Office of General Trias City
+        On " . $replacements['date_month'] . ' ' . $replacements['event_start_date and end_date'] . ', at the <span class="' . $venue_class . '">' . $venue . '</span>';
+    $description_class = 'description';
+    if (strlen(strip_tags($description)) > 150) {
+        $description_class .= ' long';
+    }
+    if (strlen(strip_tags($description)) > 200) {
+        $description_class .= ' extra-long';
     }
 
     $html .= '
@@ -393,10 +497,8 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
             
             <div class="' . $name_class . '">' . $participant_name . '</div>
             
-            <div class="description">
-                for the meaningful engagement as <strong>PARTICIPANT</strong> during the<br>
-                <strong class="event-title">"' . $replacements['event_title'] . '" </strong> conducted by the Department of Education-Schools Division Office of General Trias City
-                On ' . $replacements['date_month'] . ' ' . $replacements['event_start_date and end_date'] . ', at the ' . $replacements['venue'] . '
+            <div class="' . $description_class . '">
+                ' . $description . '
             </div>
             
             <div class="date">
@@ -435,4 +537,3 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
     
     return true;
 }
-?>
