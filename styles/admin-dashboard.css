@@ -153,13 +153,17 @@ html {
     }
 }
 
-
-
 .content-header h1 {
     font-size: 1.5rem;
     color: #333333;
     font-family: Wensley Demo;
     margin-left: 32%;
+}
+
+.content-body hr {
+    border: 1px solid #ccc;
+    margin-bottom: 25px;
+    border-radius: 2px;
 }
 
 .content-header p {
@@ -186,13 +190,8 @@ html {
     margin-bottom: 5px;
 }
 
-.content-body hr {
-    border: none;
-    height: 3px;
-    background-color: #95A613;
-    width: 100%;
-    margin-left: 10px;
-    margin-bottom: 30px;
+.content-body hr{
+    border-bottom: 1.5px solid #ccc;
 }
 
 /* Content Area Layout Enhancement */

@@ -52,7 +52,7 @@ if ($viewArchived) {
     $pageTitle = "Archived Events";
 } else {
     $sql = $baseSQL . " WHERE e.archived = 0 GROUP BY e.id ORDER BY e.start_date ASC";
-    $pageTitle = "Upcoming and Ongoing Events";
+    $pageTitle = "Events";
 }
 
 $result = $conn->query($sql);
@@ -321,7 +321,7 @@ foreach ($eventsData as $event) {
             </div>
 
             <div class="archive-toggle">
-                <a href="admin-events.php" class="<?php echo !$viewArchived ? 'active' : ''; ?>">Current Events</a>
+                <a href="admin-events.php" class="<?php echo !$viewArchived ? 'active' : ''; ?>">Events</a>
                 <a href="admin-events.php?view=archived" class="<?php echo $viewArchived ? 'active' : ''; ?>">Archived Events</a>
             </div>
 

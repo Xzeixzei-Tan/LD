@@ -75,8 +75,7 @@ $divResult = $divCount->get_result();
         </div><br><br><br>
 
         <div class="content-body">
-            <h1>Users</h1>
-            <hr><br>
+            <h1>Users</h1><br>
 
             <div class="personnel">
                 <?php

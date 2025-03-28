@@ -183,7 +183,7 @@ html {
 }
 
 .content-body hr {
-    border: 1px solid #95A613;
+    border: 1px solid #ccc;
     margin-bottom: 25px;
     border-radius: 2px;
 }
@@ -386,9 +386,11 @@ html {
 }
 
 .details-section h2 {
+    padding: 10px;
     margin-top: 10px;
     margin-bottom: 15px;
     font-family: Montserrat ExtraBold;
+    border-bottom: 1px solid #ccc;
 }
 
 .details-section hr {
