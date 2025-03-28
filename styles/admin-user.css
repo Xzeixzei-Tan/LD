@@ -177,14 +177,17 @@ body, html {
   font-family: Montserrat ExtraBold;
   font-size: 2rem;
   padding: 10px;
+  border-bottom: 1.5px solid #ccc;
+}
+
+.content-body hr {
+  border: 1px solid #ccc;
+  margin-bottom: 25px;
+  border-radius: 2px;
 }
 
 .content-body .heading{
   display: flex;
-}
-
-.content-body hr{
-  border: 1px solid #95A613;
 }
 
 .personnel {

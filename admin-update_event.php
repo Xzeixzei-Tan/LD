@@ -352,19 +352,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <br>
 
     <div class="form-container">
-        <h3>UPDATE EVENTS DETAILS</h3>
+        <h3>Update Events Details</h3>
         <?php if (!empty($successMessage)): ?>
             <div class="success-message" style="display: block;"><?php echo $successMessage; ?></div>
         <?php endif; ?>
 
         <form method="post" action="">
             <!-- General Information -->
-            <div class="form-group">
+            <div class="form-group-1">
                 <div class="section-title">Event Details</div>
-                <label for="title">Event Title:</label>
+                <h4>Event Title:</h4>
                 <input type="text" id="title" name="title" required value="<?php echo htmlspecialchars($eventData['title']); ?>">
                 
-                <label for="specification">Event Specification:</label>
+                <h4>Event Specification:</h4>
                 <select id="specification" name="specification" required>
                     <?php foreach ($specificationOptions as $option): ?>
                         <option value="<?php echo htmlspecialchars($option); ?>" <?php echo ($eventData['specification'] === $option) ? 'selected' : ''; ?>>
@@ -373,7 +373,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endforeach; ?>
                 </select>
                 
-                <label for="delivery">Delivery:</label>
+                <h4>Delivery:</h4>
                 <select id="delivery" name="delivery" required>
                     <?php foreach ($deliveryOptions as $option): ?>
                         <option value="<?php echo htmlspecialchars($option); ?>" <?php echo ($eventData['delivery'] === $option) ? 'selected' : ''; ?>>
@@ -410,65 +410,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     <?php endforeach; ?>
                 </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <h4>Start Date:</h4>
+                        <input type="date" id="start-date" name="start-date" required value="<?php echo htmlspecialchars($eventData['start_date']); ?>" onchange="generateDayFields()">
                     </div>
-            <div class="form-group">
-            <div class="form-row">
-                                <div class="form-col">
-                                    <h4 for="start-date">Start Date:</h4>
-                                    <input type="date" id="start-date" name="start-date" required value="<?php echo htmlspecialchars($eventData['start_date']); ?>" onchange="generateDayFields()">
-                                </div>
 
-                                <div class="form-col">
-                                    <h4 for="end-date">End Date:</h4>
-                                    <input type="date" id="end-date" name="end-date" required value="<?php echo htmlspecialchars($eventData['end_date']); ?>" onchange="generateDayFields()">
-
-
-                                </div>
-                    <br>
-                            <!-- Event Days Section -->
-                            <div class="section-title">Event Days Schedule</div>
-                            
-                            <div id="event-days-container"></div>
+                    <div class="form-col">
+                        <h4>End Date:</h4>
+                        <input type="date" id="end-date" name="end-date" required value="<?php echo htmlspecialchars($eventData['end_date']); ?>" onchange="generateDayFields()">
                     </div>
-                    <br>
-                        <!-- INSERT MEAL PLAN SECTION HERE -->
-                         <?php
-                        // Meal Plan section of your form
-                       
-                        echo '<div class="section-title">Meal Plan</div>';
-                        echo '<div id="meal-plan-container">';
-                        // Only generate this if start and end dates are set
-                        if (!empty($_POST['start-date']) && !empty($_POST['end-date'])) {
-                            $startDate = new DateTime($_POST['start-date']);
-                            $endDate = new DateTime($_POST['end-date']);
-                            $dayDiff = $endDate->diff($startDate)->days + 1;
-                            
-                            for ($i = 1; $i <= $dayDiff; $i++) {
-                                $currentDate = clone $startDate;
-                                $currentDate->modify('+' . ($i - 1) . ' days');
-                                $dateString = $currentDate->format('Y-m-d');
-                                
-                                echo '<div class="meal-day">';
-                                echo '<h4>Meals for Day ' . $i . ' - ' . $dateString . '</h4>';
-                                echo '<div class="checkbox-subgroup">';
-                                
-                                $mealOptions = ['Breakfast', 'AM Snack', 'Lunch', 'PM Snack', 'Dinner'];
-                                foreach ($mealOptions as $meal) {
-                                    echo '<label>';
-                                    echo '<input type="checkbox" name="meal_plan[' . $i . '][]" value="' . $meal . '"> ' . $meal;
-                                    echo '</label>';
-                                }
-                                
-                                echo '</div>';
-                                echo '</div>';
-                            }
-                        }
-                        echo '</div>';
-                        echo '</div>';
-                        ?>
+                </div>
+                    
+                <!-- Event Days Section -->
+                <div class="section-title">Event Days Schedule</div>
+                <div id="event-days-container"></div>
+            <br>
+            <!-- INSERT MEAL PLAN SECTION HERE -->
+                <?php
+            // Meal Plan section of your form
+            
+            echo '<div class="section-title">Meal Plan</div>';
+            echo '<div id="meal-plan-container">';
+            // Only generate this if start and end dates are set
+            if (!empty($_POST['start-date']) && !empty($_POST['end-date'])) {
+                $startDate = new DateTime($_POST['start-date']);
+                $endDate = new DateTime($_POST['end-date']);
+                $dayDiff = $endDate->diff($startDate)->days + 1;
+                
+                for ($i = 1; $i <= $dayDiff; $i++) {
+                    $currentDate = clone $startDate;
+                    $currentDate->modify('+' . ($i - 1) . ' days');
+                    $dateString = $currentDate->format('Y-m-d');
+                    
+                    echo '<div class="meal-day">';
+                    echo '<h4>Meals for Day ' . $i . ' - ' . $dateString . '</h4>';
+                    echo '<div class="checkbox-subgroup">';
+                    
+                    $mealOptions = ['Breakfast', 'AM Snack', 'Lunch', 'PM Snack', 'Dinner'];
+                    foreach ($mealOptions as $meal) {
+                        echo '<label>';
+                        echo '<input type="checkbox" name="meal_plan[' . $i . '][]" value="' . $meal . '"> ' . $meal;
+                        echo '</label>';
+                    }
+                    
+                    echo '</div>';
+                    echo '</div>';
+                }
+            }
+            echo '</div>';
+            echo '</div>';
+            ?>
 
 
-             <div class="form-group">
+             <div class="form-group-2">
              <div class="form-col">
                 <h4>No. of Estimated Participants:</h4>
                 <input type="number" id="estimated-participants" name="estimated_participants" min="1" placeholder="Enter estimated number of participants" required value="<?php echo htmlspecialchars($estimatedParticipants); ?>">
@@ -476,7 +472,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <!-- Speakers -->
-            <div class="form-group">
+            <div class="form-group-3">
                             <div class="section-title">Organizers & Trainers</div>
                                 
                             <h4>Proponents:</h4>
@@ -513,7 +509,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
 
             <!-- Target Personnel -->
-            <div class="form-group">
+            <div class="form-group-4">
                 <div class="section-title">Target Personnel</div>
                 <div class="personnel-selection">
                     <label for="target-personnel">Target Participants:</label>
