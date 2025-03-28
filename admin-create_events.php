@@ -250,11 +250,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div><br><br><br>
 
             <div class="content-body">
-                <h1>Events</h1>
-                <hr><br><br>
-
                 <div class="form-container">
-                    <h3>CREATE AN EVENT</h3>
+                    <h3>Create an Event</h3>
                     
                     <form id="create-event-form" method="POST">
                         <!-- Basic Event Details -->

@@ -10,36 +10,71 @@ html {
     height: 100%;
 }
 
-.sidebar {  
+.sidebar {
     position: fixed;
     width: 250px;
     height: 100vh;
-    background-color: #2b3a8f;
+    background-color: #2b3a8f; /* Retaining admin dashboard color theme */
     color: #ffffff;
     padding: 2rem 1rem;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-}
-
-.sidebar .logo {
+    justify-content: flex-start;
+    transition: width 0.3s ease;
+    z-index: 999;
+     
+  }
+  
+  .sidebar.collapsed {
+    width: 90px;
+    padding: 2rem 0.5rem;
+  }
+  
+  .sidebar .logo {
     margin-bottom: 1rem;
     margin-left: 5%;
-}
-
-hr {
-    border: 1px solid white;
-}
-
-.sidebar .menu {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .sidebar.collapsed .logo {
+    margin-left: 0;
+    justify-content: center;
+  }
+  
+  .toggle-btn {
+    background: none;
+    border: none;
+    color: white; /* Slightly muted color */
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  
+  .toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .sidebar .menu {
     margin-top: 50%;
     display: flex;
     flex-direction: column;
-    margin-bottom: 18rem;
-}
-
-.sidebar .menu a {
-    color: #ffffff;
+    flex-grow: 1;
+  }
+  
+  .sidebar.collapsed .menu {
+    align-items: center;
+    margin-top: 50%;
+  }
+  
+  .sidebar .menu a {
+    color: #ffffff; /* Adjusted for admin theme */
     text-decoration: none;
     padding: 1rem;
     display: flex;
@@ -49,18 +84,46 @@ hr {
     transition: background 0.3s;
     font-family: Tilt Warp Regular;
     margin-bottom: .5rem;
-}
-
-.sidebar .menu a:hover,
-.sidebar .menu a.active {
+    width: 100%;
+  }
+  
+  .sidebar.collapsed .menu a {
+    justify-content: center;
+    padding: 1rem 0;
+    width: 90%;
+  }
+  
+  .sidebar .menu a span {
+    margin-left: 0.5rem;
+    transition: opacity 0.2s;
+    font-family: Tilt Warp Regular;
+  }
+  
+  .sidebar.collapsed .menu a span {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    display: none;
+  }
+  
+  .sidebar .menu a:hover,
+  .sidebar .menu a.active {
     background-color: white;
     color: #2b3a8f;
-}
-
-.sidebar .menu a i {
+  }
+  
+  .sidebar .menu a i {
     margin-right: 0.5rem;
-}
-
+    min-width: 20px;
+    text-align: center;
+  }
+  
+  .sidebar.collapsed .menu a i {
+    margin-right: 0;
+    font-size: 1.2rem;
+  }
+  
 .submit-btn {
     font-family: Montserrat ExtraBold;
     background-color: #4CAF50;
@@ -92,8 +155,28 @@ hr {
     flex: 1;
     background-color: #ffffff;
     padding: 4rem;
-    margin-left: 250px;
-}
+    margin-left: 17%;
+    transition: margin-left 0.3s ease;
+  }
+  
+  .content.expanded {
+    margin-left: 90px;
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+        width: 70px;
+    }
+  
+    .sidebar-header h2, .menu-text {
+        display: none;
+    }
+  
+    .menu-item {
+        display: flex;
+        justify-content: center;
+    }
+  }
 
 .content-header h1 {
     font-size: 1.5rem;
@@ -128,7 +211,7 @@ hr {
 }
 
 .form-container {
-    background-color: white;
+    background-color: #f9f9f9;
     padding: 2rem;
     border-radius: 0.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -154,13 +237,12 @@ hr {
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 25px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
     }
 
 .form-group label {
     font-family: Montserrat Medium;
     display: block;
-    font-weight: bold;
     color: #2b3a8f;
     margin-bottom: 0.2rem;
     margin-top: 5px;
@@ -177,7 +259,6 @@ hr {
 
 .form-group input[type="text"],
 .form-group input[type="email"],
-.form-group input[type="datetime-local"],
 .form-group textarea,
 .form-group select {
     width: 100%;
@@ -186,8 +267,9 @@ hr {
     border-radius: 5px;
     margin-bottom: 1rem;
     font-family: Montserrat Light;
-    text-transform: capitalize;
+    text-transform: none; /* Change from capitalize to none */
 }
+
 
 .form-group textarea {
     resize: vertical;
@@ -215,9 +297,8 @@ hr {
     align-items: center;
     margin-right: 0;
     margin-bottom: 0.5rem;
-    font-weight: normal;
     min-width: 100px;
-    font-family: Montserrat
+    
 }
 
 .radio-group input,
@@ -609,7 +690,9 @@ hr {
 }
 .personnel-selection label {
     color: #2b3a8f;
-    font-family: Montserrat ;
+    margin-bottom: 0.5rem;
+    font-family: Montserrat Medium;
+    
 }
 
 .personnel-btn {
@@ -656,10 +739,10 @@ hr {
     display: block;
 
 }
-.division-personnel h4 {
-    display: block;
+#division-personnel h4 {
     font-family: Montserrat Medium;
-
+    font-size: 16px;
+   
 }
 
 .school-personnel-sections,
@@ -885,7 +968,7 @@ hr {
     .form-col label {
         display: block;
         margin-bottom: 8px;
-        font-weight: bold;
+
     }
 
     .form-col input[type="date"],
@@ -946,10 +1029,7 @@ flex-direction: column;
 gap: 0.5rem;
 }
 
-.personnel-selection label {
-font-weight: bold;
-margin-bottom: 0.5rem;
-}
+
 
 .target {
 width: 100%;
@@ -984,17 +1064,18 @@ font-family: Montserrat;
 }
 
 .checkbox-subgroup label {
-display: flex;
-color: black;
-align-items: center;
-padding: 12px;
-border-radius: 4px;
-margin: 0;
-transition: all 0.2s ease;
-min-width: 120px;
-width: calc(50% - 10px); /* Make each item take up half the width minus the gap */
-box-sizing: border-box;
-
+    display: flex;
+    color: black;
+    font-family: Montserrat;
+    font-weight: 0;
+    align-items: center;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 0;
+    transition: all 0.2s ease;
+    min-width: 120px;
+    width: calc(50% - 10px); /* Make each item take up half the width minus the gap */
+    box-sizing: border-box;
 }
 
 .checkbox-subgroup input[type="checkbox"] {
@@ -1007,12 +1088,14 @@ display: grid;
 grid-template-columns: repeat(2, 1fr);
 gap: 10px;
 font-family: Montserrat Medium;
+border-radius: 5px;
 }
 
 #division-personnel .checkbox-subgroup label {
 width: 100%;
 font-family: Montserrat Medium;
-color: ;
+color: black;
+font-size: 15px;
 }
 
 /* For school personnel sections */
@@ -1025,9 +1108,16 @@ border-radius: 8px;
 box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+#school-personnel h4 {
+    font-family: Montserrat Medium;
+}
+
+
+
 #school-personnel .checkbox-subgroup label {
 width: 100%;
 font-family: Montserrat Medium;
+font-size: 15px;
 }
 
 /* Keep meal plan styles intact */
