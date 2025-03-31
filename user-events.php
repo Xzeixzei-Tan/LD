@@ -611,7 +611,12 @@ html {
     display: block;
 }
 
+.event-content{
+    padding-right: 90px;
+}
+
 .event-content h3 {
+    width: 90%;
     font-size: 19px;
     margin-bottom: 10px;
     font-family: Montserrat ExtraBold;

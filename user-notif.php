@@ -51,7 +51,7 @@ if (isset($_GET['event_id'])) {
             // Default certificate path if record doesn't exist
             // Format based on your folder naming convention (event_name rather than event_id)
             $certificate_filename = "Certificate_" . $event_title . "_" . $user_id . ".pdf";
-            $certificate_path = "certificates/" . $event_title . "/" . $certificate_filename;
+            $certificate_path = "certificates/" . preg_replace('/[^a-zA-Z0-9_-]/', '_', $event_title). "/" . $certificate_filename;
         }
     }
 }
@@ -723,11 +723,11 @@ if (!$notif_result) {
 
             <div class="pdf-preview">
                 <div class="pdf-icon"><br>
-                    <a href="<?php echo isset($certificate_path) ? htmlspecialchars($certificate_path) : 'Sample.pdf'; ?>" download>
+                <a href="<?php echo isset($certificate_path) ? htmlspecialchars($certificate_path) : ''; ?>" download="Certificate.pdf">
                         <img src="styles/photos/PDF.png">
                     </a>
                     <div class="pdf-filename">
-                        <a href="<?php echo isset($certificate_path) ? htmlspecialchars($certificate_path) : 'Sample.pdf'; ?>" download>
+                        <a href="<?php echo isset($certificate_path) ? htmlspecialchars($certificate_path) : ''; ?>" download>
                             Certificate of Participation
                         </a>
                     </div>

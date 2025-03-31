@@ -416,7 +416,7 @@ function formatEventDaysData($eventDaysData) {
     font-family: 'Wesley Demo', serif;
     transition: all 0.3s ease;
     max-height: fit-content;
-    
+    text-decoration: none;
 }
 
 .events-section {
@@ -476,6 +476,7 @@ function formatEventDaysData($eventDaysData) {
 }
 
 .event, .notification {
+    text-decoration: none;
     background-color: #f8fcfa;
     border-left: 4px solid #12753E;
     border-radius: 8px;
@@ -616,10 +617,16 @@ function formatEventDaysData($eventDaysData) {
 
 
 #events-btn.read {
+    text-decoration: none;
     color: #888;
 }
 
+#events-btn.unread{
+    text-decoration: none;
+}
+
 .notification-content {
+    text-decoration: none;
     transition: all 0.2s ease;
 }
 
@@ -628,6 +635,7 @@ function formatEventDaysData($eventDaysData) {
 }
 
 .notification.important {
+    text-decoration: none;
     border-left: 4px solidrgb(218, 60, 42);
     background-color: #fef9f9;
 }

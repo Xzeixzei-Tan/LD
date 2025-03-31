@@ -451,7 +451,6 @@ html {
 
 .detail-items-1 {
     top: 2%;
-    margin-left: 2%;
 }
 
 .detail-items-2 {
@@ -579,7 +578,12 @@ li{
     border-left: 3px solid #2b3a8f;
 }
 
+.event-content{
+    padding-right: 90px;
+}
+
 .event-content h3 {
+    width: 90%;
     font-size: 20px;
     margin-bottom: 8px;
     font-family: Montserrat Extrabold;
@@ -610,7 +614,6 @@ li{
     right: 2%;
     padding: 6px 14px;
     border-radius: 20px;
-
 }
 
 .event-content span .archived {
