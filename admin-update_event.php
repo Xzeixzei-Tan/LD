@@ -311,7 +311,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/admin-update-events.css" rel="stylesheet">
-    <script src="scripts/admin-create_events.js" defer></script>
+    gene
     <title>Update Event</title>
 
     
@@ -590,10 +590,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
-
-
 document.addEventListener('DOMContentLoaded', function() {
-    // Sidebar toggle functionality
+    // ================= SIDEBAR FUNCTIONALITY =================
     const sidebar = document.querySelector('.sidebar');
     const content = document.getElementById('content');
     const toggleBtn = document.getElementById('toggleSidebar');
@@ -610,8 +608,12 @@ document.addEventListener('DOMContentLoaded', function() {
     toggleBtn.addEventListener('click', function() {
         sidebar.classList.toggle('collapsed');
         content.classList.toggle('expanded');
+        
+        // Save sidebar state to localStorage
+        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
     });
 
+    // ================= SMART TITLE CASE FUNCTIONALITY =================
     // Enhanced list of conjunction and preposition words
     const lowercaseWords = [
         'and', 'or', 'but', 'nor', 'for', 'yet', 'so', 
@@ -657,7 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function applySmartCase(input) {
         // Only apply if input is not empty and not just whitespace
-        if (input.value.trim()) {
+        if (input && input.value && input.value.trim()) {
             input.value = smartTitleCase(input.value);
         }
     }
@@ -678,192 +680,244 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // For dynamically added speaker inputs
-    document.getElementById('speakers-container')?.addEventListener('blur', function(event) {
-        if (event.target.name === 'speaker[]') {
-            applySmartCase(event.target);
-        }
-    }, true);
+    // ================= SPEAKERS MANAGEMENT =================
+    const speakersContainer = document.getElementById('speakers-container');
+    
+    if (speakersContainer) {
+        // For dynamically added speaker inputs
+        speakersContainer.addEventListener('blur', function(event) {
+            if (event.target.name === 'speaker[]') {
+                applySmartCase(event.target);
+            }
+        }, true);
+        
+        // Add speaker button functionality
+        window.addNewSpeaker = function() {
+            const newSpeaker = document.createElement('div');
+            newSpeaker.className = 'speaker-input-group';
+            newSpeaker.innerHTML = `
+                <input type="text" name="speaker[]" placeholder="Enter speaker/resource person">
+                <button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>
+            `;
+            speakersContainer.appendChild(newSpeaker);
 
-    function addNewSpeaker() {
-        const speakersContainer = document.getElementById('speakers-container');
-        const newSpeaker = document.createElement('div');
-        newSpeaker.className = 'speaker-input-group';
-        newSpeaker.innerHTML = `
-            <input type="text" name="speaker[]" placeholder="Enter speaker/resource person">
-            <button type="button" class="remove-speaker-btn"><i class="fas fa-times"></i></button>
-        `;
-        speakersContainer.appendChild(newSpeaker);
-
-        // Add smart case to new speaker input
-        const newInput = newSpeaker.querySelector('input[name="speaker[]"]');
-        newInput.addEventListener('blur', function() {
-            applySmartCase(this);
+            // Add smart case to new speaker input
+            const newInput = newSpeaker.querySelector('input[name="speaker[]"]');
+            newInput.addEventListener('blur', function() {
+                applySmartCase(this);
+            });
+        };
+        
+        // Remove speaker button functionality
+        speakersContainer.addEventListener('click', function(event) {
+            const removeBtn = event.target.closest('.remove-speaker-btn');
+            if (removeBtn) {
+                const speakerGroups = speakersContainer.querySelectorAll('.speaker-input-group');
+                const speakerGroup = removeBtn.closest('.speaker-input-group');
+                
+                // If there's only one speaker group
+                if (speakerGroups.length === 1) {
+                    const input = speakerGroup.querySelector('input');
+                    input.value = ''; // Clear the input
+                } else {
+                    // Remove the speaker group
+                    speakerGroup.remove();
+                }
+            }
         });
     }
 
-    // Delivery method controls venue field visibility
+    // ================= DELIVERY METHOD & VENUE FUNCTIONALITY =================
     const deliverySelect = document.getElementById('delivery');
-    const venueContainer = document.getElementById('venue-container');
+    const venueField = document.getElementById('venue-field');
     
-    deliverySelect.addEventListener('change', function() {
-        if (this.value === 'Face-to-Face' || this.value === 'Blended') {
-            venueContainer.style.display = 'block';
-        } else {
-            venueContainer.style.display = 'none';
+    if (deliverySelect && venueField) {
+        function updateVenueVisibility() {
+            const venueInput = venueField.querySelector('input[name="venue"]');
+            
+            if (deliverySelect.value === 'online') {
+                venueField.style.display = 'none';
+                if (venueInput) {
+                    venueInput.value = '';
+                    venueInput.removeAttribute('required');
+                }
+            } else {
+                venueField.style.display = 'block';
+                if (venueInput) {
+                    venueInput.setAttribute('required', '');
+                }
+            }
         }
-    });
-    
-    // Target personnel selection controls visibility of related sections
+        
+        // Initial setup when page loads
+        updateVenueVisibility();
+        
+        // Add event listener for when delivery selection changes
+        deliverySelect.addEventListener('change', updateVenueVisibility);
+        
+        // Run again after a short delay to ensure it catches any initial state issues
+        setTimeout(updateVenueVisibility, 100);
+    }
+
+    // ================= TARGET PERSONNEL FUNCTIONALITY =================
     const targetSelect = document.getElementById('target-personnel');
     const schoolOptions = document.getElementById('school-personnel');
     const divisionOptions = document.getElementById('division-personnel');
     
-    targetSelect.addEventListener('change', function() {
-        if (this.value === 'School') {
-            schoolOptions.style.display = 'block';
-            divisionOptions.style.display = 'none';
-        } else if (this.value === 'Division') {
-            schoolOptions.style.display = 'none';
-            divisionOptions.style.display = 'block';
-        } else if (this.value === 'Both') {
-            schoolOptions.style.display = 'block';
-            divisionOptions.style.display = 'block';
-        } else {
-            schoolOptions.style.display = 'none';
-            divisionOptions.style.display = 'none';
+    if (targetSelect && schoolOptions && divisionOptions) {
+        function updateTargetVisibility() {
+            if (targetSelect.value === 'School') {
+                schoolOptions.style.display = 'block';
+                divisionOptions.style.display = 'none';
+            } else if (targetSelect.value === 'Division') {
+                schoolOptions.style.display = 'none';
+                divisionOptions.style.display = 'block';
+            } else if (targetSelect.value === 'Both') {
+                schoolOptions.style.display = 'block';
+                divisionOptions.style.display = 'block';
+            } else {
+                schoolOptions.style.display = 'none';
+                divisionOptions.style.display = 'none';
+            }
         }
-    });
+        
+        // Initial setup
+        updateTargetVisibility();
+        
+        // Add event listener
+        targetSelect.addEventListener('change', updateTargetVisibility);
+    }
 
-    // Toggle funding amount fields based on checkbox selection
+    // ================= FUNDING SOURCE FUNCTIONALITY =================
     function toggleFundingAmountField() {
         const fundingCheckboxes = document.querySelectorAll('input[name="funding_source[]"]');
         
         fundingCheckboxes.forEach(function(checkbox) {
-            const amountField = checkbox.closest('.funding-option').querySelector('.amount-field');
+            const amountField = checkbox.closest('.funding-option')?.querySelector('.amount-field');
             
-            // Initially set display based on checkbox state
-            if (checkbox.checked) {
-                amountField.style.display = 'block';
-            } else {
-                amountField.style.display = 'none';
-            }
-            
-            // Add change event listener
-            checkbox.addEventListener('change', function() {
-                if (this.checked) {
+            if (amountField) {
+                // Initially set display based on checkbox state
+                if (checkbox.checked) {
                     amountField.style.display = 'block';
                 } else {
                     amountField.style.display = 'none';
-                    // Clear the amount input when unchecked
-                    const amountInput = amountField.querySelector('input[type="number"]');
-                    if (amountInput) {
-                        amountInput.value = '';
-                    }
                 }
-            });
+                
+                // Add change event listener
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        amountField.style.display = 'block';
+                    } else {
+                        amountField.style.display = 'none';
+                        // Clear the amount input when unchecked
+                        const amountInput = amountField.querySelector('input[type="number"]');
+                        if (amountInput) {
+                            amountInput.value = '';
+                        }
+                    }
+                });
+            }
         });
     }
 
     // Call funding source toggle on page load
     toggleFundingAmountField();
 
-    // Speaker management
-    const speakersContainer = document.getElementById('speakers-container');
-    
-    speakersContainer.addEventListener('click', function(event) {
-        const removeBtn = event.target.closest('.remove-speaker-btn');
-        if (removeBtn) {
-            const speakerGroups = speakersContainer.querySelectorAll('.speaker-input-group');
-            const speakerGroup = removeBtn.closest('.speaker-input-group');
-            
-            // If there's only one speaker group
-            if (speakerGroups.length === 1) {
-                const input = speakerGroup.querySelector('input');
-                input.value = ''; // Clear the input
-            } else {
-                // Remove the speaker group
-                speakerGroup.remove();
-            }
-        }
-    });
-
-    // Add event listener to generate event days dynamically
-    const startDateInput = document.getElementById('start-date');
-    const endDateInput = document.getElementById('end-date');
-    
-    [startDateInput, endDateInput].forEach(input => {
-        input.addEventListener('change', generateDayFields);
-    });
-
-    function generateDayFields() {
-        const startDate = document.getElementById('start-date').value;
-        const endDate = document.getElementById('end-date').value;
+    // ================= EVENT DAYS FUNCTIONALITY =================
+    // Define generateDayFields function in global scope
+    window.generateDayFields = function() {
+        const startDate = document.getElementById('start-date')?.value;
+        const endDate = document.getElementById('end-date')?.value;
         const eventDaysContainer = document.getElementById('event-days-container');
         const mealPlanContainer = document.getElementById('meal-plan-container');
+
+        if (!startDate || !endDate || !eventDaysContainer || !mealPlanContainer) {
+            return; // Exit if any required elements are missing
+        }
 
         // Clear existing fields
         eventDaysContainer.innerHTML = '';
         mealPlanContainer.innerHTML = '';
 
-        if (startDate && endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            const dayDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        
+        // Validate dates
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+            console.error('Invalid date format');
+            return;
+        }
+        
+        const dayDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        
+        // Ensure reasonable number of days to prevent excessive DOM creation
+        if (dayDiff <= 0 || dayDiff > 31) {
+            console.error('Invalid date range or too many days');
+            return;
+        }
 
-            for (let i = 1; i <= dayDiff; i++) {
-                const currentDate = new Date(start);
-                currentDate.setDate(start.getDate() + i - 1);
-                const formattedDate = currentDate.toISOString().split('T')[0];
+        for (let i = 1; i <= dayDiff; i++) {
+            const currentDate = new Date(start);
+            currentDate.setDate(start.getDate() + i - 1);
+            const formattedDate = currentDate.toISOString().split('T')[0];
 
-                // Event Days Section
-                const dayDiv = document.createElement('div');
-                dayDiv.className = 'event-day';
-                dayDiv.innerHTML = `
-                    <h4>Day ${i} - ${formattedDate}</h4>
-                    <input type="hidden" name="event_days[${i}][date]" value="${formattedDate}">
-                    <div class="time-inputs">
-                        <label>Start Time:
-                            <input type="time" name="event_days[${i}][start_time]" value="08:00">
-                        </label>
-                        <label>End Time:
-                            <input type="time" name="event_days[${i}][end_time]" value="17:00">
-                        </label>
-                    </div>
-                `;
-                eventDaysContainer.appendChild(dayDiv);
+            // Event Days Section
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'event-day';
+            dayDiv.innerHTML = `
+                <h4>Day ${i} - ${formattedDate}</h4>
+                <input type="hidden" name="event_days[${i}][date]" value="${formattedDate}">
+                <div class="time-inputs">
+                    <label>Start Time:
+                        <input type="time" name="event_days[${i}][start_time]" value="08:00">
+                    </label>
+                    <label>End Time:
+                        <input type="time" name="event_days[${i}][end_time]" value="17:00">
+                    </label>
+                </div>
+            `;
+            eventDaysContainer.appendChild(dayDiv);
 
-                // Meal Plan Section
-                const mealDiv = document.createElement('div');
-                mealDiv.className = 'meal-day';
-                mealDiv.innerHTML = `
-                    <h4>Meals for Day ${i} - ${formattedDate}</h4>
-                    <div class="checkbox-subgroup">
-                        <label>
-                            <input type="checkbox" name="meal_plan[${i}][]" value="Breakfast"> Breakfast
-                        </label>
-                        <label>
-                            <input type="checkbox" name="meal_plan[${i}][]" value="AM Snack"> AM Snack
-                        </label>
-                        <label>
-                            <input type="checkbox" name="meal_plan[${i}][]" value="Lunch"> Lunch
-                        </label>
-                        <label>
-                            <input type="checkbox" name="meal_plan[${i}][]" value="PM Snack"> PM Snack
-                        </label>
-                        <label>
-                            <input type="checkbox" name="meal_plan[${i}][]" value="Dinner"> Dinner
-                        </label>
-                    </div>
-                `;
-                mealPlanContainer.appendChild(mealDiv);
-            }
+            // Meal Plan Section
+            const mealDiv = document.createElement('div');
+            mealDiv.className = 'meal-day';
+            mealDiv.innerHTML = `
+                <h4>Meals for Day ${i} - ${formattedDate}</h4>
+                <div class="checkbox-subgroup">
+                    <label>
+                        <input type="checkbox" name="meal_plan[${i}][]" value="Breakfast"> Breakfast
+                    </label>
+                    <label>
+                        <input type="checkbox" name="meal_plan[${i}][]" value="AM Snack"> AM Snack
+                    </label>
+                    <label>
+                        <input type="checkbox" name="meal_plan[${i}][]" value="Lunch"> Lunch
+                    </label>
+                    <label>
+                        <input type="checkbox" name="meal_plan[${i}][]" value="PM Snack"> PM Snack
+                    </label>
+                    <label>
+                        <input type="checkbox" name="meal_plan[${i}][]" value="Dinner"> Dinner
+                    </label>
+                </div>
+            `;
+            mealPlanContainer.appendChild(mealDiv);
+        }
+    };
+
+    // Add event listeners to date inputs
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+    
+    if (startDateInput && endDateInput) {
+        startDateInput.addEventListener('change', generateDayFields);
+        endDateInput.addEventListener('change', generateDayFields);
+        
+        // Call generateDayFields on page load if both dates are already set
+        if (startDateInput.value && endDateInput.value) {
+            generateDayFields();
         }
     }
-
-    // Expose functions globally
-    window.addNewSpeaker = addNewSpeaker;
-    window.generateDayFields = generateDayFields;
 });
 </script>
 
