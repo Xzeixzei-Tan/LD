@@ -681,6 +681,27 @@ foreach ($eventsData as $event) {
         distributeBtn.removeAttribute('data-tooltip');
     }
 
+    document.getElementById('detail-delivery').textContent = eventData.delivery;
+    
+        // Add this code to check if the event is online and disable meal plan button accordingly
+        const mealBtn = document.getElementById('meal-btn');
+    if (eventData.delivery && eventData.delivery.toLowerCase() === 'online') {
+        mealBtn.disabled = true;
+        
+        // Remove any existing classes that might conflict with tooltip display
+        mealBtn.classList.remove('disabled-btn'); // Remove if you're using a different class
+        mealBtn.classList.add('tooltip-disabled'); // Use the consistent tooltip class
+        
+        // Set a clear tooltip message
+        mealBtn.setAttribute('data-tooltip', 'Meal plan not available for online events');
+    } else {
+        mealBtn.disabled = false;
+        
+        // Remove tooltip classes and attributes when not needed
+        mealBtn.classList.remove('tooltip-disabled');
+        mealBtn.removeAttribute('data-tooltip');
+    }
+
     try {
         if (eventData.processed_eligible_data) {
             const eligibleData = JSON.parse(eventData.processed_eligible_data);
@@ -885,12 +906,16 @@ foreach ($eventsData as $event) {
         currentEvent = eventData.id;
         
 
-        // Show/hide update button
-        // Show/hide update button
+        // Show/hide update button based on event status
         const updateBtn = document.getElementById('update-btn');
         if (updateBtn) {
-        updateBtn.style.display = 'block';
-        updateBtn.setAttribute('data-id', eventData.id);
+            // Only show update button if the event is not "ongoing"
+            if (eventData.status !== 'Ongoing') {
+                updateBtn.style.display = 'block';
+                updateBtn.setAttribute('data-id', eventData.id);
+            } else {
+                updateBtn.style.display = 'none';
+            }
         }
 
         // Show/hide archive/unarchive buttons as appropriate
