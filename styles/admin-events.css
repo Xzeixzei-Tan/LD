@@ -61,6 +61,36 @@ html {
 .toggle-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
+.archive-toggle a {
+    padding: 10px 20px;
+    background-color: #f1f1f1;
+    color: #333;
+    text-decoration: none;
+    border-radius: 8px;
+    margin-right: 15px;
+    font-family: Tilt Warp Regular;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.archive-toggle a:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+}
+
+.archive-toggle a.active {
+    background-color: #2b3a8f;
+    color: white;
+    font-family: Tilt Warp Regular;
+    box-shadow: 0 4px 8px rgba(43, 58, 143, 0.3);
+}
+
+.archive-toggle {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    display: flex;
+}
 
 .sidebar .menu {
     margin-top: 50%;
@@ -289,36 +319,6 @@ html {
     gap: 25px;
 }
 
-.archive-toggle {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    display: flex;
-}
-
-.archive-toggle a {
-    padding: 10px 20px;
-    background-color: #f1f1f1;
-    color: #333;
-    text-decoration: none;
-    border-radius: 8px;
-    margin-right: 15px;
-    font-family: Tilt Warp Regular;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.archive-toggle a:hover {
-    background-color: #e0e0e0;
-    transform: translateY(-2px);
-}
-
-.archive-toggle a.active {
-    background-color: #2b3a8f;
-    color: white;
-    font-family: Tilt Warp Regular;
-    box-shadow: 0 4px 8px rgba(43, 58, 143, 0.3);
-}
 
 .archived-label {
     background-color: #888;
