@@ -1,13 +1,14 @@
 <?php 
 require_once 'config.php';
 
-// Fetch users from database
+// Improved query to fetch users with their LND details
 $sql = "SELECT u.id, u.first_name, u.middle_name, u.last_name, u.suffix, u.sex, 
-        u.contact_no, u.email, c.name as classification_name, cp.name as position_name 
+        u.contact_no, u.email, c.name as classification_name, cp.name as position_name,
+        ul.affiliation_id
         FROM users u 
-        LEFT JOIN users_lnd ul ON u.id = ul.user_id
-        LEFT JOIN class_position cp ON ul.position_id = cp.id 
+        INNER JOIN users_lnd ul ON u.id = ul.user_id
         LEFT JOIN classification c ON ul.classification_id = c.id 
+        LEFT JOIN class_position cp ON ul.position_id = cp.id 
         WHERE u.deleted_at IS NULL 
         ORDER BY u.id";
 $result = $conn->query($sql);

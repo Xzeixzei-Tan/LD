@@ -19,10 +19,6 @@ try {
     $deleteLndSql = "DELETE FROM users_lnd WHERE user_id = ?";
     $stmtLnd = $conn->prepare($deleteLndSql);
     
-    // Then delete the user from the users table (soft delete)
-    $deleteUserSql = "UPDATE users SET deleted_at = NOW() WHERE id = ?";
-    $stmtUser = $conn->prepare($deleteUserSql);
-    
     $successCount = 0;
     
     // Process each user ID
@@ -34,8 +30,8 @@ try {
         $stmtLnd->execute();
         
         // Delete from users (soft delete)
-        $stmtUser->bind_param("i", $userId);
-        $stmtUser->execute();
+        //$stmtUser->bind_param("i", $userId);
+        //$stmtUser->execute();
         
         $successCount++;
     }

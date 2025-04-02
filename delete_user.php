@@ -19,13 +19,6 @@ try {
     $stmtLnd->bind_param("i", $userId);
     $stmtLnd->execute();
     
-    // Then delete the user from the users table
-    // Using soft delete approach by setting deleted_at field
-    $deleteUserSql = "UPDATE users SET deleted_at = NOW() WHERE id = ?";
-    $stmtUser = $conn->prepare($deleteUserSql);
-    $stmtUser->bind_param("i", $userId);
-    $stmtUser->execute();
-    
     // Commit transaction
     $conn->commit();
     
