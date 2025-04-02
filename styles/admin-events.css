@@ -985,9 +985,12 @@ li{
     margin-bottom: 30px;
 }
 
-#registered-users-table-container{
-    max-height: 300px; 
+.registered-users-table{
     overflow-y: auto; 
+    max-height: 400px;  
+}
+
+#registered-users-table-container{  
     padding: 30px;
     display: none; 
     margin-top: 5px;

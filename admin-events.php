@@ -460,6 +460,7 @@ foreach ($eventsData as $event) {
                                 <i class="fas fa-certificate"></i> Distribute Certificates
                             </button>
                         </div>
+                        <div class="registered-users-table">
                         <table id="registered-users-table">
                             <thead>
                                 <tr>
@@ -477,6 +478,7 @@ foreach ($eventsData as $event) {
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
                 </div>
