@@ -8,6 +8,28 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+if (isset($_GET['show_certificate']) && !empty($_GET['show_certificate'])) {
+    $event_id = $_GET['show_certificate'];
+    
+    // Fetch the certificate message if needed
+    $stmt = $conn->prepare("SELECT message FROM notifications WHERE event_id = ? AND notification_subtype = 'certificate' LIMIT 1");
+    $stmt->bind_param("i", $event_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $certificate_message = '';
+    
+    if ($row = $result->fetch_assoc()) {
+        $certificate_message = $row['message'];
+    }
+    
+    // Add JavaScript to automatically show the modal when the page loads
+    echo '<script>
+        document.addEventListener("DOMContentLoaded", function() {
+            showModal("' . $event_id . '", "' . addslashes(htmlspecialchars($certificate_message)) . '");
+        });
+    </script>';
+}
+
 $user_id = $_SESSION['user_id'];
 
 // Display session messages if any exist
@@ -54,12 +76,63 @@ if ($user_result->num_rows > 0) {
     $_SESSION['last_name'] = $last_name;
 }
 
+if (isset($_GET['event_id'])) {
+    $event_id = $_GET['event_id'];
+
+    $show_modal = false;
+    if (isset($_GET['modal']) && $_GET['modal'] == 'true') {
+        $show_modal = true;
+    }
+    
+    // Fetch event details
+    $event_sql = "SELECT title FROM events WHERE id = ?";
+    $stmt = $conn->prepare($event_sql);
+    $stmt->bind_param("i", $event_id);
+    $stmt->execute();
+    $event_result = $stmt->get_result();
+    
+    if ($event_result->num_rows > 0) {
+        $event_row = $event_result->fetch_assoc();
+        $event_title = $event_row['title'];
+        
+        // IMPORTANT: Fetch the actual certificate path from the database
+        $cert_sql = "SELECT certificate_path FROM certificates WHERE event_id = ? AND user_id = ?";
+        $cert_stmt = $conn->prepare($cert_sql);
+        $cert_stmt->bind_param("ii", $event_id, $user_id);
+        $cert_stmt->execute();
+        $cert_result = $cert_stmt->get_result();
+        
+        if ($cert_result->num_rows > 0) {
+            $cert_row = $cert_result->fetch_assoc();
+            $certificate_path = $cert_row['certificate_path'];
+            
+            // Extract filename from the path for display purposes
+            $path_parts = pathinfo($certificate_path);
+            $certificate_filename = $path_parts['basename'];
+        } else {
+            // Default certificate path if record doesn't exist
+            // Format based on your folder naming convention (event_name rather than event_id)
+            $certificate_filename = "Certificate_" . $event_title . "_" . $user_id . ".pdf";
+            $certificate_path = "certificates/" . preg_replace('/[^a-zA-Z0-9_-]/', '_', $event_title). "/" . $certificate_filename;
+        }
+    }
+}
+
+
 // Fetch notifications for user
-$notif_query = "SELECT id, message, created_at, is_read, notification_subtype, event_id 
-                FROM notifications 
-                WHERE notification_type = 'user' 
-                ORDER BY created_at DESC";
-$notif_result = $conn->query($notif_query);
+$notif_query = "SELECT n.id, n.message, n.created_at, n.is_read, n.notification_subtype, n.event_id 
+                FROM notifications n
+                LEFT JOIN registered_users er ON n.event_id = er.event_id AND er.user_id = ?
+                WHERE n.notification_type = 'user' 
+                AND (n.notification_subtype != 'update_event' 
+                    AND n.notification_subtype != 'certificate' 
+                    AND n.notification_subtype != 'evaluation'
+                    OR er.id IS NOT NULL)
+                ORDER BY n.created_at DESC";
+$stmt = $conn->prepare($notif_query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$notif_result = $stmt->get_result();
 
 if (!$notif_result) {
     die("Notification query failed: " . $conn->error);
@@ -652,6 +725,117 @@ function formatEventDaysData($eventDaysData) {
     width: 100%;
 }
 
+/* Modal Styles */
+.modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+        /* Flexbox for perfect centering */
+        display: none;
+        align-items: center;
+        justify-content: center;
+        
+    }
+
+    .modal-content {
+        position: relative;
+        background-color: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        width: 31%;
+        max-width: 600px;
+        animation: modalopen 0.4s;
+        border: 2px solid #12753E;
+        /* No margin needed with flexbox centering */
+        margin-left: 10%;
+
+    }
+
+    @keyframes modalopen {
+        from {opacity: 0; transform: scale(0.9);}
+        to {opacity: 1; transform: scale(1);}
+    }
+
+    .close-btn {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.3s;
+        margin-top: -2%;
+    }
+
+    .close-btn:hover {
+        color: #12753E;
+    }
+
+    .modal-header {
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        color: #2b3a8f;
+        font-family: Montserrat Extrabold;
+    }
+
+    .modal-body .detail-item {
+        margin-bottom: 15px;
+    }
+
+    .modal-body .detail-item h3 {
+        margin: 0;
+        font-size: 1em;
+        font-family: Montserrat;
+        color: rgb(14, 19, 44);
+    }
+
+    .modal-body .detail-item p {
+        margin: 5px 0 0;
+        color: #555;
+        font-size: .9em;
+        font-family: Montserrat Medium;
+    }
+
+    .modal-footer {
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        margin-top: 20px;
+        text-align: right;
+    }
+
+    .pdf-preview {
+        align-content: center;
+    }
+        
+    .pdf-icon img{
+        margin-left: 34%;
+        width: 120px;
+        height: 80px;
+        cursor: pointer; /* Add pointer cursor to indicate it's clickable */
+    }
+        
+    .pdf-filename a{
+            font-size: 15px;
+            margin-left: 26%;
+            color:  #12753E;
+
+        }
+    .pdf-filename{
+            margin-top: 10px;
+            margin-left: 15px;
+        }
+
 </style>
 <body>
         <!-- Sidebar -->
@@ -736,29 +920,45 @@ function formatEventDaysData($eventDaysData) {
                                 <?php 
                                 // Determine the redirect URL based on notification type
                                 if (!empty($notif['event_id']) && $notif['notification_subtype'] == 'certificate') {
-                                    $redirect_url = "user-notif.php?event_id=" . urlencode($notif['event_id']);
-                                } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'new_event') {
-                                    $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
-                                } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'event_reminder') {
-                                    $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
-                                } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'event_registration') {
-                                    $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
-                                } 
-                                else {
-                                    $redirect_url = "user-notif.php?event_id=" . urlencode($notif['event_id']);
-                                }
-                                
-                                // You need to make sure your query also fetches the notification ID
-                                $notification_id = $notif['id']; // Add id to your SELECT statement if not already included
+                                    $notification_id = $notif['id'];
+                                    $current_page = $_SERVER['PHP_SELF'];
+                                    $redirect_url = $current_page . (strpos($current_page, '?') !== false ? '&' : '?') . 'show_certificate=' . urlencode($notif['event_id']);
                                 ?>
-                                
-                                <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" 
-                                   href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
-                                    <div class="notification-content">
-                                        <p><?php echo htmlspecialchars($notif['message']); ?></p>
-                                        <br><small><?php echo $notif['created_at']; ?></small>    
-                                    </div>
-                                </a>
+                                    <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" 
+                                    href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                        <div class="notification-content">
+                                            <p><?php echo htmlspecialchars($notif['message']); ?></p>
+                                            <br><small><?php echo $notif['created_at']; ?></small>
+                                        </div>
+                                    </a>
+                                    <?php
+                                } else {
+                                    // For all other notification types
+                                    if (!empty($notif['event_id']) && $notif['notification_subtype'] == 'new_event') {
+                                        $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                                    } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'event_reminder') {
+                                        $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                                    } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'update_event') {
+                                        $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                                    } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'event_registration') {
+                                        $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                                    } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'evaluation') {
+                                        $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                                    } else {
+                                        $redirect_url = "user-notif.php?event_id=" . urlencode($notif['event_id']);
+                                    }
+                                    
+                                    // You need to make sure your query also fetches the notification ID
+                                    $notification_id = $notif['id']; // Add id to your SELECT statement if not already included
+                                ?>
+                                    <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" 
+                                    href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                        <div class="notification-content">
+                                            <p><?php echo htmlspecialchars($notif['message']); ?></p>
+                                            <br><small><?php echo $notif['created_at']; ?></small>    
+                                        </div>
+                                    </a>
+                                <?php } ?>
                             </div>
                         <?php endwhile; ?>
                     </div>
@@ -766,6 +966,30 @@ function formatEventDaysData($eventDaysData) {
                 </div>
             </div>
     	</div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div id="eventModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <div class="modal-body">
+            <div class="detail-item">
+                <p id="modal-message">Your certificate is now available to download.</div></p>
+            </div>
+
+            <div class="pdf-preview">
+                <div class="pdf-icon"><br>
+                        <img src="styles/photos/PDF.png">
+                    </a>
+                    <div class="pdf-filename">
+                        <a href="<?php echo isset($certificate_path) ? htmlspecialchars($certificate_path) : ''; ?>" download>
+                            Certificate of Participation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -859,6 +1083,86 @@ document.addEventListener('DOMContentLoaded', function() {
         sortButton.textContent = 'Sort Events: ' + (currentSortOrder === 'ASC' ? 'Asc' : 'Des');
     }
 });
+
+function showModal(eventId, message) {
+    // Update the modal message
+    document.getElementById('modal-message').textContent = message;
+    
+    // Find the certificate path based on the event ID
+    // Ideally this would be passed from the notification display code
+    var certificatePath = "certificates/" + eventId + "/Certificate_" + eventId + "_<?php echo $user_id; ?>.pdf";
+    document.querySelector('.pdf-filename a').href = certificatePath;
+    
+    // Show the modal
+    document.getElementById('eventModal').style.display = "flex";
+}
+
+function closeModal() {
+    var modal = document.getElementById("eventModal");
+    modal.style.display = "none";
+    
+    // Remove selected class from all events
+    document.querySelectorAll('.event').forEach(div => {
+        div.classList.remove('selected');
+    });
+}
+
+// Close the modal if user clicks outside of it
+window.onclick = function(event) {
+    var modal = document.getElementById("eventModal");
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+
+function markAsRead(notificationId) {
+    // Redirect to mark as read script
+    window.location.href = "mark_notification_read.php?notification_id=" + notificationId + "&redirect=" + encodeURIComponent("user-dashboard.php");
+}
+// Get the modal
+var modal = document.getElementById("eventModal");
+
+function showModal(eventId, message) {
+    // Update the modal message
+    document.getElementById('modal-message').textContent = message;
+    
+    // Redirect to the same page with event_id parameter to fetch certificate info
+    var currentUrl = window.location.href.split('?')[0]; // Get current URL without parameters
+    var newUrl = currentUrl + "?event_id=" + eventId + "&modal=true";
+    window.location.href = newUrl;
+}
+
+// Function to close the modal
+function closeModal() {
+    modal.style.display = "none";
+    
+    // Remove selected class from all events
+    document.querySelectorAll('.event').forEach(div => {
+        div.classList.remove('selected');
+    });
+}
+
+// Close the modal if user clicks outside of it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        closeModal();
+    }
+}
+
+function markAsRead(notificationId) {
+    // Redirect to mark as read script
+    window.location.href = "mark_notification_read.php?notification_id=" + notificationId + "&redirect=" + encodeURIComponent("user-dashboard.php");
+}
+
+// Get the modal
+var modal = document.getElementById("eventModal");
+
+<?php if (isset($_GET['modal']) && $_GET['modal'] == 'true'): ?>
+// Automatically open modal if the page loaded with modal=true parameter
+document.addEventListener('DOMContentLoaded', function() {
+    modal.style.display = "flex";
+});
+<?php endif; ?>  
 </script>
 </body>
 </html>

@@ -459,20 +459,37 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
         $event_title_class .= ' extra-long';
     }
 
-    // Determine venue length and apply appropriate class
+    // Handle venue display based on content
     $venue = $replacements['venue'];
-    $venue_class = 'venue';
-    if (strlen($venue) > 30) {
-        $venue_class .= ' long';
-    }
-    if (strlen($venue) > 40) {
-        $venue_class .= ' extra-long';
+    $venue_part = '';
+    
+    // Check if venue is empty or contains only whitespace
+    if (empty(trim($venue))) {
+        // For empty venue, assume it's an online event
+        $venue_part = "held online";
+    } else {
+        // For non-empty venue, check if it contains "online"
+        if (stripos($venue, 'online') !== false) {
+            // If "online" is in the venue text, format accordingly
+            $venue_class = 'venue';
+            if (strlen($venue) > 30) $venue_class .= ' long';
+            if (strlen($venue) > 40) $venue_class .= ' extra-long';
+            
+            $venue_part = "held online via <span class=\"$venue_class\">" . $venue . "</span>";
+        } else {
+            // For physical venues
+            $venue_class = 'venue';
+            if (strlen($venue) > 30) $venue_class .= ' long';
+            if (strlen($venue) > 40) $venue_class .= ' extra-long';
+            
+            $venue_part = "at the <span class=\"$venue_class\">" . $venue . "</span>";
+        }
     }
 
     // Determine description length and apply appropriate class
     $description = "for the meaningful engagement as <strong>PARTICIPANT</strong> during the<br>
         <strong class=\"{$event_title_class}\">\"" . $event_title . "\" </strong> conducted by the Department of Education-Schools Division Office of General Trias City
-        On " . $replacements['date_month'] . ' ' . $replacements['event_start_date and end_date'] . ', at the <span class="' . $venue_class . '">' . $venue . '</span>';
+        On " . $replacements['date_month'] . ' ' . $replacements['event_start_date and end_date'] . ', ' . $venue_part;
     $description_class = 'description';
     if (strlen(strip_tags($description)) > 150) {
         $description_class .= ' long';
