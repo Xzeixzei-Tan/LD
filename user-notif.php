@@ -57,11 +57,16 @@ if (isset($_GET['event_id'])) {
 }
 
 // Fetch notifications for user
-$notif_query = "SELECT id, message, created_at, is_read, notification_subtype, event_id 
-                FROM notifications 
-                WHERE notification_type = 'user' 
-                ORDER BY created_at DESC";
-$notif_result = $conn->query($notif_query);
+$notif_query = "SELECT n.id, n.message, n.created_at, n.is_read, n.notification_subtype, n.event_id 
+                FROM notifications n
+                LEFT JOIN registered_users er ON n.event_id = er.event_id AND er.user_id = ?
+                WHERE n.notification_type = 'user' 
+                AND (n.notification_subtype != 'update_event' AND n.notification_subtype != 'certificate' OR er.id IS NOT NULL)
+                ORDER BY n.created_at DESC";
+$stmt = $conn->prepare($notif_query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$notif_result = $stmt->get_result();
 
 if (!$notif_result) {
     die("Notification query failed: " . $conn->error);
@@ -356,7 +361,7 @@ if (!$notif_result) {
     }
 
     .content-body h1{
-        font-family: Montserrat;
+        font-family: Montserrat ExtraBold;
         font-size: 2rem;
         padding: 10px;
     }
@@ -506,13 +511,12 @@ if (!$notif_result) {
         padding: 25px;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        width: 60%;
+        width: 31%;
         max-width: 600px;
         animation: modalopen 0.4s;
         border: 2px solid #12753E;
         /* No margin needed with flexbox centering */
         margin-left: 10%;
-
     }
 
     @keyframes modalopen {
@@ -576,14 +580,15 @@ if (!$notif_result) {
     }
         
     .pdf-icon img{
-            width: 120px;
-            height: 80px;
-            cursor: pointer; /* Add pointer cursor to indicate it's clickable */
-        }
+        margin-left: 34%;
+        width: 120px;
+        height: 80px;
+        cursor: pointer; /* Add pointer cursor to indicate it's clickable */
+    }
         
     .pdf-filename a{
-            font-size: 17px;
-            margin-right: 123px;
+            font-size: 15px;
+            margin-left: 26%;
             color:  #12753E;
 
         }
@@ -601,7 +606,6 @@ if (!$notif_result) {
             <i class="fas fa-bars"></i>
         </button>
     </div>
-
 
 
        <div class="menu">
@@ -637,7 +641,7 @@ if (!$notif_result) {
             <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
             <p>Learning and Development</p>
             <h1>EVENT MANAGEMENT SYSTEM</h1>
-        </div><br><br><br><br><br>
+        </div><br><br><br>
 
         <div class="content-body">
             <h1>Notifications</h1>
@@ -723,7 +727,6 @@ if (!$notif_result) {
 
             <div class="pdf-preview">
                 <div class="pdf-icon"><br>
-                <a href="<?php echo isset($certificate_path) ? htmlspecialchars($certificate_path) : ''; ?>" download="Certificate.pdf">
                         <img src="styles/photos/PDF.png">
                     </a>
                     <div class="pdf-filename">

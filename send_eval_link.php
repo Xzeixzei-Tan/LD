@@ -32,7 +32,9 @@ $participantsSQL = "SELECT
                     ru.id AS registration_id,
                     ru.user_id,
                     CONCAT(u.first_name, ' ', 
-                        CASE WHEN u.middle_name IS NOT NULL AND u.middle_name != '' THEN CONCAT(u.middle_name, ' ') ELSE '' END,
+                        CASE WHEN u.middle_name IS NOT NULL AND u.middle_name != '' 
+                             THEN CONCAT(UPPER(SUBSTRING(u.middle_name, 1, 1)), '. ') 
+                             ELSE '' END,
                         u.last_name,
                         CASE WHEN u.suffix IS NOT NULL AND u.suffix != '' THEN CONCAT(' ', u.suffix) ELSE '' END
                     ) AS name,
