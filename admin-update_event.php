@@ -430,7 +430,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php
             // Meal Plan section of your form
             
-            echo '<div class="section-title">Meal Plan</div>';
+            echo '<div id="meal-plan-section" class="section-title">Meal Plan</div>';
             echo '<div id="meal-plan-container">';
             // Only generate this if start and end dates are set
             if (!empty($_POST['start-date']) && !empty($_POST['end-date'])) {
@@ -729,6 +729,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // ================= DELIVERY METHOD & VENUE FUNCTIONALITY =================
     const deliverySelect = document.getElementById('delivery');
     const venueField = document.getElementById('venue-field');
+    const mealPlanContainer = document.getElementById('meal-plan-container');
+    const mealPlanSection = document.getElementById('meal-plan-section'); // Add this line to get the title element
     
     if (deliverySelect && venueField) {
         function updateVenueVisibility() {
@@ -740,10 +742,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     venueInput.value = '';
                     venueInput.removeAttribute('required');
                 }
+                
+                // Hide both meal plan container and section title when delivery is online
+                if (mealPlanContainer) {
+                    mealPlanContainer.style.display = 'none';
+                }
+                // Also hide the section title
+                if (mealPlanSection) {
+                    mealPlanSection.style.display = 'none';
+                }
             } else {
                 venueField.style.display = 'block';
                 if (venueInput) {
                     venueInput.setAttribute('required', '');
+                }
+                
+                // Show both meal plan container and section title when delivery is not online
+                if (mealPlanContainer) {
+                    mealPlanContainer.style.display = 'block';
+                }
+                // Also show the section title
+                if (mealPlanSection) {
+                    mealPlanSection.style.display = 'block';
                 }
             }
         }
@@ -757,6 +777,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Run again after a short delay to ensure it catches any initial state issues
         setTimeout(updateVenueVisibility, 100);
     }
+
 
     // ================= TARGET PERSONNEL FUNCTIONALITY =================
     const targetSelect = document.getElementById('target-personnel');
@@ -829,14 +850,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const endDate = document.getElementById('end-date')?.value;
         const eventDaysContainer = document.getElementById('event-days-container');
         const mealPlanContainer = document.getElementById('meal-plan-container');
+        const deliverySelect = document.getElementById('delivery');
 
-        if (!startDate || !endDate || !eventDaysContainer || !mealPlanContainer) {
+        if (!startDate || !endDate || !eventDaysContainer) {
             return; // Exit if any required elements are missing
         }
 
         // Clear existing fields
         eventDaysContainer.innerHTML = '';
-        mealPlanContainer.innerHTML = '';
+        if (mealPlanContainer) {
+            mealPlanContainer.innerHTML = '';
+        }
 
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -855,6 +879,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        // Create event days for scheduling
         for (let i = 1; i <= dayDiff; i++) {
             const currentDate = new Date(start);
             currentDate.setDate(start.getDate() + i - 1);
@@ -877,30 +902,45 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             eventDaysContainer.appendChild(dayDiv);
 
-            // Meal Plan Section
-            const mealDiv = document.createElement('div');
-            mealDiv.className = 'meal-day';
-            mealDiv.innerHTML = `
-                <h4>Meals for Day ${i} - ${formattedDate}</h4>
-                <div class="checkbox-subgroup">
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="Breakfast"> Breakfast
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="AM Snack"> AM Snack
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="Lunch"> Lunch
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="PM Snack"> PM Snack
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="Dinner"> Dinner
-                    </label>
-                </div>
-            `;
-            mealPlanContainer.appendChild(mealDiv);
+            // Only create meal plan sections if delivery is not online
+            if (mealPlanContainer && (!deliverySelect || deliverySelect.value !== 'online')) {
+                const mealDiv = document.createElement('div');
+                mealDiv.className = 'meal-day';
+                mealDiv.innerHTML = `
+                    <h4>Meals for Day ${i} - ${formattedDate}</h4>
+                    <div class="checkbox-subgroup">
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="Breakfast"> Breakfast
+                        </label>
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="AM Snack"> AM Snack
+                        </label>
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="Lunch"> Lunch
+                        </label>
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="PM Snack"> PM Snack
+                        </label>
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="Dinner"> Dinner
+                        </label>
+                    </div>
+                `;
+                mealPlanContainer.appendChild(mealDiv);
+            }
+        }
+        
+        // Update meal plan visibility based on delivery method
+        if (deliverySelect) {
+            const mealPlanSection = document.getElementById('meal-plan-section');
+            
+            if (deliverySelect.value === 'online') {
+                if (mealPlanContainer) mealPlanContainer.style.display = 'none';
+                if (mealPlanSection) mealPlanSection.style.display = 'none';
+            } else {
+                if (mealPlanContainer) mealPlanContainer.style.display = 'block';
+                if (mealPlanSection) mealPlanSection.style.display = 'block';
+            }
         }
     };
 
@@ -916,6 +956,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (startDateInput.value && endDateInput.value) {
             generateDayFields();
         }
+    }
+    
+    // Make sure the delivery method update also triggers a refresh of day fields
+    if (deliverySelect) {
+        deliverySelect.addEventListener('change', function() {
+            if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+                generateDayFields();
+            }
+        });
     }
 });
 </script>
