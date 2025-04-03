@@ -163,13 +163,16 @@ if ($selected_event_id) {
     font-family: Arial, sans-serif;
 }
 
-body,
-html {
-    background: #f8f9fa;
+body, html {
     height: 100%;
 }
 
-/* Sidebar styles - unchanged */
+/* Root font size for responsive typography */
+:root {
+    font-size: 16px; /* Base font size */
+}
+
+/* Sidebar styling */
 .sidebar {
     position: fixed;
     width: 250px;
@@ -179,8 +182,8 @@ html {
     padding: 2rem 1rem;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* Changed from space-between to maintain positions */
-    transition: width 0.3s ease;
+    justify-content: flex-start;
+    transition: all 0.3s ease;
     z-index: 999;
 }
 
@@ -220,18 +223,16 @@ html {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Keep the menu at the same position */
 .sidebar .menu {
     margin-top: 50%;
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Allow it to grow but maintain position */
+    flex-grow: 1;
 }
 
-/* Adjust menu items when sidebar is collapsed */
 .sidebar.collapsed .menu {
     align-items: center;
-    margin-top: 50%; /* Keep the same top margin */
+    margin-top: 50%;
 }
 
 .sidebar .menu a {
@@ -243,7 +244,7 @@ html {
     font-size: 1rem;
     border-radius: 5px;
     transition: background 0.3s;
-    font-family: Tilt Warp Regular;
+    font-family: 'Tilt Warp', sans-serif;
     margin-bottom: .5rem;
     width: 100%;
 }
@@ -257,7 +258,8 @@ html {
 .sidebar .menu a span {
     margin-left: 0.5rem;
     transition: opacity 0.2s;
-    font-family: Tilt Warp Regular;
+    font-family: 'Tilt Warp', sans-serif;
+    font-size: clamp(0.8rem, 1vw, 1rem);
 }
 
 .sidebar.collapsed .menu a span {
@@ -278,6 +280,7 @@ html {
     margin-right: 0.5rem;
     min-width: 20px;
     text-align: center;
+    font-size: clamp(1rem, 1.2vw, 1.5rem);
 }
 
 .sidebar.collapsed .menu a i {
@@ -285,13 +288,12 @@ html {
     font-size: 1.2rem;
 }
 
-/* Fix user profile section for collapsed sidebar */
 .user-profile {
     padding: 15px;
     border-top: 1px solid white;
     display: flex;
     align-items: center;
-    position: absolute; /* Changed from sticky to absolute for more control */
+    position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
@@ -318,19 +320,17 @@ html {
     align-items: center;
     justify-content: center;
     margin-right: 10px;
-    transition: opacity 0.3s ease;
 }
+
 .username {
-        
-    font-family: Tilt Warp;
+    font-family: 'Tilt Warp', sans-serif;
+    font-size: clamp(0.8rem, 1vw, 1rem);
 }
 
 .sidebar.collapsed .user-avatar img {
     margin-right: 0;
-    cursor: default;
 }
 
-/* Update logout menu position for collapsed sidebar */
 .logout-menu {
     position: absolute;
     top: 0;
@@ -339,7 +339,7 @@ html {
     padding: 10px;
     display: none;
     z-index: 10000;
-    width: 85px;
+    width: 100px;
 }
 
 .sidebar.collapsed .logout-menu {
@@ -351,33 +351,31 @@ html {
 }
 
 .logout-btn {
-        background-color: white; 
-        border: 2px solid #12753E;  
-        display: block;
-        width: 100%;
-        padding: 8px 10px;
-        color: #12753E;
-        border-radius: 4px;
-        font-family: 'Tilt Warp', sans-serif;
-        font-size: 14px;
-        text-align: center;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        position: absolute;
-        top: 80%;
-        left: 250%;
-        z-index: 10005 !important; /* Increase this value significantly */
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: add shadow for better visibility */
+    background-color: white;
+    border: 2px solid #12753E;
+    display: block;
+    width: 90%;
+    padding: 8px 10px;
+    color: #12753E;
+    border-radius: 4px;
+    font-family: 'Tilt Warp', sans-serif;
+    font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: absolute;
+    top: 80%;
+    left: 225%;
+    z-index: 10001;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-
-
-/* Content adjustments */
+/* Content area styling */
 .content {
     flex: 1;
     background-color: #ffffff;
-    padding: 4rem;
-    margin-left: 17%;
+    padding: 2rem;
+    margin-left: 250px;
     transition: margin-left 0.3s ease;
 }
 
@@ -385,77 +383,52 @@ html {
     margin-left: 90px;
 }
 
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .sidebar {
-            width: 70px;
-        }
-
-        .sidebar-header h2, .menu-text, .username{
-            display: none;
-        }
-        
-
-        .menu-item {
-            display: flex;
-            justify-content: center;
-        }
-
-        .user-profile {
-            justify-content: center;
-        }
-    }
-
-    .content {
-        flex: 1;
-        background-color: #ffffff;
-        padding: 4rem;
-        margin-left: 17%;
-    }
-
-/* Header styles - unchanged */
 .content-header h1 {
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
     color: #333333;
-    font-family: Wensley Demo;
-    margin-left: 32%;
+    font-family: 'Wensley Demo', sans-serif;
+    text-align: center;
+    margin: 0 auto 0.5rem;
 }
 
 .content-header p {
     color: #999;
-    font-size: 1rem;
-    margin-top: -3%;
-    font-family: LT Cushion Light;
-    margin-left: 44%;
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
+    text-align: center;
+    margin: 0 auto;
+    font-family: 'LT Cushion Light', sans-serif;
 }
 
 .content-header img {
-    float: left;
-    margin-left: 22%;
-    margin-top: -1%;
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 1rem;
     filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
 }
 
-/* Content body - improved */
 .content-body h1 {
-    font-family: Montserrat ExtraBold;
-    font-size: 2.2rem;
-    padding: 10px;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    padding: 10px 0;
+    font-family: 'Montserrat ExtraBold', sans-serif;
     color: black;
-    letter-spacing: 0.5px;
 }
 
 .content-body hr {
-    border: 1px solid #95A613;
-    margin-bottom: 30px;
+    width: 100%;
+    border: none;
+    height: 2px;
+    background-color: #95A613;
+    margin-bottom: 20px;
 }
 
-/* Tabs redesign */
+/* Tabs redesign - responsive */
 .tabs {
     display: flex;
     border-bottom: 2px solid #e0e0e0;
     margin-bottom: 25px;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .tab {
@@ -464,9 +437,9 @@ html {
     border: none;
     border-radius: 8px 8px 0 0;
     cursor: pointer;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 600;
-    font-size: 15px;
+    font-size: 0.9375rem;
     color: #555;
     transition: all 0.3s ease;
     box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
@@ -490,12 +463,12 @@ html {
     padding: 3px 8px;
     font-size: 0.8em;
     font-weight: bold;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     margin-left: 8px;
     box-shadow: 0 2px 3px rgba(0,0,0,0.1);
 }
 
-/* Tab content */
+/* Tab content - responsive */
 .tab-content {
     display: none;
 }
@@ -504,7 +477,7 @@ html {
     display: block;
 }
 
-/* Events section redesign */
+/* Events section redesign - improved responsiveness */
 .events-section {
     background-color: white;
     border-radius: 12px;
@@ -513,10 +486,11 @@ html {
     font-family: 'Wesley Demo', serif;
     flex: 1;
     min-width: 30%;
-    max-height: fit-content;
+    max-height: 800px;
     border: 0;
     margin-top: 20px;
     transition: all 0.3s ease;
+    overflow: auto;
 }
 
 .events-section {
@@ -529,18 +503,18 @@ html {
 }
 
 .events-section h2 {
-    font-size: 24px;
-    font-family: Montserrat ExtraBold;
-    font-weight: bold;
+    font-size: 1.5rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
     margin-bottom: 25px;
     color: #333;
     border-left: 4px solid #12753E;
     padding-left: 15px;
 }
 
-/* Event items redesign */
+/* Event items redesign - responsive */
 .event {
-    background-color:rgb(245, 245, 245);
+    background-color: rgb(245, 245, 245);
     border-radius: 10px;
     padding: 22px;
     margin-bottom: 18px;
@@ -552,7 +526,7 @@ html {
 }
 
 .event-dates {
-    font-size: 13px;
+    font-size: 0.8125rem;
     color: #777;
     margin-top: 5px;
     margin-bottom: 20px;
@@ -565,28 +539,8 @@ html {
     color: #12753E;
 }
 
-.events-section {
-    background-color: white;
-    border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    font-family: 'Wesley Demo', serif;
-    flex: 1;
-    min-width: 30%;
-    max-height: 800px;
-    border: 0;
-    margin-top: 20px;   
-    transition: all 0.3s ease;
-    overflow: auto;
-}
-
-.events-section {
-    flex-basis: 100%;
-    transition: flex-basis 0.3s, transform 0.3s;
-}
-
 .event.selected {
-    background:rgb(218, 238, 227);
+    background: rgb(218, 238, 227);
     border-left: 5px solid #12753E;
     transform: translateX(5px);
 }
@@ -611,36 +565,39 @@ html {
     display: block;
 }
 
-.event-content{
+.event-content {
     padding-right: 90px;
 }
 
 .event-content h3 {
     width: 90%;
-    font-size: 19px;
+    font-size: 1.1875rem;
     margin-bottom: 10px;
-    font-family: Montserrat ExtraBold;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
     color: #12753E;
     transition: color 0.3s ease;
 }
 
 .event-content p {
-    font-size: 14px;
+    font-size: 0.875rem;
     color: #585858;
-    font-family: Montserrat Medium;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
     line-height: 1.5;
 }
 
 .event-content p strong {
     font-weight: bold;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     color: #444;
 }
 
 .status-badge {
     color: white;
-    font-family: Montserrat Medium;
-    font-size: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 0.75rem;
     padding: 6px 15px;
     border-radius: 20px;
     position: absolute;
@@ -700,92 +657,95 @@ html {
     }
 }
 
+/* Search container - responsive */
 .search-container {
-  position: relative;
-  flex-grow: 1;
-  max-width: fit-content;
+    position: relative;
+    flex-grow: 1;
+    max-width: 100%;
+    margin-bottom: 1rem;
 }
 
 /* Search Input */
 .search-input {
-  width: 100%;
-  height: 42px;
-  padding: 0 45px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: 'Montserrat', sans-serif;
-  color: #2d3748;
-  background-color: white;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    height: 42px;
+    padding: 0 45px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-family: 'Montserrat', sans-serif;
+    color: #2d3748;
+    background-color: white;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .search-input:focus {
-  outline: none;
-  border-color: #2b3a8f;
-  box-shadow: 0 0 0 3px rgba(43, 58, 143, 0.1);
+    outline: none;
+    border-color: #2b3a8f;
+    box-shadow: 0 0 0 3px rgba(43, 58, 143, 0.1);
 }
 
 .search-input::placeholder {
-  color: #a0aec0;
-  font-weight: 400;
+    color: #a0aec0;
+    font-weight: 400;
 }
 
 /* Search Icon */
 .search-icon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #a0aec0;
-  font-size: 14px;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+    font-size: 0.875rem;
 }
 
 /* Add clear button for search */
 .search-container::after {
-  content: "\f00d";
-  font-family: "Font Awesome 5 Free";
-  font-weight: 900;
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #cbd5e0;
-  font-size: 12px;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s ease;
+    content: "\f00d";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #cbd5e0;
+    font-size: 0.75rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
 .search-container:has(.search-input:not(:placeholder-shown))::after {
-  opacity: 1;
+    opacity: 1;
 }
 
-/* Content area layout */
+/* Content area layout - responsive */
 .content-area { 
     display: flex; 
-    justify-content: space-between; 
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
-/* Details section redesign */
+/* Details section redesign - responsive */
 .details-section, #details-section {
     display: none;
     flex-basis: 30%;
     max-height: fit-content;
-    margin-left: 20px;
-    margin-top: 20px;
     background-color: white;
     padding: 25px;
     border-radius: 12px;
     border: 0;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     transition: all 0.5s ease;
+    margin-top: 2%;
 }
 
 #detail-title {
-    font-size: 24px;
-    font-family: Montserrat Extrabold;
+    font-size: 1.5rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
     margin-bottom: 15px;
     color: #12753E;
     padding-bottom: 10px;
@@ -793,10 +753,10 @@ html {
 
 .details-section h2 { 
     margin-top: 0;
-    font-family: Montserrat Extrabold;
-    font-weight: bold;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
     margin-bottom: 2%;
-    font-size: 22px;
+    font-size: 1.375rem;
     color: #333;
 }
 
@@ -808,23 +768,20 @@ html {
 .detail-items {
     display: flex;
     flex-wrap: wrap;
+    gap: 20px;
 }
 
-.detail-items-1 {
-    margin-top: 2%;
-    margin-right: 18%;
-}
-
-.detail-items-2 {
-    margin-top: 2%;
+.detail-items-1, .detail-items-2 {
+    flex: 1;
+    min-width: 250px;
 }
 
 .details-section .detail-item {
     margin-bottom: 20px;
 }
 
-.detail-item{
-    width: 360px;
+.detail-item {
+    width: 100%;
     margin-bottom: 20px;
     background-color: #f8f9fa;
     border-radius: 8px;
@@ -834,8 +791,8 @@ html {
 
 .details-section .detail-item h4 {
     color: #555;
-    font-size: 16px;
-    font-family: Montserrat ;
+    font-size: 1rem;
+    font-family: 'Montserrat', sans-serif;
     margin-top: 0;
     margin-bottom: 8px;
     font-weight: 600;
@@ -847,8 +804,9 @@ html {
     margin: 5px 0;
     color: #12753E;
     font-weight: Bold;
-    font-family: Montserrat Medium;
-    font-size: 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
 }
 
 .expand-btn {
@@ -880,21 +838,22 @@ html {
     transform: rotate(180deg);
 }
 
-/* Register/Unregister button */
+/* Register/Unregister button - responsive */
 .create-btn {
-    float: right;
+    display: inline-block;
     padding: 12px 22px;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 0.875rem;
     color: white;
     text-decoration: none;
-    background-color:rgb(17, 118, 62);
+    background-color: rgb(17, 118, 62);
     border-radius: 8px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 8px rgba(18,117,62,0.2);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin: 1rem 0;
 }
 
 .create-btn:hover {
@@ -917,7 +876,7 @@ html {
     padding: 15px;
     margin-bottom: 20px;
     border-radius: 8px;
-    font-family: Montserrat;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .alert-info {
@@ -928,147 +887,155 @@ html {
 
 /* Notification styling */
 .notification p {
-    font-size: 14px;
-    font-family: Montserrat;
+    font-size: 0.875rem;
+    font-family: 'Montserrat', sans-serif;
 }
 
-/* Responsive adjustments */
-@media (max-width: 900px) {
-    .detail-items-2 {
-        width: 100%;
-        margin-left: 0;
-    }
-    
-    .detail-items {
-        flex-direction: column;
-    }
-    
+/* Responsive breakpoints */
+@media (max-width: 1200px) {
     .content {
-        margin-left: 80px;
-        padding: 2rem;
+        padding: 3rem 1.5rem;
     }
     
-    .content-header h1 {
-        margin-left: 20%;
+    .events-section {
+        padding: 25px;
     }
     
-    .content-header p {
-        margin-left: 30%;
+    .details-section, #details-section {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .content {
+        margin-left: 90px;
+        padding: 2rem 1rem;
     }
     
-    .content-header img {
-        margin-left: 10%;
+    .sidebar {
+        width: 90px;
+    }
+    
+    .sidebar .menu a span {
+        display: none;
+    }
+    
+    .username {
+        display: none;
+    }
+    
+    .sidebar .menu a {
+        justify-content: center;
+    }
+    
+    .user-profile {
+        justify-content: center;
+    }
+    
+    .event-content {
+        padding-right: 0;
+    }
+    
+    .status-badge {
+        position: relative;
+        display: inline-block;
+        top: auto;
+        right: auto;
+        margin-top: 10px;
     }
 }
 
 @media (max-width: 768px) {
-    .content-area {
-        flex-direction: column;
-    }
-    
     .events-section.shrink {
         flex-basis: 100%;
     }
     
     .details-section, #details-section {
+        flex-basis: 100%;
         margin-left: 0;
         margin-top: 20px;
     }
+    
+    .content-header h1 {
+        font-size: 1.3rem;
+    }
+    
+    .content-body h1 {
+        font-size: 1.8rem;
+    }
+    
+    .tab {
+        padding: 10px 15px;
+        font-size: 0.85rem;
+    }
 }
 
-p{
-    font-family: Montserrat;
-}
-.user-profile {
-    padding: 15px;
-    border-top: 1px solid white;
-    display: flex;
-    align-items: center;
-    position: absolute; /* Changed from sticky to absolute for more control */
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #12753E;
-    cursor: pointer;
+@media (max-width: 576px) {
+    .content {
+        padding: 1.5rem 0.75rem;
+        margin-left: 70px;
+    }
+    
+    .sidebar {
+        width: 70px;
+    }
+    
+    .sidebar.collapsed {
+        width: 70px;
+    }
+    
+    .content-header h1 {
+        font-size: 1.2rem;
+    }
+    
+    .content-body h1 {
+        font-size: 1.5rem;
+        padding: 5px;
+    }
+    
+    .events-section {
+        padding: 15px;
+    }
+    
+    .event {
+        padding: 15px;
+    }
+    
+    .event-content h3 {
+        font-size: 1rem;
+    }
+    
+    .detail-item {
+        padding: 12px;
+    }
+    
+    .create-btn {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+    }
 }
 
-.logout-menu {
-        position: absolute;
-        top: 0;
-        bottom: 100%;
-        border-radius: 5px;
-        padding: 10px;
+/* Print media query for better printing */
+@media print {
+    .sidebar {
         display: none;
-        z-index: 10000;
-        width: 87px;
     }
-
-    .logout-menu.active {
-        display: block;
+    
+    .content {
+        margin-left: 0;
+        padding: 0;
     }
-
-    .logout-btn {
-        background-color: white; 
-        border: 2px solid #12753E;  
-        display: block;
-        width: 100%;
-        padding: 8px 10px;
-        color: #12753E;
-        border-radius: 4px;
-        font-family: 'Tilt Warp', sans-serif;
-        font-size: 14px;
-        text-align: center;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        position: absolute;
-        top: 80%;
-        left: 260%;
-        z-index: 10005 !important; /* Increase this value significantly */
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: add shadow for better visibility */
+    
+    .events-section {
+        box-shadow: none;
+        max-height: none;
+        overflow: visible;
+    }
+    
+    .details-section {
+        box-shadow: none;
+    }
 }
-
-    .user-avatar img{
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        border: 2px solid white;
-        padding: 2px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 10px;
-        font-family: Tilt Warp;
-    }
-
-    .username {
-        font-family: Tilt Warp;
-    }
-
-    .main-content {
-        flex: 1;
-        padding: 20px;
-        background-color: #ecf0f1;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .sidebar {
-            width: 70px;
-        }
-
-        .sidebar-header h2, .menu-text, .username {
-            display: none;
-        }
-
-        .menu-item {
-            display: flex;
-            justify-content: center;
-        }
-
-        .user-profile {
-            justify-content: center;
-        }
-    }
 </style>
 </head>
 <body>
@@ -1198,7 +1165,7 @@ p{
                 </div>  
 
                 <div class="details-section" id="details-section" <?php echo $selected_event ? 'style="display: block;"' : ''; ?>>
-                    <i class="fas fa-expand expand-btn" onclick="toggleExpand()"></i>
+                    <i class="fas fa-expand expand-btn" onclick="toggleExpand()"></i><br>
                     <h2>Details</h2>
                     <hr>
                     <h3 id="detail-title"><?php echo htmlspecialchars($selected_event["title"]); ?></h3>

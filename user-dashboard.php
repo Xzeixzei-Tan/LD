@@ -182,18 +182,23 @@ function formatEventDaysData($eventDaysData) {
 </head>
 <style type="text/css">
 	* {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, sans-serif;
-    }
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
 
-    body, html {
-        height: 100%;
-        #12753E;
-    }
+body, html {
+    height: 100%;
+}
 
-    .sidebar {
+/* Root font size for responsive typography */
+:root {
+    font-size: 16px; /* Base font size */
+}
+
+/* Sidebar styling */
+.sidebar {
     position: fixed;
     width: 250px;
     height: 100vh;
@@ -202,8 +207,8 @@ function formatEventDaysData($eventDaysData) {
     padding: 2rem 1rem;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* Changed from space-between to maintain positions */
-    transition: width 0.3s ease;
+    justify-content: flex-start;
+    transition: all 0.3s ease;
     z-index: 999;
 }
 
@@ -243,18 +248,16 @@ function formatEventDaysData($eventDaysData) {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Keep the menu at the same position */
 .sidebar .menu {
     margin-top: 50%;
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Allow it to grow but maintain position */
+    flex-grow: 1;
 }
 
-/* Adjust menu items when sidebar is collapsed */
 .sidebar.collapsed .menu {
     align-items: center;
-    margin-top: 50%; /* Keep the same top margin */
+    margin-top: 50%;
 }
 
 .sidebar .menu a {
@@ -266,7 +269,7 @@ function formatEventDaysData($eventDaysData) {
     font-size: 1rem;
     border-radius: 5px;
     transition: background 0.3s;
-    font-family: Tilt Warp Regular;
+    font-family: 'Tilt Warp', sans-serif;
     margin-bottom: .5rem;
     width: 100%;
 }
@@ -280,7 +283,8 @@ function formatEventDaysData($eventDaysData) {
 .sidebar .menu a span {
     margin-left: 0.5rem;
     transition: opacity 0.2s;
-    font-family: Tilt Warp Regular;
+    font-family: 'Tilt Warp', sans-serif;
+    font-size: clamp(0.8rem, 1vw, 1rem);
 }
 
 .sidebar.collapsed .menu a span {
@@ -301,6 +305,7 @@ function formatEventDaysData($eventDaysData) {
     margin-right: 0.5rem;
     min-width: 20px;
     text-align: center;
+    font-size: clamp(1rem, 1.2vw, 1.5rem);
 }
 
 .sidebar.collapsed .menu a i {
@@ -308,13 +313,12 @@ function formatEventDaysData($eventDaysData) {
     font-size: 1.2rem;
 }
 
-/* Fix user profile section for collapsed sidebar */
 .user-profile {
     padding: 15px;
     border-top: 1px solid white;
     display: flex;
     align-items: center;
-    position: absolute; /* Changed from sticky to absolute for more control */
+    position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
@@ -342,16 +346,16 @@ function formatEventDaysData($eventDaysData) {
     justify-content: center;
     margin-right: 10px;
 }
+
 .username {
-        
-    font-family: Tilt Warp;
+    font-family: 'Tilt Warp', sans-serif;
+    font-size: clamp(0.8rem, 1vw, 1rem);
 }
 
 .sidebar.collapsed .user-avatar img {
     margin-right: 0;
 }
 
-/* Update logout menu position for collapsed sidebar */
 .logout-menu {
     position: absolute;
     top: 0;
@@ -360,7 +364,7 @@ function formatEventDaysData($eventDaysData) {
     padding: 10px;
     display: none;
     z-index: 10000;
-    width: 100px;en;
+    width: 100px;
 }
 
 .sidebar.collapsed .logout-menu {
@@ -372,35 +376,31 @@ function formatEventDaysData($eventDaysData) {
 }
 
 .logout-btn {
-        background-color: white; 
-        border: 2px solid #12753E;  
-        display: block;
-        width: 90%;
-        padding: 8px 10px;
-        color: #12753E;
-        border-radius: 4px;
-        font-family: 'Tilt Warp', sans-serif;
-        font-size: 14px;
-        text-align: center;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        position: absolute;
-        top: 80%;
-        left: 225%;
-        z-index: 10001 !important; /* Increase this value significantly */
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: add shadow for better visibility */
+    background-color: white;
+    border: 2px solid #12753E;
+    display: block;
+    width: 90%;
+    padding: 8px 10px;
+    color: #12753E;
+    border-radius: 4px;
+    font-family: 'Tilt Warp', sans-serif;
+    font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: absolute;
+    top: 80%;
+    left: 225%;
+    z-index: 10001;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.sidebar.collapsed {
-    width: 90px;
-    padding: 2rem 0.5rem;
-}
-/* Content adjustments */
+/* Content area styling */
 .content {
     flex: 1;
     background-color: #ffffff;
-    padding: 4rem;
-    margin-left: 17%;
+    padding: 2rem;
+    margin-left: 250px;
     transition: margin-left 0.3s ease;
 }
 
@@ -408,92 +408,69 @@ function formatEventDaysData($eventDaysData) {
     margin-left: 90px;
 }
 
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .sidebar {
-            width: 70px;
-        }
+.content-header h1 {
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
+    color: #333333;
+    font-family: 'Wensley Demo', sans-serif;
+    text-align: center;
+    margin: 0 auto 0.5rem;
+}
 
-        .sidebar-header h2, .menu-text, .username{
-            display: none;
-        }
-        
+.content-header p {
+    color: #999;
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
+    text-align: center;
+    margin: 0 auto;
+    font-family: 'LT Cushion Light', sans-serif;
+}
 
-        .menu-item {
-            display: flex;
-            justify-content: center;
-        }
+.content-header img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto 1rem;
+    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
+}
 
-        .user-profile {
-            justify-content: center;
-        }
-    }
+.content-body h1 {
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    padding: 10px 0;
+    font-family: 'Montserrat ExtraBold', sans-serif;
+    color: black;
+}
 
-    .content {
-        flex: 1;
-        background-color: #ffffff;
-        padding: 4rem;
-        margin-left: 17%;
-    }
+.content-body hr {
+    width: 100%;
+    border: none;
+    height: 2px;
+    background-color: #95A613;
+    margin-bottom: 20px;
+}
 
-    .content-header h1 {
-        font-size: 1.5rem;
-        color: #333333;
-        font-family: Wensley Demo;
-        margin-left: 32%;
-    }
-
-    .content-header p {
-        color: #999;
-        font-size: 1rem;
-        margin-top: -3%;
-        font-family: LT Cushion Light;
-        margin-left: 44%;
-    }
-
-    .content-header img {
-        float: left;
-        margin-left: 22%;
-        margin-top: -1%;
-        filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
-    }
-
-    .content-body h1 {
-        font-size: 2.2rem;
-        padding: 10px;
-        font-family: Montserrat ExtraBold;
-        color: black;
-    }
-
-    .content-body hr {
-        width: 100%;
-        border: none;
-        height: 2px;
-        background-color: #95A613;
-        margin-bottom: 20px;
-    }
-
-    /* Updated Content Area Styling */
+/* Content area sections */
 .content-area {
     display: flex;
+    flex-direction: row;
     padding: 20px 0 40px;
     gap: 30px;
+    flex-wrap: wrap;
 }
 
 .events-section, .notifications-section {
     background-color: white;
     border-radius: 12px;
     border: 1px solid #e0e0e0;
-    padding: 25px;
+    padding: 1.5rem;
     box-shadow: 0 6px 16px rgba(18, 117, 62, 0.08);
     font-family: 'Wesley Demo', serif;
     transition: all 0.3s ease;
     max-height: fit-content;
     text-decoration: none;
+    flex: 1;
+    min-width: 250px;
 }
 
 .events-section {
-    width: 50%;
     flex: 3;
     max-height: 500px;
     overflow-y: auto;
@@ -537,8 +514,8 @@ function formatEventDaysData($eventDaysData) {
 }
 
 .events-section h2, .notifications-section h2 {
-    font-size: 22px;
-    font-family: Montserrat ExtraBold;
+    font-size: clamp(1.2rem, 2vw, 1.4rem);
+    font-family: 'Montserrat ExtraBold', sans-serif;
     font-weight: bold;
     margin-bottom: 20px;
     color: #12753E;
@@ -568,37 +545,21 @@ function formatEventDaysData($eventDaysData) {
 
 .event-content h3 {
     color: #12753E;
-    font-size: 18px;
+    font-size: clamp(1rem, 1.8vw, 1.1rem);
     margin-bottom: 8px;
-    font-family: Montserrat ExtraBold;
+    font-family: 'Montserrat ExtraBold', sans-serif;
 }
 
 .event-content p {
-    font-size: 14px;
+    font-size: clamp(0.85rem, 1.5vw, 0.95rem);
     color: #555;
-    font-family: Montserrat Medium;
+    font-family: 'Montserrat Medium', sans-serif;
     line-height: 1.4;
 }
 
 .event-content p strong {
-    font-family: Montserrat;
-    color:rgb(84, 95, 89);
-}
-
-.event-content span {
-    position: absolute;
-    bottom: 10px;
-    right: 15px;
-    background: #12753E;
-    color: white;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-family: Tilt Warp;
-    font-size: 12px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    font-weight: 500;
-    box-shadow: 0 2px 4px rgba(18, 117, 62, 0.2);
+    font-family: 'Montserrat', sans-serif;
+    color: rgb(84, 95, 89);
 }
 
 .event-content span {
@@ -607,8 +568,8 @@ function formatEventDaysData($eventDaysData) {
     right: 15px;
     padding: 6px 14px;
     border-radius: 20px;
-    font-family: Tilt Warp;
-    font-size: 12px;
+    font-family: 'Tilt Warp', sans-serif;
+    font-size: clamp(0.75rem, 1vw, 0.8rem);
     letter-spacing: 0.5px;
     text-transform: uppercase;
     font-weight: 500;
@@ -641,7 +602,7 @@ function formatEventDaysData($eventDaysData) {
 }
 
 .event-dates {
-    font-size: 13px;
+    font-size: clamp(0.75rem, 1.2vw, 0.85rem);
     color: #777;
     margin-top: 5px;
     margin-bottom: 20px;
@@ -682,19 +643,18 @@ function formatEventDaysData($eventDaysData) {
 }
 
 .notification p {
-    font-size: 14px;
-    font-family: Montserrat Medium;
+    font-size: clamp(0.85rem, 1.5vw, 0.95rem);
+    font-family: 'Montserrat Medium', sans-serif;
     color: #555;
     line-height: 1.4;
 }
-
 
 #events-btn.read {
     text-decoration: none;
     color: #888;
 }
 
-#events-btn.unread{
+#events-btn.unread {
     text-decoration: none;
 }
 
@@ -709,12 +669,12 @@ function formatEventDaysData($eventDaysData) {
 
 .notification.important {
     text-decoration: none;
-    border-left: 4px solidrgb(218, 60, 42);
-    background-color: #fef9f9;
+    border-left: 4px solid rgb(28, 26, 153);
+    background-color:rgb(249, 250, 254);
 }
 
 .notification.important:hover {
-    background-color: #fdf3f2;
+    background-color:rgb(242, 243, 253);
 }
 
 .events-btn {
@@ -727,115 +687,252 @@ function formatEventDaysData($eventDaysData) {
 
 /* Modal Styles */
 .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.4);
-        /* Flexbox for perfect centering */
-        display: none;
-        align-items: center;
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    position: relative;
+    background-color: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    width: 90%;
+    max-width: 500px;
+    animation: modalopen 0.4s;
+    border: 2px solid #12753E;
+    margin: 0 auto;
+}
+
+@keyframes modalopen {
+    from {opacity: 0; transform: scale(0.9);}
+    to {opacity: 1; transform: scale(1);}
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s;
+    margin-top: -2%;
+}
+
+.close-btn:hover {
+    color: #12753E;
+}
+
+.modal-header {
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #2b3a8f;
+    font-family: 'Montserrat Extrabold', sans-serif;
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
+}
+
+.modal-body .detail-item {
+    margin-bottom: 15px;
+}
+
+.modal-body .detail-item h3 {
+    margin: 0;
+    font-size: clamp(0.9rem, 1.5vw, 1em);
+    font-family: 'Montserrat', sans-serif;
+    color: rgb(14, 19, 44);
+}
+
+.modal-body .detail-item p {
+    margin: 5px 0 0;
+    color: #555;
+    font-size: clamp(0.8rem, 1.3vw, 0.9em);
+    font-family: 'Montserrat Medium', sans-serif;
+}
+
+.modal-footer {
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    margin-top: 20px;
+    text-align: right;
+}
+
+.pdf-preview {
+    align-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pdf-icon img {
+    max-width: 120px;
+    width: 100%;
+    height: auto;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+}
+
+.pdf-filename a {
+    font-size: clamp(0.8rem, 1.3vw, 0.95rem);
+    color: #12753E;
+    text-align: center;
+    display: block;
+}
+
+.pdf-filename {
+    margin-top: 10px;
+    width: 100%;
+    text-align: center;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 1200px) {
+    :root {
+        font-size: 15px;
+    }
+    
+    .content {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    :root {
+        font-size: 14px;
+    }
+    
+    .content {
+        margin-left: 90px;
+        padding: 1.5rem;
+    }
+    
+    .sidebar {
+        width: 90px;
+        padding: 2rem 0.5rem;
+    }
+    
+    .sidebar .logo {
+        margin-left: 0;
         justify-content: center;
-        
     }
+    
+    .sidebar .menu a {
+        justify-content: center;
+        padding: 1rem 0;
+        width: 90%;
+    }
+    
+    .sidebar .menu a span {
+        display: none;
+    }
+    
+    .user-profile {
+        justify-content: center;
+        padding: 15px 0;
+    }
+    
+    .username {
+        display: none;
+    }
+    
+    .content-area {
+        flex-direction: column;
+    }
+    
+    .events-section, .notifications-section {
+        width: 100%;
+        max-width: 100%;
+    }
+}
 
+@media (max-width: 768px) {
+    :root {
+        font-size: 13px;
+    }
+    
+    .content {
+        padding: 1rem;
+        margin-left: 70px;
+    }
+    
+    .sidebar {
+        width: 70px;
+    }
+    
+    .sidebar-header h2, .menu-text, .username {
+        display: none;
+    }
+    
+    .menu-item {
+        display: flex;
+        justify-content: center;
+    }
+    
+    .user-profile {
+        justify-content: center;
+    }
+    
     .modal-content {
-        position: relative;
-        background-color: white;
-        padding: 25px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        width: 31%;
-        max-width: 600px;
-        animation: modalopen 0.4s;
-        border: 2px solid #12753E;
-        /* No margin needed with flexbox centering */
-        margin-left: 10%;
-
+        width: 95%;
+        padding: 15px;
     }
-
-    @keyframes modalopen {
-        from {opacity: 0; transform: scale(0.9);}
-        to {opacity: 1; transform: scale(1);}
+    
+    .events-section, .notifications-section {
+        padding: 15px;
     }
+}
 
-    .close-btn {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: color 0.3s;
-        margin-top: -2%;
+@media (max-width: 576px) {
+    :root {
+        font-size: 12px;
     }
-
-    .close-btn:hover {
-        color: #12753E;
+    
+    .content {
+        padding: 0.75rem;
+        margin-left: 60px;
     }
-
-    .modal-header {
-        padding-bottom: 15px;
-        border-bottom: 1px solid #eee;
-        margin-bottom: 20px;
+    
+    .sidebar {
+        width: 60px;
     }
-
-    .modal-header h2 {
-        margin: 0;
-        color: #2b3a8f;
-        font-family: Montserrat Extrabold;
+    
+    .user-avatar img {
+        width: 30px;
+        height: 30px;
     }
-
-    .modal-body .detail-item {
-        margin-bottom: 15px;
+    
+    .toggle-btn {
+        font-size: 1.2rem;
     }
-
-    .modal-body .detail-item h3 {
-        margin: 0;
-        font-size: 1em;
-        font-family: Montserrat;
-        color: rgb(14, 19, 44);
+    
+    .sidebar .menu a i {
+        font-size: 1rem;
     }
-
-    .modal-body .detail-item p {
-        margin: 5px 0 0;
-        color: #555;
-        font-size: .9em;
-        font-family: Montserrat Medium;
+    
+    .event, .notification {
+        padding: 12px;
     }
-
-    .modal-footer {
-        padding-top: 15px;
-        border-top: 1px solid #eee;
-        margin-top: 20px;
-        text-align: right;
+    
+    .event-content span {
+        position: static;
+        display: inline-block;
+        margin-top: 10px;
     }
-
-    .pdf-preview {
-        align-content: center;
-    }
-        
-    .pdf-icon img{
-        margin-left: 34%;
-        width: 120px;
-        height: 80px;
-        cursor: pointer; /* Add pointer cursor to indicate it's clickable */
-    }
-        
-    .pdf-filename a{
-            font-size: 15px;
-            margin-left: 26%;
-            color:  #12753E;
-
-        }
-    .pdf-filename{
-            margin-top: 10px;
-            margin-left: 15px;
-        }
-
+}
 </style>
 <body>
         <!-- Sidebar -->
