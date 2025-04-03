@@ -103,6 +103,16 @@ while ($row = $result->fetch_assoc()) {
     $mealPlans[$row['day_date']] = json_decode($row['meal_types']) ?? explode(', ', $row['meal_types']);
 }
 
+// Convert meal plans to a format easier to work with in JavaScript
+$mealPlansForJS = array();
+foreach ($mealPlans as $date => $mealTypes) {
+    // Make sure the meal types is always an array
+    if (is_string($mealTypes)) {
+        $mealTypes = explode(', ', $mealTypes);
+    }
+    $mealPlansForJS[$date] = $mealTypes;
+}
+
 // Fetch speakers
 $speakers = [];
 $result = $conn->query("SELECT * FROM speakers WHERE event_id = $eventId");
@@ -590,6 +600,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const phpMealPlans = <?php echo json_encode($mealPlansForJS); ?>;
     // ================= SIDEBAR FUNCTIONALITY =================
     const sidebar = document.querySelector('.sidebar');
     const content = document.getElementById('content');
@@ -730,7 +741,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const deliverySelect = document.getElementById('delivery');
     const venueField = document.getElementById('venue-field');
     const mealPlanContainer = document.getElementById('meal-plan-container');
-    const mealPlanSection = document.getElementById('meal-plan-section'); // Add this line to get the title element
+    const mealPlanSection = document.getElementById('meal-plan-section');
     
     if (deliverySelect && venueField) {
         function updateVenueVisibility() {
@@ -777,7 +788,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // Run again after a short delay to ensure it catches any initial state issues
         setTimeout(updateVenueVisibility, 100);
     }
-
 
     // ================= TARGET PERSONNEL FUNCTIONALITY =================
     const targetSelect = document.getElementById('target-personnel');
@@ -843,6 +853,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Call funding source toggle on page load
     toggleFundingAmountField();
 
+    // ================= MEAL PLAN STORAGE =================
+    // Store meal plan selections
+    let savedMealSelections = {};
+
+    // Save meal selections before regenerating the meal plan container
+    function saveMealSelections() {
+        const mealCheckboxes = document.querySelectorAll('input[name^="meal_plan["]');
+        savedMealSelections = {};
+        
+        mealCheckboxes.forEach(checkbox => {
+            const name = checkbox.name;
+            if (checkbox.checked) {
+                if (!savedMealSelections[name]) {
+                    savedMealSelections[name] = [];
+                }
+                savedMealSelections[name].push(checkbox.value);
+            }
+        });
+    }
+
+    // Restore meal selections after regenerating the meal plan container
+    function restoreMealSelections() {
+        Object.keys(savedMealSelections).forEach(name => {
+            const checkboxes = document.querySelectorAll(`input[name="${name}"]`);
+            checkboxes.forEach(checkbox => {
+                if (savedMealSelections[name].includes(checkbox.value)) {
+                    checkbox.checked = true;
+                }
+            });
+        });
+    }
+
     // ================= EVENT DAYS FUNCTIONALITY =================
     // Define generateDayFields function in global scope
     window.generateDayFields = function() {
@@ -853,8 +895,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const deliverySelect = document.getElementById('delivery');
 
         if (!startDate || !endDate || !eventDaysContainer) {
-            return; // Exit if any required elements are missing
+            return;
         }
+
+        // Save meal selections before clearing containers
+        saveMealSelections();
 
         // Clear existing fields
         eventDaysContainer.innerHTML = '';
@@ -865,19 +910,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const start = new Date(startDate);
         const end = new Date(endDate);
         
-        // Validate dates
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            console.error('Invalid date format');
             return;
         }
         
         const dayDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
         
-        // Ensure reasonable number of days to prevent excessive DOM creation
         if (dayDiff <= 0 || dayDiff > 31) {
-            console.error('Invalid date range or too many days');
             return;
         }
+
 
         // Create event days for scheduling
         for (let i = 1; i <= dayDiff; i++) {
@@ -885,8 +927,8 @@ document.addEventListener('DOMContentLoaded', function() {
             currentDate.setDate(start.getDate() + i - 1);
             const formattedDate = currentDate.toISOString().split('T')[0];
 
-            // Event Days Section
-            const dayDiv = document.createElement('div');
+             // Event Days Section
+             const dayDiv = document.createElement('div');
             dayDiv.className = 'event-day';
             dayDiv.innerHTML = `
                 <h4>Day ${i} - ${formattedDate}</h4>
@@ -902,36 +944,42 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             eventDaysContainer.appendChild(dayDiv);
 
-            // Only create meal plan sections if delivery is not online
-            if (mealPlanContainer && (!deliverySelect || deliverySelect.value !== 'online')) {
+                // Only create meal plan sections if delivery is not online
+                if (mealPlanContainer && (!deliverySelect || deliverySelect.value !== 'online')) {
                 const mealDiv = document.createElement('div');
                 mealDiv.className = 'meal-day';
+                
+                // Create meal plan checkboxes with proper checked state
+                const mealTypes = ['Breakfast', 'AM Snack', 'Lunch', 'PM Snack', 'Dinner'];
+                let checkboxesHtml = '';
+                
+                mealTypes.forEach(mealType => {
+                    // Check if this meal type was previously selected for this date
+                    const isChecked = phpMealPlans[formattedDate] && 
+                                    phpMealPlans[formattedDate].includes(mealType);
+                    
+                    checkboxesHtml += `
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="${mealType}" ${isChecked ? 'checked' : ''}> ${mealType}
+                        </label>
+                    `;
+                });
+                
                 mealDiv.innerHTML = `
                     <h4>Meals for Day ${i} - ${formattedDate}</h4>
                     <div class="checkbox-subgroup">
-                        <label>
-                            <input type="checkbox" name="meal_plan[${i}][]" value="Breakfast"> Breakfast
-                        </label>
-                        <label>
-                            <input type="checkbox" name="meal_plan[${i}][]" value="AM Snack"> AM Snack
-                        </label>
-                        <label>
-                            <input type="checkbox" name="meal_plan[${i}][]" value="Lunch"> Lunch
-                        </label>
-                        <label>
-                            <input type="checkbox" name="meal_plan[${i}][]" value="PM Snack"> PM Snack
-                        </label>
-                        <label>
-                            <input type="checkbox" name="meal_plan[${i}][]" value="Dinner"> Dinner
-                        </label>
+                        ${checkboxesHtml}
                     </div>
                 `;
                 mealPlanContainer.appendChild(mealDiv);
             }
         }
         
-        // Update meal plan visibility based on delivery method
-        if (deliverySelect) {
+        // Restore previously checked meal selections
+        restoreMealSelections();
+        
+         // Update meal plan visibility based on delivery method
+         if (deliverySelect) {
             const mealPlanSection = document.getElementById('meal-plan-section');
             
             if (deliverySelect.value === 'online') {
@@ -944,27 +992,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    // Add event listeners to date inputs
+    // If both dates are already set, generate the day fields
     const startDateInput = document.getElementById('start-date');
     const endDateInput = document.getElementById('end-date');
-    
-    if (startDateInput && endDateInput) {
-        startDateInput.addEventListener('change', generateDayFields);
-        endDateInput.addEventListener('change', generateDayFields);
-        
-        // Call generateDayFields on page load if both dates are already set
-        if (startDateInput.value && endDateInput.value) {
-            generateDayFields();
-        }
-    }
-    
-    // Make sure the delivery method update also triggers a refresh of day fields
-    if (deliverySelect) {
-        deliverySelect.addEventListener('change', function() {
-            if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
-                generateDayFields();
-            }
-        });
+    if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+        generateDayFields();
     }
 });
 </script>
