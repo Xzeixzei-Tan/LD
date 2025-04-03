@@ -641,7 +641,7 @@ html {
     cursor: pointer;
     display: flex;
     float: right;
-    margin-top: 1%;
+    margin-top: -2%;
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -1240,4 +1240,3 @@ label {
 input[type=number] {
     font-family: Montserrat Light; 
 }
-
