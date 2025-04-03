@@ -175,7 +175,7 @@ function capitalizeFirstLetters($text) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/user-events.css" rel="stylesheet"> 
-    <title>USER-events</title>
+    <title>Events</title>
 </head>
 <body>
     <!-- Sidebar -->

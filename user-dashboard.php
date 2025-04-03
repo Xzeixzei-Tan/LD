@@ -178,7 +178,7 @@ function formatEventDaysData($eventDaysData) {
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-	<title>Dashboard-Template</title>
+	<title>Dashboard</title>
 </head>
 <style type="text/css">
 	* {
