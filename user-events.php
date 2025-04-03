@@ -24,11 +24,12 @@ $selected_event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'unregistered';
 
 // Fetch all events from the database
+// FIXED: Modified the CASE statement to correctly handle events occurring on the current date
 $sql = "SELECT e.id, e.title, e.start_date, e.end_date, e.venue, e.specification, e.delivery, e.proponent,
                (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered,
                CASE 
-                   WHEN NOW() BETWEEN e.start_date AND e.end_date THEN 'Ongoing'
-                   WHEN NOW() < e.start_date THEN 'Upcoming'
+                   WHEN DATE(e.start_date) <= CURDATE() AND DATE(e.end_date) >= CURDATE() THEN 'Ongoing'
+                   WHEN DATE(e.start_date) > CURDATE() THEN 'Upcoming'
                    ELSE 'Past'
                END AS status
         FROM events e  
@@ -90,11 +91,12 @@ $is_registered = false;
 
 if ($selected_event_id) {
     // Fetch event details
+    // FIXED: Modified the CASE statement in the detail query as well
     $detail_sql = "SELECT e.*, 
                   (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered,
                   CASE 
-                      WHEN NOW() BETWEEN e.start_date AND e.end_date THEN 'Ongoing'
-                      WHEN NOW() < e.start_date THEN 'Upcoming'
+                      WHEN DATE(e.start_date) <= CURDATE() AND DATE(e.end_date) >= CURDATE() THEN 'Ongoing'
+                      WHEN DATE(e.start_date) > CURDATE() THEN 'Upcoming'
                       ELSE 'Past'
                   END AS status
                   FROM events e WHERE e.id = ?";
@@ -147,6 +149,24 @@ if ($selected_event_id) {
     }
     $stmt->close();
 }
+
+// Function to format text with first letter of words capitalized and conjunctions lowercase
+function formatTitle($text) {
+    $words = explode(' ', strtolower($text));
+    $conjunctions = array('a', 'an', 'the', 'and', 'but', 'or', 'for', 'nor', 'so', 'yet', 'at', 'by', 'in', 'of', 'on', 'to', 'with');
+    
+    foreach ($words as $i => $word) {
+        // Always capitalize first word or any word that's not a conjunction
+        $words[$i] = ($i === 0 || !in_array($word, $conjunctions)) ? ucfirst($word) : $word;
+    }
+    
+    return implode(' ', $words);
+}
+
+// Function to capitalize the first letter of each word in a string
+function capitalizeFirstLetters($text) {
+    return ucwords(strtolower($text));
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -154,889 +174,8 @@ if ($selected_event_id) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <link href="styles/user-events.css" rel="stylesheet"> 
     <title>USER-events</title>
-    <style> 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
-
-body, html {
-    height: 100%;
-}
-
-/* Root font size for responsive typography */
-:root {
-    font-size: 16px; /* Base font size */
-}
-
-/* Sidebar styling */
-.sidebar {
-    position: fixed;
-    width: 250px;
-    height: 100vh;
-    background-color: #12753E;
-    color: #ffffff;
-    padding: 2rem 1rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    transition: all 0.3s ease;
-    z-index: 999;
-}
-
-.sidebar.collapsed {
-    width: 90px;
-    padding: 2rem 0.5rem;
-}
-
-.sidebar .logo {
-    margin-bottom: 1rem;
-    margin-left: 5%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.sidebar.collapsed .logo {
-    margin-left: 0;
-    justify-content: center;
-}
-
-.toggle-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-    border-radius: 4px;
-    transition: background 0.2s;
-}
-
-.toggle-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.sidebar .menu {
-    margin-top: 50%;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-}
-
-.sidebar.collapsed .menu {
-    align-items: center;
-    margin-top: 50%;
-}
-
-.sidebar .menu a {
-    color: #ffffff;
-    text-decoration: none;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    font-size: 1rem;
-    border-radius: 5px;
-    transition: background 0.3s;
-    font-family: 'Tilt Warp', sans-serif;
-    margin-bottom: .5rem;
-    width: 100%;
-}
-
-.sidebar.collapsed .menu a {
-    justify-content: center;
-    padding: 1rem 0;
-    width: 90%;
-}
-
-.sidebar .menu a span {
-    margin-left: 0.5rem;
-    transition: opacity 0.2s;
-    font-family: 'Tilt Warp', sans-serif;
-    font-size: clamp(0.8rem, 1vw, 1rem);
-}
-
-.sidebar.collapsed .menu a span {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    overflow: hidden;
-    display: none;
-}
-
-.sidebar .menu a:hover,
-.sidebar .menu a.active {
-    background-color: white;
-    color: #12753E;
-}
-
-.sidebar .menu a i {
-    margin-right: 0.5rem;
-    min-width: 20px;
-    text-align: center;
-    font-size: clamp(1rem, 1.2vw, 1.5rem);
-}
-
-.sidebar.collapsed .menu a i {
-    margin-right: 0;
-    font-size: 1.2rem;
-}
-
-.user-profile {
-    padding: 15px;
-    border-top: 1px solid white;
-    display: flex;
-    align-items: center;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #12753E;
-    cursor: pointer;
-}
-
-.sidebar.collapsed .user-profile {
-    justify-content: center;
-    padding: 15px 0;
-}
-
-.sidebar.collapsed .username {
-    display: none;
-}
-
-.user-avatar img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid white;
-    padding: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-}
-
-.username {
-    font-family: 'Tilt Warp', sans-serif;
-    font-size: clamp(0.8rem, 1vw, 1rem);
-}
-
-.sidebar.collapsed .user-avatar img {
-    margin-right: 0;
-}
-
-.logout-menu {
-    position: absolute;
-    top: 0;
-    bottom: 100%;
-    border-radius: 5px;
-    padding: 10px;
-    display: none;
-    z-index: 10000;
-    width: 100px;
-}
-
-.sidebar.collapsed .logout-menu {
-    left: -50px;
-}
-
-.logout-menu.active {
-    display: block;
-}
-
-.logout-btn {
-    background-color: white;
-    border: 2px solid #12753E;
-    display: block;
-    width: 90%;
-    padding: 8px 10px;
-    color: #12753E;
-    border-radius: 4px;
-    font-family: 'Tilt Warp', sans-serif;
-    font-size: clamp(0.75rem, 0.9vw, 0.9rem);
-    text-align: center;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: absolute;
-    top: 80%;
-    left: 225%;
-    z-index: 10001;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-/* Content area styling */
-.content {
-    flex: 1;
-    background-color: #ffffff;
-    padding: 2rem;
-    margin-left: 250px;
-    transition: margin-left 0.3s ease;
-}
-
-.content.expanded {
-    margin-left: 90px;
-}
-
-.content-header h1 {
-    font-size: clamp(1.2rem, 2vw, 1.5rem);
-    color: #333333;
-    font-family: 'Wensley Demo', sans-serif;
-    text-align: center;
-    margin: 0 auto 0.5rem;
-}
-
-.content-header p {
-    color: #999;
-    font-size: clamp(0.8rem, 1.5vw, 1rem);
-    text-align: center;
-    margin: 0 auto;
-    font-family: 'LT Cushion Light', sans-serif;
-}
-
-.content-header img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    margin: 0 auto 1rem;
-    filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
-}
-
-.content-body h1 {
-    font-size: clamp(1.5rem, 3vw, 2.2rem);
-    padding: 10px 0;
-    font-family: 'Montserrat ExtraBold', sans-serif;
-    color: black;
-}
-
-.content-body hr {
-    width: 100%;
-    border: none;
-    height: 2px;
-    background-color: #95A613;
-    margin-bottom: 20px;
-}
-
-/* Tabs redesign - responsive */
-.tabs {
-    display: flex;
-    border-bottom: 2px solid #e0e0e0;
-    margin-bottom: 25px;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.tab {
-    padding: 12px 25px;
-    background-color: #f5f5f5;
-    border: none;
-    border-radius: 8px 8px 0 0;
-    cursor: pointer;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 600;
-    font-size: 0.9375rem;
-    color: #555;
-    transition: all 0.3s ease;
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-}
-
-.tab:hover {
-    background-color: #e8f5ef;
-}
-
-.tab.active {
-    background-color: #12753E;
-    color: white;
-    font-weight: bold;
-    box-shadow: 0 -2px 8px rgba(18,117,62,0.2);
-}
-
-.badge {
-    background-color: #95A613;
-    color: white;
-    border-radius: 50%;
-    padding: 3px 8px;
-    font-size: 0.8em;
-    font-weight: bold;
-    font-family: 'Montserrat', sans-serif;
-    margin-left: 8px;
-    box-shadow: 0 2px 3px rgba(0,0,0,0.1);
-}
-
-/* Tab content - responsive */
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-/* Events section redesign - improved responsiveness */
-.events-section {
-    background-color: white;
-    border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    font-family: 'Wesley Demo', serif;
-    flex: 1;
-    min-width: 30%;
-    max-height: 800px;
-    border: 0;
-    margin-top: 20px;
-    transition: all 0.3s ease;
-    overflow: auto;
-}
-
-.events-section {
-    flex-basis: 100%;
-    transition: flex-basis 0.3s, transform 0.3s;
-}
-
-.events-section.shrink {
-    flex-basis: 65%;
-}
-
-.events-section h2 {
-    font-size: 1.5rem;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 800;
-    margin-bottom: 25px;
-    color: #333;
-    border-left: 4px solid #12753E;
-    padding-left: 15px;
-}
-
-/* Event items redesign - responsive */
-.event {
-    background-color: rgb(245, 245, 245);
-    border-radius: 10px;
-    padding: 22px;
-    margin-bottom: 18px;
-    position: relative;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
-    border-left: 4px solid transparent;
-}
-
-.event-dates {
-    font-size: 0.8125rem;
-    color: #777;
-    margin-top: 5px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-}
-
-.event-dates i {
-    margin-right: 5px;
-    color: #12753E;
-}
-
-.event.selected {
-    background: rgb(218, 238, 227);
-    border-left: 5px solid #12753E;
-    transform: translateX(5px);
-}
-
-.event.selected h3 {
-    color: #12753E;
-}
-
-.event.selected p {
-    color: #445;
-}
-
-.event:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(43, 58, 143, 0.1);
-    border-left: 5px solid #12753E;
-}
-
-.events-btn {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-}
-
-.event-content {
-    padding-right: 90px;
-}
-
-.event-content h3 {
-    width: 90%;
-    font-size: 1.1875rem;
-    margin-bottom: 10px;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 800;
-    color: #12753E;
-    transition: color 0.3s ease;
-}
-
-.event-content p {
-    font-size: 0.875rem;
-    color: #585858;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 500;
-    line-height: 1.5;
-}
-
-.event-content p strong {
-    font-weight: bold;
-    font-family: 'Montserrat', sans-serif;
-    color: #444;
-}
-
-.status-badge {
-    color: white;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 500;
-    font-size: 0.75rem;
-    padding: 6px 15px;
-    border-radius: 20px;
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    transition: transform 0.2s ease;
-}
-
-.status-badge i {
-    margin-right: 5px;
-}
-
-.status-badge:hover {
-    transform: translateY(-2px);
-}
-
-/* Status-specific badges */
-.status-upcoming {
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    animation: pulse-blue 2s infinite;
-}
-
-.status-ongoing {
-    background: #12753E;
-    animation: pulse-red 1.5s infinite;
-}
-
-.status-past {
-    background: linear-gradient(135deg, #7f8c8d, #596a6b);
-}
-
-@keyframes pulse-blue {
-    0% {
-        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(52, 152, 219, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(52, 152, 219, 0);
-    }
-}
-
-@keyframes pulse-red {
-    0% {
-        box-shadow: 0 0 0 0 rgba(18, 117, 62, 0.7);
-    }
-    70% {
-        box-shadow: 0 0 0 10px rgba(231, 76, 60, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(231, 76, 60, 0);
-    }
-}
-
-/* Search container - responsive */
-.search-container {
-    position: relative;
-    flex-grow: 1;
-    max-width: 100%;
-    margin-bottom: 1rem;
-}
-
-/* Search Input */
-.search-input {
-    width: 100%;
-    height: 42px;
-    padding: 0 45px;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-family: 'Montserrat', sans-serif;
-    color: #2d3748;
-    background-color: white;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.search-input:focus {
-    outline: none;
-    border-color: #2b3a8f;
-    box-shadow: 0 0 0 3px rgba(43, 58, 143, 0.1);
-}
-
-.search-input::placeholder {
-    color: #a0aec0;
-    font-weight: 400;
-}
-
-/* Search Icon */
-.search-icon {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #a0aec0;
-    font-size: 0.875rem;
-}
-
-/* Add clear button for search */
-.search-container::after {
-    content: "\f00d";
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #cbd5e0;
-    font-size: 0.75rem;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-
-.search-container:has(.search-input:not(:placeholder-shown))::after {
-    opacity: 1;
-}
-
-/* Content area layout - responsive */
-.content-area { 
-    display: flex; 
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-/* Details section redesign - responsive */
-.details-section, #details-section {
-    display: none;
-    flex-basis: 30%;
-    max-height: fit-content;
-    background-color: white;
-    padding: 25px;
-    border-radius: 12px;
-    border: 0;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-    transition: all 0.5s ease;
-    margin-top: 2%;
-}
-
-#detail-title {
-    font-size: 1.5rem;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 800;
-    margin-bottom: 15px;
-    color: #12753E;
-    padding-bottom: 10px;
-}
-
-.details-section h2 { 
-    margin-top: 0;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 800;
-    margin-bottom: 2%;
-    font-size: 1.375rem;
-    color: #333;
-}
-
-.details-section hr {
-    border: 1px solid #f0f0f0;
-    margin-bottom: 20px;
-}
-
-.detail-items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.detail-items-1, .detail-items-2 {
-    flex: 1;
-    min-width: 250px;
-}
-
-.details-section .detail-item {
-    margin-bottom: 20px;
-}
-
-.detail-item {
-    width: 100%;
-    margin-bottom: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 16px;
-    transition: transform 0.2s;
-}
-
-.details-section .detail-item h4 {
-    color: #555;
-    font-size: 1rem;
-    font-family: 'Montserrat', sans-serif;
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-}
-
-.details-section .detail-item p {
-    margin: 5px 0;
-    color: #12753E;
-    font-weight: Bold;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 500;
-    font-size: 1rem;
-}
-
-.expand-btn {
-    cursor: pointer;
-    float: right;
-    transition: transform 0.3s ease;
-    background-color: #f2f9f6;
-    margin-top: -1%;
-    padding: 8px 10px;
-    border-radius: 50%;
-    color: #12753E;
-}
-
-.expand-btn:hover {
-    background-color: #12753E;
-    color: white;
-}
-
-/* Expanded content */
-.expanded-content {
-    display: none;
-}
-
-.details-section.expand .expanded-content {
-    display: block;
-}
-
-.details-section.expand .expand-btn {
-    transform: rotate(180deg);
-}
-
-/* Register/Unregister button - responsive */
-.create-btn {
-    display: inline-block;
-    padding: 12px 22px;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: bold;
-    font-size: 0.875rem;
-    color: white;
-    text-decoration: none;
-    background-color: rgb(17, 118, 62);
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(18,117,62,0.2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 1rem 0;
-}
-
-.create-btn:hover {
-    background-color: #0e5c31;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(18,117,62,0.3);
-}
-
-/* Expand/collapse helpers */
-.expand { 
-    flex-basis: 100% !important; 
-}
-
-.hidden { 
-    display: none; 
-}
-
-/* Alert message styling */
-.alert {
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    font-family: 'Montserrat', sans-serif;
-}
-
-.alert-info {
-    background-color: #d1ecf1;
-    color: #0c5460;
-    border: 1px solid #bee5eb;
-}
-
-/* Notification styling */
-.notification p {
-    font-size: 0.875rem;
-    font-family: 'Montserrat', sans-serif;
-}
-
-/* Responsive breakpoints */
-@media (max-width: 1200px) {
-    .content {
-        padding: 3rem 1.5rem;
-    }
-    
-    .events-section {
-        padding: 25px;
-    }
-    
-    .details-section, #details-section {
-        padding: 20px;
-    }
-}
-
-@media (max-width: 992px) {
-    .content {
-        margin-left: 90px;
-        padding: 2rem 1rem;
-    }
-    
-    .sidebar {
-        width: 90px;
-    }
-    
-    .sidebar .menu a span {
-        display: none;
-    }
-    
-    .username {
-        display: none;
-    }
-    
-    .sidebar .menu a {
-        justify-content: center;
-    }
-    
-    .user-profile {
-        justify-content: center;
-    }
-    
-    .event-content {
-        padding-right: 0;
-    }
-    
-    .status-badge {
-        position: relative;
-        display: inline-block;
-        top: auto;
-        right: auto;
-        margin-top: 10px;
-    }
-}
-
-@media (max-width: 768px) {
-    .events-section.shrink {
-        flex-basis: 100%;
-    }
-    
-    .details-section, #details-section {
-        flex-basis: 100%;
-        margin-left: 0;
-        margin-top: 20px;
-    }
-    
-    .content-header h1 {
-        font-size: 1.3rem;
-    }
-    
-    .content-body h1 {
-        font-size: 1.8rem;
-    }
-    
-    .tab {
-        padding: 10px 15px;
-        font-size: 0.85rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .content {
-        padding: 1.5rem 0.75rem;
-        margin-left: 70px;
-    }
-    
-    .sidebar {
-        width: 70px;
-    }
-    
-    .sidebar.collapsed {
-        width: 70px;
-    }
-    
-    .content-header h1 {
-        font-size: 1.2rem;
-    }
-    
-    .content-body h1 {
-        font-size: 1.5rem;
-        padding: 5px;
-    }
-    
-    .events-section {
-        padding: 15px;
-    }
-    
-    .event {
-        padding: 15px;
-    }
-    
-    .event-content h3 {
-        font-size: 1rem;
-    }
-    
-    .detail-item {
-        padding: 12px;
-    }
-    
-    .create-btn {
-        padding: 10px 16px;
-        font-size: 0.8rem;
-    }
-}
-
-/* Print media query for better printing */
-@media print {
-    .sidebar {
-        display: none;
-    }
-    
-    .content {
-        margin-left: 0;
-        padding: 0;
-    }
-    
-    .events-section {
-        box-shadow: none;
-        max-height: none;
-        overflow: visible;
-    }
-    
-    .details-section {
-        box-shadow: none;
-    }
-}
-</style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -1046,8 +185,6 @@ body, html {
             <i class="fas fa-bars"></i>
         </button>
     </div>
-
-
 
        <div class="menu">
         <a href="user-dashboard.php" >
@@ -1112,7 +249,7 @@ body, html {
                                 echo '<a class="events-btn" href="user-events.php?event_id=' . urlencode($row['id']) . '&tab=registered">';
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                                echo '<p>'. '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["specification"]) . '</p>';
+                                echo '<p>'. '<strong>Event Specification: '. '</strong>' . htmlspecialchars(capitalizeFirstLetters($row["specification"])) . '</p>';
                                 echo '<div class="event-dates">'.'<p>' . '<strong><i class="fas fa-calendar-day"></i>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>'. '</div>';
                                 echo '<span class="status-badge status-' . strtolower($row["status"]) . '">';
                                 if(strtolower($row["status"]) == "upcoming") {
@@ -1143,7 +280,7 @@ body, html {
                                 echo '<a class="events-btn" href="user-events.php?event_id=' . urlencode($row['id']) . '&tab=unregistered">';
                                 echo '<div class="event-content">';
                                 echo '<h3>' . htmlspecialchars($row["title"]) . '</h3>';
-                                echo '<p>' . '<strong>Event Specification: '. '</strong>' . htmlspecialchars($row["specification"]) . '</p>';
+                                echo '<p>' . '<strong>Event Specification: '. '</strong>' . htmlspecialchars(capitalizeFirstLetters($row["specification"])) . '</p>';
                                 echo '<div class="event-dates">'.'<p>' . '<strong><i class="fas fa-calendar-day"></i>Date: '. '</strong>' . date('M d, Y', strtotime($row["start_date"])) . '</p>'. '</div>';
                                 echo '<span class="status-badge status-' . strtolower($row["status"]) . '">';
                                 if(strtolower($row["status"]) == "upcoming") {
@@ -1168,28 +305,30 @@ body, html {
                     <i class="fas fa-expand expand-btn" onclick="toggleExpand()"></i><br>
                     <h2>Details</h2>
                     <hr>
-                    <h3 id="detail-title"><?php echo htmlspecialchars($selected_event["title"]); ?></h3>
+                    <?php if ($selected_event): ?>
+                    <h3 id="detail-title"><?php echo htmlspecialchars(formatTitle($selected_event["title"])); ?></h3>
                     <div class="detail-items">
                         <div class="detail-items-1"> 
-                            <?php if ($selected_event): ?>
                             <div class="detail-item">
                                 <h4>Delivery:</h4>
-                                <p id="detail-mode"><?php echo htmlspecialchars($selected_event["delivery"]); ?></p>
+                                <p id="detail-mode"><?php echo htmlspecialchars(formatTitle($selected_event["delivery"])); ?></p>
                             </div>
 
+                            <?php if (strtolower($selected_event["delivery"]) !== "online"): ?>
                             <div class="detail-item">
                                 <h4>Venue:</h4>
-                                <p id="detail-venue"><?php echo htmlspecialchars($selected_event["venue"] ?? "Not specified"); ?></p>
+                                <p id="detail-venue"><?php echo htmlspecialchars(formatTitle($selected_event["venue"] ?? "Not specified")); ?></p>
                             </div>
+                            <?php endif; ?>
 
                             <div class="detail-item">
                                 <h4>Event Specification:</h4>
-                                <p id="detail-specification"><?php echo htmlspecialchars($selected_event["specification"]); ?></p>
+                                <p id="detail-specification"><?php echo htmlspecialchars(formatTitle($selected_event["specification"])); ?></p>
                             </div>
 
                             <div class="detail-item">
-                                <h4>Organizer:</h4>
-                                <p id="detail-organizer"><?php echo htmlspecialchars($selected_event["proponent"] ?? "Not specified"); ?></p>
+                                <h4>Proponents:</h4>
+                                <p id="detail-organizer"><?php echo htmlspecialchars(formatTitle($selected_event["proponent"] ?? "Not specified")); ?></p>
                             </div>
 
                             <div class="detail-item">
@@ -1197,7 +336,11 @@ body, html {
                                 <p id="detail-speakers">
                                 <?php 
                                 if (!empty($speakers)) {
-                                    echo htmlspecialchars(implode(", ", $speakers));
+                                    $formatted_speakers = array();
+                                    foreach ($speakers as $speaker) {
+                                        $formatted_speakers[] = formatTitle($speaker);
+                                    }
+                                    echo htmlspecialchars(implode(", ", $formatted_speakers));
                                 } else {
                                     echo "Not specified";
                                 }
@@ -1209,12 +352,12 @@ body, html {
                             
                             <div class="detail-item expanded-content">
                                 <h4>Start:</h4>
-                                <p id="detail-start"><?php echo htmlspecialchars($selected_event["start_date"]); ?></p>
+                                <p id="detail-start"><?php echo date('F j, Y', strtotime($selected_event["start_date"])); ?></p>
                             </div>
 
                             <div class="detail-item expanded-content">
                                 <h4>End:</h4>
-                                <p id="detail-end"><?php echo htmlspecialchars($selected_event["end_date"]); ?></p>
+                                <p id="detail-end"><?php echo date('F j, Y', strtotime($selected_event["end_date"])); ?></p>
                             </div>
 
                             <div class="detail-item expanded-content">
@@ -1241,27 +384,25 @@ body, html {
 
                             <div class="detail-item expanded-content">
                                 <h4>Status:</h4>
-                                <p id="detail-status"><?php echo htmlspecialchars($selected_event["status"]); ?></p>
+                                <p id="detail-status"><?php echo ucfirst(strtolower(htmlspecialchars($selected_event["status"]))); ?></p>
                             </div>
 
                         </div>
                     </div>
                     <br>
-                    <?php if ($selected_event): ?>
-                        <?php if (!$is_registered): ?>
-                            <?php if ($selected_event["status"] === "Past" || $selected_event["status"] === "Ongoing"): ?>        
-                                <a class="create-btn" style="visibility: hidden;">Register</a>
-                            <?php else: ?>
-                                <a class="create-btn" href="register.php?event_id=<?php echo urlencode($selected_event['id']); ?>">Register</a>
-                            <?php endif; ?>
+                    <?php if (!$is_registered): ?>
+                        <?php if ($selected_event["status"] === "Past" || $selected_event["status"] === "Ongoing"): ?>        
+                            <a class="create-btn" style="visibility: hidden;">Register</a>
                         <?php else: ?>
-                            <a class="create-btn" href="unregister.php?event_id=<?php echo urlencode($selected_event['id']); ?>" style="background-color:rgb(117, 130, 14); border-style: none; cursor: pointer;" onclick="return confirm('Are you sure you want to unregister from this event?');">Unregister</a>
+                            <a class="create-btn" href="register.php?event_id=<?php echo urlencode($selected_event['id']); ?>">Register</a>
                         <?php endif; ?>
                     <?php else: ?>
-                        <div class="detail-item">
-                            <p>Select an event to view details</p>
-                        </div>
+                        <a class="create-btn" href="unregister.php?event_id=<?php echo urlencode($selected_event['id']); ?>" style="background-color:rgb(117, 130, 14); border-style: none; cursor: pointer;" onclick="return confirm('Are you sure you want to unregister from this event?');">Unregister</a>
                     <?php endif; ?>
+                    <?php else: ?>
+                    <div class="detail-item">
+                        <p>Select an event to view details</p>
+                    </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -1534,8 +675,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // When clicking the X (clear) button
-    const searchContainer = document.querySelector('.search-container');
+   // When clicking the X (clear) button
+   const searchContainer = document.querySelector('.search-container');
     if (searchContainer) {
         searchContainer.addEventListener('click', function(e) {
             // Check if the click was on the after pseudo-element (approximated by position)
@@ -1557,5 +698,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </html>
 
 <?php
-$conn->close();
-?>
