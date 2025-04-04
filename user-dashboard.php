@@ -160,7 +160,7 @@ $notif_query = "SELECT
                                      AND notification_subtype = 'evaluation' 
                                      AND event_id = n.event_id)
                         )
-                    )
+                    )  
                 )
             ORDER BY n.created_at DESC";
 $stmt = $conn->prepare($notif_query);

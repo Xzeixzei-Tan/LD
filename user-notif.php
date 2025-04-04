@@ -228,7 +228,7 @@ if (!$notif_result) {
                                     <p><?php echo htmlspecialchars($row['message']); ?></p>
                                     <br><small><?php echo $row['created_at']; ?></small>
                                 </div>
-                            </a>
+                            </a>  
                         <?php
                         } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'new_event') {
                             $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
