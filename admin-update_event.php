@@ -103,6 +103,16 @@ while ($row = $result->fetch_assoc()) {
     $mealPlans[$row['day_date']] = json_decode($row['meal_types']) ?? explode(', ', $row['meal_types']);
 }
 
+// Convert meal plans to a format easier to work with in JavaScript
+$mealPlansForJS = array();
+foreach ($mealPlans as $date => $mealTypes) {
+    // Make sure the meal types is always an array
+    if (is_string($mealTypes)) {
+        $mealTypes = explode(', ', $mealTypes);
+    }
+    $mealPlansForJS[$date] = $mealTypes;
+}
+
 // Fetch speakers
 $speakers = [];
 $result = $conn->query("SELECT * FROM speakers WHERE event_id = $eventId");
@@ -292,9 +302,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Set success message
         $successMessage = "Event updated successfully!";
-        
-        // Redirect to the events page with success parameter
-        header("Location: admin-events.php?success=update");
+
+        // Redirect to the same page with success parameter
+        header("Location: " . $_SERVER['PHP_SELF'] . "?id=" . $eventId . "&success=update");
         exit();
     } catch (Exception $e) {
         // Roll back the transaction if something failed
@@ -312,6 +322,236 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/admin-update-events.css" rel="stylesheet">
     <title>Update Event</title>
+
+    <style>
+/* Modal Styles */
+/* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.4s;
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+
+        .modal p {
+            color: #666;
+            margin-bottom: 25px;
+            font-family: Arial, sans-serif;
+        }
+
+        #close-modal-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            font-family: Arial, sans-serif;
+        }
+
+        #close-modal-btn:hover {
+            background-color: #45a049;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        @keyframes slideIn {
+            from {transform: translateY(-50px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+
+        /* Check Mark Animation */
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+        .modal-content h2 {
+            font-family: Montserrat;
+        }
+        .modal-content p {
+            font-family: Montserrat;
+        }
+
+        .check-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            border-radius: 50%;
+            box-sizing: content-box;
+            border: 4px solid #4CAF50;
+        }
+
+        .check-icon::before {
+            top: 3px;
+            left: -2px;
+            width: 30px;
+            transform-origin: 100% 50%;
+            border-radius: 100px 0 0 100px;
+        }
+
+        .check-icon::after {
+            top: 0;
+            left: 30px;
+            width: 60px;
+            transform-origin: 0 50%;
+            border-radius: 0 100px 100px 0;
+            animation: rotate-circle 4.25s ease-in;
+        }
+
+        .check-icon::before, .check-icon::after {
+            content: '';
+            height: 100px;
+            position: absolute;
+            background: #FFFFFF;
+            transform: rotate(-45deg);
+        }
+
+        .icon-line {
+            height: 5px;
+            background-color: #4CAF50;
+            display: block;
+            border-radius: 2px;
+            position: absolute;
+            z-index: 10;
+        }
+
+        .icon-line.line-tip {
+            top: 46px;
+            left: 14px;
+            width: 25px;
+            transform: rotate(45deg);
+            animation: icon-line-tip 1s;
+        }
+
+        .icon-line.line-long {
+            top: 38px;
+            right: 8px;
+            width: 47px;
+            transform: rotate(-45deg);
+            animation: icon-line-long 1s;
+        }
+
+        .icon-circle {
+            top: -4px;
+            left: -4px;
+            z-index: 10;
+            width: 80px;
+            height: 80px;
+            border-radius: 60%;
+            position: absolute;
+            box-sizing: content-box;
+            border: 4px solid rgba(76, 175, 80, 0.5);
+        }
+
+        .icon-fix {
+            top: 8px;
+            width: 5px;
+            left: 26px;
+            z-index: 1;
+            height: 85px;
+            position: absolute;
+            transform: rotate(-45deg);
+            background-color: #FFFFFF;
+        }
+
+        @keyframes rotate-circle {
+            0% {
+                transform: rotate(-45deg);
+            }
+            5% {
+                transform: rotate(-45deg);
+            }
+            12% {
+                transform: rotate(-405deg);
+            }
+            100% {
+                transform: rotate(-405deg);
+            }
+        }
+
+        @keyframes icon-line-tip {
+            0% {
+                width: 0;
+                left: 1px;
+                top: 19px;
+            }
+            54% {
+                width: 0;
+                left: 1px;
+                top: 19px;
+            }
+            70% {
+                width: 50px;
+                left: -8px;
+                top: 37px;
+            }
+            84% {
+                width: 17px;
+                left: 21px;
+                top: 48px;
+            }
+            100% {
+                width: 25px;
+                left: 14px;
+                top: 46px;
+            }
+        }
+
+        @keyframes icon-line-long {
+            0% {
+                width: 0;
+                right: 46px;
+                top: 54px;
+            }
+            65% {
+                width: 0;
+                right: 46px;
+                top: 54px;
+            }
+            84% {
+                width: 55px;
+                right: 0px;
+                top: 35px;
+            }
+            100% {
+                width: 47px;
+                right: 8px;
+                top: 38px;
+            }
+        }
+
+       
+</style>
 
     
 </head>
@@ -356,7 +596,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="success-message" style="display: block;"><?php echo $successMessage; ?></div>
         <?php endif; ?>
 
-        <form method="post" action="">
+        <form method="post" action="<?php echo $_SERVER['PHP_SELF'] . '?id=' . $eventId; ?>">
             <!-- General Information -->
             <div class="form-group-1">
                 <div class="section-title">Event Details</div>
@@ -430,7 +670,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php
             // Meal Plan section of your form
             
-            echo '<div class="section-title">Meal Plan</div>';
+            echo '<div id="meal-plan-section" class="section-title">Meal Plan</div>';
             echo '<div id="meal-plan-container">';
             // Only generate this if start and end dates are set
             if (!empty($_POST['start-date']) && !empty($_POST['end-date'])) {
@@ -588,8 +828,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 </div>
 
+    <div id="success-modal" class="modal">
+            <div class="modal-content">
+                <div class="success-checkmark">
+                    <div class="check-icon">
+                        <span class="icon-line line-tip"></span>
+                        <span class="icon-line line-long"></span>
+                        <div class="icon-circle"></div>
+                        <div class="icon-fix"></div>
+                    </div>
+                </div>
+                <h2>Success!</h2>
+                <p>Event has been updated successfully.</p>
+                <button id="close-modal-btn">OK</button>
+            </div>
+    </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const phpMealPlans = <?php echo json_encode($mealPlansForJS); ?>;
+    const eventDays = <?php echo json_encode($eventDays); ?>;
     // ================= SIDEBAR FUNCTIONALITY =================
     const sidebar = document.querySelector('.sidebar');
     const content = document.getElementById('content');
@@ -679,6 +937,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    
+
     // ================= SPEAKERS MANAGEMENT =================
     const speakersContainer = document.getElementById('speakers-container');
     
@@ -729,6 +989,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // ================= DELIVERY METHOD & VENUE FUNCTIONALITY =================
     const deliverySelect = document.getElementById('delivery');
     const venueField = document.getElementById('venue-field');
+    const mealPlanContainer = document.getElementById('meal-plan-container');
+    const mealPlanSection = document.getElementById('meal-plan-section');
     
     if (deliverySelect && venueField) {
         function updateVenueVisibility() {
@@ -740,10 +1002,28 @@ document.addEventListener('DOMContentLoaded', function() {
                     venueInput.value = '';
                     venueInput.removeAttribute('required');
                 }
+                
+                // Hide both meal plan container and section title when delivery is online
+                if (mealPlanContainer) {
+                    mealPlanContainer.style.display = 'none';
+                }
+                // Also hide the section title
+                if (mealPlanSection) {
+                    mealPlanSection.style.display = 'none';
+                }
             } else {
                 venueField.style.display = 'block';
                 if (venueInput) {
                     venueInput.setAttribute('required', '');
+                }
+                
+                // Show both meal plan container and section title when delivery is not online
+                if (mealPlanContainer) {
+                    mealPlanContainer.style.display = 'block';
+                }
+                // Also show the section title
+                if (mealPlanSection) {
+                    mealPlanSection.style.display = 'block';
                 }
             }
         }
@@ -822,102 +1102,208 @@ document.addEventListener('DOMContentLoaded', function() {
     // Call funding source toggle on page load
     toggleFundingAmountField();
 
+    // ================= MEAL PLAN STORAGE =================
+    // Store meal plan selections
+    let savedMealSelections = {};
+
+    // Save meal selections before regenerating the meal plan container
+    function saveMealSelections() {
+        const mealCheckboxes = document.querySelectorAll('input[name^="meal_plan["]');
+        savedMealSelections = {};
+        
+        mealCheckboxes.forEach(checkbox => {
+            const name = checkbox.name;
+            if (checkbox.checked) {
+                if (!savedMealSelections[name]) {
+                    savedMealSelections[name] = [];
+                }
+                savedMealSelections[name].push(checkbox.value);
+            }
+        });
+    }
+
+    // Restore meal selections after regenerating the meal plan container
+    function restoreMealSelections() {
+        Object.keys(savedMealSelections).forEach(name => {
+            const checkboxes = document.querySelectorAll(`input[name="${name}"]`);
+            checkboxes.forEach(checkbox => {
+                if (savedMealSelections[name].includes(checkbox.value)) {
+                    checkbox.checked = true;
+                }
+            });
+        });
+    }
+
     // ================= EVENT DAYS FUNCTIONALITY =================
     // Define generateDayFields function in global scope
     window.generateDayFields = function() {
-        const startDate = document.getElementById('start-date')?.value;
-        const endDate = document.getElementById('end-date')?.value;
-        const eventDaysContainer = document.getElementById('event-days-container');
-        const mealPlanContainer = document.getElementById('meal-plan-container');
+    const startDate = document.getElementById('start-date')?.value;
+    const endDate = document.getElementById('end-date')?.value;
+    const eventDaysContainer = document.getElementById('event-days-container');
+    const mealPlanContainer = document.getElementById('meal-plan-container');
+    const deliverySelect = document.getElementById('delivery');
 
-        if (!startDate || !endDate || !eventDaysContainer || !mealPlanContainer) {
-            return; // Exit if any required elements are missing
-        }
+    if (!startDate || !endDate || !eventDaysContainer) {
+        return;
+    }
+
+        // Save meal selections before clearing containers
+        saveMealSelections();
 
         // Clear existing fields
         eventDaysContainer.innerHTML = '';
+    if (mealPlanContainer) {
         mealPlanContainer.innerHTML = '';
+    }
 
         const start = new Date(startDate);
         const end = new Date(endDate);
         
-        // Validate dates
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            console.error('Invalid date format');
             return;
         }
         
         const dayDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
         
-        // Ensure reasonable number of days to prevent excessive DOM creation
         if (dayDiff <= 0 || dayDiff > 31) {
-            console.error('Invalid date range or too many days');
             return;
         }
 
+
+        // Create event days for scheduling
         for (let i = 1; i <= dayDiff; i++) {
-            const currentDate = new Date(start);
-            currentDate.setDate(start.getDate() + i - 1);
-            const formattedDate = currentDate.toISOString().split('T')[0];
+        const currentDate = new Date(start);
+        currentDate.setDate(start.getDate() + i - 1);
+        const formattedDate = currentDate.toISOString().split('T')[0];
+        
+        // Check if we have existing data for this day
+        let startTime = "08:00";
+        let endTime = "17:00";
 
-            // Event Days Section
-            const dayDiv = document.createElement('div');
-            dayDiv.className = 'event-day';
-            dayDiv.innerHTML = `
-                <h4>Day ${i} - ${formattedDate}</h4>
-                <input type="hidden" name="event_days[${i}][date]" value="${formattedDate}">
-                <div class="time-inputs">
-                    <label>Start Time:
-                        <input type="time" name="event_days[${i}][start_time]" value="08:00">
-                    </label>
-                    <label>End Time:
-                        <input type="time" name="event_days[${i}][end_time]" value="17:00">
-                    </label>
-                </div>
-            `;
-            eventDaysContainer.appendChild(dayDiv);
+         // Look for matching day in eventDays PHP array
+         if (typeof eventDays !== 'undefined' && eventDays.length > 0) {
+            for (let j = 0; j < eventDays.length; j++) {
+                if (eventDays[j].day_date === formattedDate) {
+                    startTime = eventDays[j].start_time;
+                    endTime = eventDays[j].end_time;
+                    break;
+                }
+            }
+        }
 
-            // Meal Plan Section
+             // Event Days Section
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'event-day';
+        dayDiv.innerHTML = `
+            <h4>Day ${i} - ${formattedDate}</h4>
+            <input type="hidden" name="event_days[${i}][date]" value="${formattedDate}">
+            <div class="time-inputs">
+                <label>Start Time:
+                    <input type="time" name="event_days[${i}][start_time]" value="${startTime}">
+                </label>
+                <label>End Time:
+                    <input type="time" name="event_days[${i}][end_time]" value="${endTime}">
+                </label>
+            </div>
+        `;
+        eventDaysContainer.appendChild(dayDiv);
+
+                // Only create meal plan sections if delivery is not online
+                if (mealPlanContainer && (!deliverySelect || deliverySelect.value !== 'online')) {
             const mealDiv = document.createElement('div');
             mealDiv.className = 'meal-day';
+            
+            // Create meal plan checkboxes with proper checked state
+            const mealTypes = ['Breakfast', 'AM Snack', 'Lunch', 'PM Snack', 'Dinner'];
+            let checkboxesHtml = '';
+            
+            mealTypes.forEach(mealType => {
+                // Check if this meal type was previously selected for this date
+                const isChecked = phpMealPlans[formattedDate] && 
+                                phpMealPlans[formattedDate].includes(mealType);
+                
+                checkboxesHtml += `
+                    <label>
+                        <input type="checkbox" name="meal_plan[${i}][]" value="${mealType}" ${isChecked ? 'checked' : ''}> ${mealType}
+                    </label>
+                `;
+            });
+                
             mealDiv.innerHTML = `
                 <h4>Meals for Day ${i} - ${formattedDate}</h4>
                 <div class="checkbox-subgroup">
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="Breakfast"> Breakfast
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="AM Snack"> AM Snack
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="Lunch"> Lunch
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="PM Snack"> PM Snack
-                    </label>
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="Dinner"> Dinner
-                    </label>
+                    ${checkboxesHtml}
                 </div>
             `;
             mealPlanContainer.appendChild(mealDiv);
         }
-    };
-
-    // Add event listeners to date inputs
-    const startDateInput = document.getElementById('start-date');
-    const endDateInput = document.getElementById('end-date');
-    
-    if (startDateInput && endDateInput) {
-        startDateInput.addEventListener('change', generateDayFields);
-        endDateInput.addEventListener('change', generateDayFields);
+    }
         
-        // Call generateDayFields on page load if both dates are already set
-        if (startDateInput.value && endDateInput.value) {
-            generateDayFields();
+        // Restore previously checked meal selections
+        restoreMealSelections();
+        
+         // Update meal plan visibility based on delivery method
+         if (deliverySelect) {
+        const mealPlanSection = document.getElementById('meal-plan-section');
+        
+        if (deliverySelect.value === 'online') {
+            if (mealPlanContainer) mealPlanContainer.style.display = 'none';
+            if (mealPlanSection) mealPlanSection.style.display = 'none';
+        } else {
+            if (mealPlanContainer) mealPlanContainer.style.display = 'block';
+            if (mealPlanSection) mealPlanSection.style.display = 'block';
         }
     }
+};
+
+    // If both dates are already set, generate the day fields
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+    if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+        generateDayFields();
+    }
 });
+
+// Modal Functionality
+document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('success-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const demoButton = document.getElementById('demo-button');
+            
+            // Check URL parameters for success message
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'update') {
+                console.log("Success parameter detected, showing modal");
+                showModal();
+                // Remove the parameter from URL to prevent showing modal on refresh
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            function showModal() {
+                modal.style.display = 'block';
+            }
+            
+            function closeModal() {
+                modal.style.display = 'none';
+            }
+
+            
+                    // Close modal when clicking the close button
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', function() {
+                    closeModal();
+                    // Redirect to admin-events.php
+                    window.location.href = 'admin-events.php';
+                });
+            }
+                    
+             // Close modal when clicking outside the modal content
+                window.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        closeModal();
+                    }
+                });
+            });
 </script>
 
 </div>

@@ -56,4 +56,26 @@ if (isset($_GET['notification_id'])) {
         exit();
     }
 }
+
 ?>
+
+<script>
+    function markCertificateRead(notificationId, eventId, message) {
+    // Make an AJAX request to mark the notification as read
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'mark_notification_read.php?notification_id=' + notificationId + '&redirect=none', true);
+    xhr.onload = function() {
+        // After marking as read, show the modal
+        showModal(eventId, message);
+        
+        // Change the appearance of the notification to "read"
+        var notifElement = event.currentTarget.closest('.notifs');
+        if (notifElement) {
+            notifElement.classList.remove('important');
+            notifElement.classList.add('read');
+            event.currentTarget.classList.add('read');
+        }
+    };
+    xhr.send();
+}
+</script>

@@ -641,7 +641,7 @@ html {
     cursor: pointer;
     display: flex;
     float: right;
-    margin-top: 1%;
+    margin-top: -2%;
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
@@ -1164,25 +1164,24 @@ padding: 10px;
 
 }
 .checkbox-subgroup {
-background-color: white;
-display: flex;
-flex-wrap: wrap;
-gap: 10px;
-padding: 5px;
+    background-color: white;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 5px;
 }
 
 label {
-width: 100%;
-font-family: Montserrat Medium;
+    width: 100%;
+    font-family: Montserrat Medium;
 
 }
 .check-subgroup label {
-width: 100%;
-
+    width: 100%;
 }
 
 .form-row {
-flex-direction: column;
+    flex-direction: column;
 }
 }
 
@@ -1236,9 +1235,8 @@ flex-direction: column;
 }
 
 .form-group h4 {
-margin-bottom: 10px;
+    margin-bottom: 10px;
 }
 input[type=number] {
-font-family: Montserrat Light; 
+    font-family: Montserrat Light; 
 }
-
