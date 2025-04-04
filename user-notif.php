@@ -56,12 +56,18 @@ if (isset($_GET['event_id'])) {
     }
 }
 
-// Fetch notifications for user
-$notif_query = "SELECT n.id, n.message, n.created_at, n.is_read, n.notification_subtype, n.event_id 
+// Fetch notifications for user and group them by date
+$notif_query = "SELECT n.id, n.message, n.created_at, n.is_read, n.notification_subtype, n.event_id,
+                DATE(n.created_at) as notification_date 
                 FROM notifications n
                 LEFT JOIN registered_users er ON n.event_id = er.event_id AND er.user_id = ?
                 WHERE n.notification_type = 'user' 
                 AND (n.notification_subtype != 'update_event' AND n.notification_subtype != 'certificate' OR er.id IS NOT NULL)
+                AND (n.notification_subtype != 'certificate' OR 
+                     n.id = (SELECT MAX(id) FROM notifications 
+                             WHERE notification_type = 'user' 
+                             AND notification_subtype = 'certificate' 
+                             AND event_id = n.event_id))
                 ORDER BY n.created_at DESC";
 $stmt = $conn->prepare($notif_query);
 $stmt->bind_param("i", $user_id);
@@ -79,524 +85,8 @@ if (!$notif_result) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="">
+    <link href="styles/user-notif.css" rel="stylesheet">
     <title>Notifications - Event Management System</title>
-    <style type="text/css">
-    /* CSS remains unchanged */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, sans-serif;
-    }
-
-    body, html {
-        height: 100%;
-    }
-
-    .sidebar {
-    position: fixed;
-    width: 250px;
-    height: 100vh;
-    background-color: #12753E;
-    color: #ffffff;
-    padding: 2rem 1rem;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start; /* Changed from space-between to maintain positions */
-    transition: width 0.3s ease;
-    z-index: 999;
-}
-
-
-.sidebar .logo {
-    margin-bottom: 1rem;
-    margin-left: 5%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.sidebar.collapsed .logo {
-    margin-left: 0;
-    justify-content: center;
-}
-
-.toggle-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-    border-radius: 4px;
-    transition: background 0.2s;
-}
-
-.toggle-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Keep the menu at the same position */
-.sidebar .menu {
-    margin-top: 50%;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1; /* Allow it to grow but maintain position */
-}
-
-/* Adjust menu items when sidebar is collapsed */
-.sidebar.collapsed .menu {
-    align-items: center;
-    margin-top: 50%; /* Keep the same top margin */
-}
-
-.sidebar .menu a {
-    color: #ffffff;
-    text-decoration: none;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    font-size: 1rem;
-    border-radius: 5px;
-    transition: background 0.3s;
-    font-family: Tilt Warp Regular;
-    margin-bottom: .5rem;
-    width: 100%;
-}
-
-.sidebar.collapsed .menu a {
-    justify-content: center;
-    padding: 1rem 0;
-    width: 90%;
-}
-
-.sidebar .menu a span {
-    margin-left: 0.5rem;
-    transition: opacity 0.2s;
-    font-family: Tilt Warp Regular;
-}
-
-.sidebar.collapsed .menu a span {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    overflow: hidden;
-    display: none;
-}
-
-.sidebar .menu a:hover,
-.sidebar .menu a.active {
-    background-color: white;
-    color: #12753E;
-}
-
-.sidebar .menu a i {
-    margin-right: 0.5rem;
-    min-width: 20px;
-    text-align: center;
-}
-
-.sidebar.collapsed .menu a i {
-    margin-right: 0;
-    font-size: 1.2rem;
-}
-
-/* Fix user profile section for collapsed sidebar */
-.user-profile {
-    padding: 15px;
-    border-top: 1px solid white;
-    display: flex;
-    align-items: center;
-    position: absolute; /* Changed from sticky to absolute for more control */
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #12753E;
-    cursor: pointer;
-}
-
-.sidebar.collapsed .user-profile {
-    justify-content: center;
-    padding: 15px 0;
-}
-
-.sidebar.collapsed .username {
-    display: none;
-}
-
-.user-avatar img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid white;
-    padding: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-}
-
-.user-avatar {
-    transition: cursor 0.3s ease;
-}
-
-.username {
-        
-    font-family: Tilt Warp;
-}
-
-.sidebar.collapsed .user-avatar img {
-    margin-right: 0;s
-    cursor: default
-}
-/* Update logout menu position for collapsed sidebar */
-.logout-menu {
-    position: absolute;
-    top: 0;
-    bottom: 100%;
-    border-radius: 5px;
-    padding: 10px;
-    display: none;
-    z-index: 10000;
-    width: 85px;
-}
-
-.sidebar.collapsed .logout-menu {
-    left: -50px;
-}
-
-.logout-menu.active {
-    display: block;
-}
-
-.logout-btn {
-        background-color: white; 
-        border: 2px solid #12753E;  
-        display: block;
-        width: 105%;
-        padding: 8px 10px;
-        color: #12753E;
-        border-radius: 4px;
-        font-family: 'Tilt Warp', sans-serif;
-        font-size: 14px;
-        text-align: center;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        position: absolute;
-        top: 80%;
-        left: 265%;
-        z-index: 10001 !important; /* Increase this value significantly */
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: add shadow for better visibility */
-}
-
-.sidebar.collapsed {
-    width: 90px;
-    padding: 2rem 0.5rem;
-}
-/* Content adjustments */
-.content {
-    flex: 1;
-    background-color: #ffffff;
-    padding: 4rem;
-    margin-left: 17%;
-    transition: margin-left 0.3s ease;
-}
-
-.content.expanded {
-    margin-left: 90px;
-}
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .sidebar {
-            width: 70px;
-        }
-
-        .sidebar-header h2, .menu-text, .username{
-            display: none;
-        }
-        
-
-        .menu-item {
-            display: flex;
-            justify-content: center;
-        }
-
-        .user-profile {
-            justify-content: center;
-        }
-    }
-
-
-    .content {
-        flex: 1;
-        background-color: #ffffff;
-        padding: 4rem;
-        margin-left: 17%;
-    }
-    .content-header h1 {
-        font-size: 1.5rem;
-        color: #333333;
-        font-family: Wensley Demo;
-        margin-left: 32%;
-    }
-
-    .content-header p {
-        color: #999;
-        font-size: 1rem;
-        margin-top: -3%;
-        font-family: LT Cushion Light;
-        margin-left: 44%;
-    }
-
-    .content-header img {
-        float: left;
-        margin-left: 22%;
-        margin-top: -1%;
-        filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.3));
-    }
-
-    .content-body h1{
-        font-family: Montserrat ExtraBold;
-        font-size: 2rem;
-        padding: 10px;
-    }
-
-    .content-body hr{
-        border: 1px solid #95A613;
-    }
-
-    .notification-card {
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Modified events section for 3-column layout */
-    .notification-content {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
-        flex: 1;
-    }
-
-    .notifs {
-        background-color: #d7f3e4;
-        border-radius: 5px;
-        padding: 25px;
-        position: relative;
-        transition: transform 0.2s;
-        height: 100%;
-    }
-
-    .notifs:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .event.selected{
-        background: #2b3a8f;
-    }
-
-    .event.selected h3{
-        color: white;
-    }
-
-    .event.selected p{
-        color: rgb(231, 231, 231);
-    }
-
-    /* Responsive adjustments for the grid */
-    @media (max-width: 992px) {
-        .events-section {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 576px) {
-        .events-section {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .events-section h2 {
-        font-size: 22px;
-        font-family: Montserrat ExtraBold;
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: #333;
-    }
-
-    .notification-content h3 {
-        font-size: 15px;
-        margin-bottom: 5px;
-        font-family: Montserrat;
-        color:rgb(14, 19, 44);
-    }
-
-    .notification-content p {
-        font-size: 13px;
-        color: #585858;
-        font-family: Montserrat Medium;
-    }
-
-    .notification p {
-        font-size: 14px;
-        font-family: Montserrat;
-    }
-
-    .events-btn {
-
-        text-decoration: none;
-        color: black;
-        display: block;
-        height: 100%;
-    }
-
-    .notifs.read {
-    opacity: 0.7;
-    background-color: #f0f0f0;
-    border-left: 4px solid #ccc;
-    }
-
-    .notifs.read:hover {
-        background-color: #e8e8e8;
-    }
-
-    .notifs.important {
-        background-color: #d7f3e4;
-        border-left: 4px solid #12753E;
-    }
-
-    .events-btn.read {
-        color: #888;
-    }
-
-    .events-btn small {
-        display: block;
-        font-size: 12px;
-        margin-top: 10px;
-        color: #777;
-    }
-
-    .notifs.read .events-btn small {
-        color: #aaa;
-    }
-
-
-    /* Modal Styles */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.4);
-        /* Flexbox for perfect centering */
-        display: none;
-        align-items: center;
-        justify-content: center;
-        
-    }
-
-    .modal-content {
-        position: relative;
-        background-color: white;
-        padding: 25px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        width: 31%;
-        max-width: 600px;
-        animation: modalopen 0.4s;
-        border: 2px solid #12753E;
-        /* No margin needed with flexbox centering */
-        margin-left: 10%;
-    }
-
-    @keyframes modalopen {
-        from {opacity: 0; transform: scale(0.9);}
-        to {opacity: 1; transform: scale(1);}
-    }
-
-    .close-btn {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: color 0.3s;
-        margin-top: -2%;
-    }
-
-    .close-btn:hover {
-        color: #12753E;
-    }
-
-    .modal-header {
-        padding-bottom: 15px;
-        border-bottom: 1px solid #eee;
-        margin-bottom: 20px;
-    }
-
-    .modal-header h2 {
-        margin: 0;
-        color: #2b3a8f;
-        font-family: Montserrat Extrabold;
-    }
-
-    .modal-body .detail-item {
-        margin-bottom: 15px;
-    }
-
-    .modal-body .detail-item h3 {
-        margin: 0;
-        font-size: 1em;
-        font-family: Montserrat;
-        color: rgb(14, 19, 44);
-    }
-
-    .modal-body .detail-item p {
-        margin: 5px 0 0;
-        color: #555;
-        font-size: .9em;
-        font-family: Montserrat Medium;
-    }
-
-    .modal-footer {
-        padding-top: 15px;
-        border-top: 1px solid #eee;
-        margin-top: 20px;
-        text-align: right;
-    }
-
-    .pdf-preview {
-        align-content: center;
-    }
-        
-    .pdf-icon img{
-        margin-left: 34%;
-        width: 120px;
-        height: 80px;
-        cursor: pointer; /* Add pointer cursor to indicate it's clickable */
-    }
-        
-    .pdf-filename a{
-            font-size: 15px;
-            margin-left: 26%;
-            color:  #12753E;
-
-        }
-    .pdf-filename{
-            margin-top: 10px;
-            margin-left: 15px;
-        }
-    </style>
 </head>
 <body>
     <!-- Sidebar -->
@@ -648,23 +138,65 @@ if (!$notif_result) {
             <hr><br>
 
     <div class="notification-card">
-        <div class="notification-content">
-            <?php
-            if ($notif_result->num_rows > 0) {
-                while ($row = $notif_result->fetch_assoc()) { 
-                    $notification_id = $row['id'];
-                    $is_read = $row['is_read'] ? 'read' : 'unread';
-                    $is_important = $row['is_read'] ? 'read' : 'important';
-                    ?>
-                    <div class="notifs <?php echo $is_important; ?>">
-                        <?php 
+    <div class="notification-content">
+    <?php
+    if ($notif_result->num_rows > 0) {
+        $current_date = '';
+        $today = date('Y-m-d');
+        $yesterday = date('Y-m-d', strtotime('-1 day'));
+        
+        while ($row = $notif_result->fetch_assoc()) { 
+            $notification_id = $row['id'];
+            $is_read = $row['is_read'] ? 'read' : 'unread';
+            $is_important = $row['is_read'] ? 'read' : 'important';
+            $notification_date = $row['notification_date'];
+            
+            // Display date header if this is a new date
+            if ($notification_date != $current_date) {
+                // Close previous section if it's not the first one
+                if ($current_date != '') {
+                    echo '</div>'; // Close previous date section
+                }
+                
+                // Format the date header
+                if ($notification_date == $today) {
+                    $date_header = "Today";
+                } else if ($notification_date == $yesterday) {
+                    $date_header = "Yesterday";
+                } else {
+                    $date_header = date('F j, Y', strtotime($notification_date));
+                }
+                
+                echo '<div class="date-section">';
+                echo '<h2 class="date-header">' . $date_header . '</h2>';
+                
+                $current_date = $notification_date;
+            }
+            ?>
+            <div class="notifs <?php echo $is_important; ?>">
+                <?php 
                         // Determine the redirect URL and action based on notification type
                         if (!empty($row['event_id']) && $row['notification_subtype'] == 'certificate') {
                             // For certificate notifications, create a visible button that triggers the modal
                             ?>
                             <a style="cursor: pointer;" class="events-btn <?php echo $is_read; ?>" 
-                            onclick="showModal('<?php echo $row['event_id']; ?>', '<?php echo addslashes(htmlspecialchars($row['message'])); ?>');">
-                                <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                                onclick="showCertificateModal('<?php echo $row['event_id']; ?>', '<?php echo addslashes(htmlspecialchars($row['message'])); ?>', <?php echo $notification_id; ?>);">
+                                <h3><?php 
+                                    $message = htmlspecialchars($row['message']);
+                                    // Find the position of "event:" in the message
+                                    $pos = strpos($message, "event:");
+                                    if ($pos !== false) {
+                                        // Find the position of "is now available" or similar ending text
+                                        $end_pos = strpos($message, "is now available");
+                                        if ($end_pos !== false) {
+                                            // Extract the event title
+                                            $event_title = substr($message, $pos + 7, $end_pos - ($pos + 7) - 1);
+                                            // Replace the original title with the bold version
+                                            $message = str_replace("event: $event_title", "event: <strong>$event_title</strong>", $message);
+                                        }
+                                    }
+                                    echo $message;
+                                ?></h3>
                                 <small><?php echo $row['created_at']; ?></small>
                             </a>
                             <?php 
@@ -703,18 +235,20 @@ if (!$notif_result) {
                                 <h3><?php echo htmlspecialchars($row['message']); ?></h3>
                                 <small><?php echo $row['created_at']; ?></small>
                             </a>
-                            <?php
-                        }
-                        ?>
+                            <?php 
+                            }
+                            // Close the last date section
+                            if ($current_date != '') {
+                                echo '</div>';
+                            } else { ?>
+                            <p>No notifications found.</p>
+                        <?php } ?>
+                        <?php } ?>
+                    <?php } ?>
                     </div>
-                <?php }
-            } else { ?>
-                <p>No notifications found.</p>
-            <?php } ?>
+                </div>
+            </div>
         </div>
-    </div>
-        </div>
-    </div>
 
 <!-- Event Details Modal -->
 <div id="eventModal" class="modal">
@@ -838,34 +372,79 @@ function markAsRead(notificationId) {
     // Redirect to mark as read script
     window.location.href = "mark_notification_read.php?notification_id=" + notificationId + "&redirect=" + encodeURIComponent("user-notif.php");
 }
-// Get the modal
-var modal = document.getElementById("eventModal");
 
-function showModal(eventId, message) {
+function showCertificateModal(eventId, message, notificationId) {
     // Update the modal message
-    document.getElementById('modal-message').textContent = message;
-    
-    // Redirect to the same page with event_id parameter to fetch certificate info
-    var currentUrl = window.location.href.split('?')[0]; // Get current URL without parameters
-    var newUrl = currentUrl + "?event_id=" + eventId + "&modal=true";
-    window.location.href = newUrl;
-}
 
-// Function to close the modal
-function closeModal() {
-    modal.style.display = "none";
-    
-    // Remove selected class from all events
-    document.querySelectorAll('.event').forEach(div => {
-        div.classList.remove('selected');
-    });
-}
+    document.getElementById('modal-message').innerHTML = message;
 
-// Close the modal if user clicks outside of it
-window.onclick = function(event) {
-    if (event.target == modal) {
-        closeModal();
+    const modalMessage = document.getElementById('modal-message');
+    
+    // Parse the message to identify and bold the event title
+    let formattedMessage = message;
+    const eventPrefix = "event:";
+    const availableSuffix = "is now available";
+    
+    const startPos = message.indexOf(eventPrefix);
+    const endPos = message.indexOf(availableSuffix);
+    
+    if (startPos !== -1 && endPos !== -1) {
+        // Extract event title
+        const beforeTitle = message.substring(0, startPos + eventPrefix.length);
+        const title = message.substring(startPos + eventPrefix.length, endPos);
+        const afterTitle = message.substring(endPos);
+        
+        // Format with bold title
+        formattedMessage = beforeTitle + " <strong>" + title.trim() + "</strong> " + afterTitle;
     }
+    
+    modalMessage.innerHTML = formattedMessage;
+    
+    // Mark notification as read via AJAX
+    fetch('mark_notification_read.php?notification_id=' + notificationId + '&ajax=true')
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                // Update UI to show notification as read if needed
+                const notificationElement = document.querySelector(`[onclick*="${notificationId}"]`).closest('.notifs');
+                if(notificationElement) {
+                    notificationElement.classList.remove('important');
+                    notificationElement.classList.add('read');
+                    
+                    // Update the link class as well
+                    const linkElement = notificationElement.querySelector('.events-btn');
+                    if(linkElement) {
+                        linkElement.classList.add('read');
+                    }
+                }
+            }
+        })
+        .catch(error => console.error('Error marking notification as read:', error));
+    
+    // Show the modal
+    var modal = document.getElementById("eventModal");
+    modal.style.display = "flex";
+    
+    // Update URL without reloading the page (for certificate info)
+    const url = new URL(window.location.href);
+    url.searchParams.set('event_id', eventId);
+    url.searchParams.set('modal', 'true');
+    window.history.pushState({}, '', url);
+    
+    // If needed, fetch certificate details via AJAX
+    fetchCertificateDetails(eventId);
+}
+
+function fetchCertificateDetails(eventId) {
+    // Optional: Only implement if you need to dynamically update certificate details
+    fetch('get_certificate_details.php?event_id=' + eventId)
+        .then(response => response.json())
+        .then(data => {
+            if(data.certificate_path) {
+                document.querySelector('.pdf-filename a').href = data.certificate_path;
+            }
+        })
+        .catch(error => console.error('Error fetching certificate details:', error));
 }
 
 function markAsRead(notificationId) {
