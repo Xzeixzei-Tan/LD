@@ -74,7 +74,6 @@ while ($participant = $participantsResult->fetch_assoc()) {
         // Log or display preparation error
         error_log("Notification prepare error: " . $conn->error);
         // Optional: die("Prepare failed: " . $conn->error);
-        continue; // Skip this participant and move to the next one
     }
 
     // Bind parameters
@@ -84,20 +83,26 @@ while ($participant = $participantsResult->fetch_assoc()) {
     if ($bind_result === false) {
         error_log("Notification bind error: " . $notifStmt->error);
         // Optional: die("Bind failed: " . $notifStmt->error);
-        continue; // Skip this participant and move to the next one
     }
 
     // Execute and check for errors
-    if ($notifStmt->execute()) {
-        $notificationCount++;
-        
-        // Send email notification with evaluation link
-        if (sendEvaluationLinkEmail($email, $participant_name, $event_title, $evaluation_link)) {
-            $emailsSent++;
-        }
-    } else {
+    if (!$notifStmt->execute()) {
         error_log("Notification execute error: " . $notifStmt->error);
         // Optional: die("Execute failed: " . $notifStmt->error);
+    }
+
+    // Optional: Check number of affected rows
+    $affectedRows = $notifStmt->affected_rows;
+    error_log("Notifications inserted: " . $affectedRows);
+
+    $notifStmt->bind_param("isi", $user_id, $notificationMessage, $event_id);
+    $notifStmt->execute();
+    
+    $notificationCount++;
+    
+    // Send email notification with evaluation link
+    if (sendEvaluationLinkEmail($email, $participant_name, $event_title, $evaluation_link)) {
+        $emailsSent++;
     }
 }
 

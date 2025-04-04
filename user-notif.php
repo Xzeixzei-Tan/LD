@@ -61,32 +61,16 @@ $notif_query = "SELECT n.id, n.message, n.created_at, n.is_read, n.notification_
                 DATE(n.created_at) as notification_date 
                 FROM notifications n
                 LEFT JOIN registered_users er ON n.event_id = er.event_id AND er.user_id = ?
-                WHERE n.user_id = ? 
-                AND n.notification_type = 'user' 
-                AND (
-                    /* Handle regular notifications */
-                    (n.notification_subtype NOT IN ('update_event', 'certificate', 'evaluation') AND (er.id IS NOT NULL OR n.event_id IS NULL))
-                    OR 
-                    /* Handle certificate notifications - show only the most recent per event */
-                    (n.notification_subtype = 'certificate' AND 
+                WHERE n.notification_type = 'user' 
+                AND (n.notification_subtype != 'update_event' AND n.notification_subtype != 'certificate' OR er.id IS NOT NULL)
+                AND (n.notification_subtype != 'certificate' OR 
                      n.id = (SELECT MAX(id) FROM notifications 
                              WHERE notification_type = 'user' 
-                             AND notification_subtype = 'certificate'
-                             AND user_id = ?
+                             AND notification_subtype = 'certificate' 
                              AND event_id = n.event_id))
-                    OR
-                    /* Handle evaluation notifications - show only the most recent per event AND evaluation link */
-                    (n.notification_subtype = 'evaluation' AND er.id IS NOT NULL AND 
-                     n.id = (SELECT MAX(id) FROM notifications 
-                             WHERE notification_type = 'user' 
-                             AND notification_subtype = 'evaluation'
-                             AND user_id = ?
-                             AND event_id = n.event_id
-                             AND message = n.message))
-                )
                 ORDER BY n.created_at DESC";
 $stmt = $conn->prepare($notif_query);
-$stmt->bind_param("iiii", $user_id, $user_id, $user_id, $user_id);
+$stmt->bind_param("i", $user_id);
 $stmt->execute();
 $notif_result = $stmt->get_result();
 
@@ -191,46 +175,31 @@ if (!$notif_result) {
             ?>
             <div class="notifs <?php echo $is_important; ?>">
                 <?php 
-                    // Determine the redirect URL and action based on notification type
-                    if (!empty($row['event_id']) && $row['notification_subtype'] == 'certificate') {
-                        // For certificate notifications, create a visible button that triggers the modal
-                        ?>
-                        <a style="cursor: pointer;" class="events-btn <?php echo $is_read; ?>" 
-                            onclick="showCertificateModal('<?php echo $row['event_id']; ?>', '<?php echo addslashes(htmlspecialchars($row['message'])); ?>', <?php echo $notification_id; ?>);">
-                            <h3><?php 
-                                $message = htmlspecialchars($row['message']);
-                                // Find the position of "event:" in the message
-                                $pos = strpos($message, "event:");
-                                if ($pos !== false) {
-                                    // Find the position of "is now available" or similar ending text
-                                    $end_pos = strpos($message, "is now available");
-                                    if ($end_pos !== false) {
-                                        // Extract the event title
-                                        $event_title = substr($message, $pos + 7, $end_pos - ($pos + 7) - 1);
-                                        // Replace the original title with the bold version
-                                        $message = str_replace("event: $event_title", "event: <strong>$event_title</strong>", $message);
-                                    }
-                                }
-                                echo $message;
-                            ?></h3>
-                            <small><?php echo $row['created_at']; ?></small>
-                        </a>
-                        <?php 
-                        } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'evaluation') {
-                            // Extract the evaluation link from the message
-                            preg_match('/Click the link to proceed: (https?:\/\/\S+)/', $row['message'], $matches);
-                            $evaluation_link = !empty($matches[1]) ? $matches[1] : '';
-                            
-                            $redirect_url = !empty($evaluation_link) ? 
-                                $evaluation_link : 
-                                "user-events.php?event_id=" . urlencode($row['event_id']);
+                        // Determine the redirect URL and action based on notification type
+                        if (!empty($row['event_id']) && $row['notification_subtype'] == 'certificate') {
+                            // For certificate notifications, create a visible button that triggers the modal
                             ?>
-                            <a class="events-btn <?php echo $is_read; ?>" 
-                                href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
-                                <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                            <a style="cursor: pointer;" class="events-btn <?php echo $is_read; ?>" 
+                                onclick="showCertificateModal('<?php echo $row['event_id']; ?>', '<?php echo addslashes(htmlspecialchars($row['message'])); ?>', <?php echo $notification_id; ?>);">
+                                <h3><?php 
+                                    $message = htmlspecialchars($row['message']);
+                                    // Find the position of "event:" in the message
+                                    $pos = strpos($message, "event:");
+                                    if ($pos !== false) {
+                                        // Find the position of "is now available" or similar ending text
+                                        $end_pos = strpos($message, "is now available");
+                                        if ($end_pos !== false) {
+                                            // Extract the event title
+                                            $event_title = substr($message, $pos + 7, $end_pos - ($pos + 7) - 1);
+                                            // Replace the original title with the bold version
+                                            $message = str_replace("event: $event_title", "event: <strong>$event_title</strong>", $message);
+                                        }
+                                    }
+                                    echo $message;
+                                ?></h3>
                                 <small><?php echo $row['created_at']; ?></small>
                             </a>
-                        <?php 
+                            <?php 
                         } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'new_event') {
                             $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
                             ?>
@@ -275,10 +244,7 @@ if (!$notif_result) {
                             <p>No notifications found.</p>
                         <?php } ?>
                         <?php } ?>
-                    <?php } else { ?>
-                        <p style="text-align: center; color: gray; ">No notifications yet.</p>
-                    <?php } ?>    
-
+                    <?php } ?>
                     </div>
                 </div>
             </div>
