@@ -34,9 +34,8 @@ $baseSQL = "SELECT
                        TIME_FORMAT(ed.end_time, '%H:%i'))
                 SEPARATOR '||') AS event_days_data,
             CASE 
-                WHEN DATE(NOW()) = DATE(e.start_date) AND DATE(NOW()) = DATE(e.end_date) THEN 'Ongoing'
-                WHEN NOW() BETWEEN e.start_date AND e.end_date THEN 'Ongoing'
-                WHEN e.end_date < DATE(NOW()) THEN 'Past'  
+                WHEN CURDATE() >= e.start_date AND CURDATE() <= e.end_date THEN 'Ongoing'
+                WHEN CURDATE() > e.end_date THEN 'Past'
                 ELSE 'Upcoming'
             END AS status
         FROM events e
@@ -167,25 +166,26 @@ function getRegisteredUsers($conn, $eventId) {
     $users = [];
     
     $sql = "SELECT 
-                ru.id AS registration_id, 
-                ru.registration_date,
-                CONCAT(u.first_name, ' ', 
-                    CASE WHEN u.middle_name IS NOT NULL AND u.middle_name != '' THEN CONCAT(u.middle_name, ' ') ELSE '' END,
-                    u.last_name,
-                    CASE WHEN u.suffix IS NOT NULL AND u.suffix != '' THEN CONCAT(' ', u.suffix) ELSE '' END
-                ) AS name,
-                u.email,
-                u.contact_no AS phone,
-                cp.name AS position,
-                cp.classification_id
-            FROM registered_users ru
-            JOIN users u ON ru.user_id = u.id
-            LEFT JOIN users_lnd ul ON ru.user_id = ul.user_id
-            LEFT JOIN class_position cp ON ul.position_id = cp.id
-            WHERE ru.event_id = ?
-            GROUP BY u.id, u.email
-            ORDER BY ru.registration_date DESC";
-    
+        ru.id AS registration_id, 
+        ru.registration_date,
+        CONCAT(u.first_name, ' ', 
+            CASE WHEN u.middle_name IS NOT NULL AND u.middle_name != '' THEN CONCAT(u.middle_name, ' ') ELSE '' END,
+            u.last_name,
+            CASE WHEN u.suffix IS NOT NULL AND u.suffix != '' THEN CONCAT(' ', u.suffix) ELSE '' END
+        ) AS name,
+        u.email,
+        u.contact_no AS phone,
+        cp.name AS position,
+        c.name AS classification
+    FROM registered_users ru
+    JOIN users u ON ru.user_id = u.id
+    LEFT JOIN users_lnd ul ON ru.user_id = ul.user_id
+    LEFT JOIN class_position cp ON ul.position_id = cp.id
+    LEFT JOIN classification c ON cp.classification_id = c.id
+    WHERE ru.event_id = ?
+    GROUP BY u.id, u.email
+    ORDER BY ru.registration_date DESC";
+        
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $eventId);
     $stmt->execute();
@@ -275,6 +275,67 @@ foreach ($eventsData as $event) {
     <link href="styles/admin-events.css" rel="stylesheet">
     <script src="scripts/admin-events.js" defer></script>
     <title>Event Management System</title>
+    <style>
+    .unregister-btn {
+        background-color: #ff3b30;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: 'Montserrat', sans-serif;
+        box-shadow: 0 2px 4px rgba(255, 59, 48, 0.2);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        display: flex; /* Always keep as flex */
+        align-items: center;
+        margin-bottom: 15px;
+        
+        /* Hidden state */
+        opacity: 0;
+        transform: translateY(-10px);
+        pointer-events: none; /* Prevents interaction when invisible */
+    }
+
+    .unregister-btn.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto; /* Allows interaction when visible */
+    }
+
+    .unregister-btn i {
+      margin-right: 8px;
+    }
+
+    input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #cbd5e0;
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+        position: relative;
+        vertical-align: middle;
+        transition: all 0.2s ease;
+    }
+    input[type="checkbox"]:checked {
+        background-color: #2b3a8f;
+        border-color: #2b3a8f;
+    }
+    input[type="checkbox"]:checked::after {
+        content: '✓';
+        position: absolute;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    </style>
 </head>
 <body>
 
@@ -461,9 +522,13 @@ foreach ($eventsData as $event) {
                             </button>
                         </div>
                         <div class="registered-users-table">
+                            <div class="table-controls mb-3">
+                                <button id="unregister-selected" class="unregister-btn"><i class="fa fa-trash" aria-hidden="true"></i>Unregister Selected Users</button>
+                            </div>
                         <table id="registered-users-table">
                             <thead>
                                 <tr>
+                                    <th class="checkbox-column"><input type="checkbox" class="user-checkbox" id="select-all"></th>
                                     <th>Name</th>
                                     <th>Email</th>
                                     <th>Phone</th>
@@ -1131,50 +1196,306 @@ foreach ($eventsData as $event) {
         }
     }
 
-    function fetchRegisteredUsers(eventId) {
-        // Show loading indicator
-        document.getElementById('registered-users-table-body').innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading...</td></tr>';
-        
-        // Fetch registered users using AJAX
-        fetch('get_registered_users.php?event_id=' + eventId)
-            .then(response => response.json())
-            .then(data => {
-                const tableBody = document.getElementById('registered-users-table-body');
+ function fetchRegisteredUsers(eventId, forceFresh = false) {
+    // Show loading indicator
+    document.getElementById('registered-users-table-body').innerHTML = '<tr><td colspan="6" style="text-align: center;">Loading...</td></tr>';
+    
+    // Add cache-busting parameter to prevent caching issues
+    const cacheBuster = forceFresh ? `&_t=${new Date().getTime()}` : '';
+    
+    // Fetch registered users using AJAX
+    fetch(`get_registered_users.php?event_id=${eventId}${cacheBuster}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Received data:', data); // Debug log to see what's coming back
+            const tableBody = document.getElementById('registered-users-table-body');
+            
+            // Clear loading indicator
+            tableBody.innerHTML = '';
+            
+            // Check if data is valid array and has elements
+            if (!Array.isArray(data) || data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No registered users found</td></tr>';
+                return;
+            }
+            
+            // Populate table with user data
+            data.forEach(user => {
+                const row = document.createElement('tr');
                 
-                // Clear loading indicator
-                tableBody.innerHTML = '';
+                // Format the registration date
+                const regDate = new Date(user.registration_date);
+                const formattedDate = regDate.toLocaleString();
                 
-                if (data.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
-                    return;
-                }
+                row.innerHTML = `
+                    <td><input type="checkbox" class="user-checkbox" data-registration-id="${user.id}"></td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.phone || 'N/A'}</td>
+                    <td>${user.designation || 'N/A'}</td>
+                    <td>${formattedDate}</td>
+                `;
                 
-                // Populate table with user data
-                data.forEach(user => {
-                    const row = document.createElement('tr');
-                    
-                    // Format the registration date
-                    const regDate = new Date(user.registration_date);
-                    const formattedDate = regDate.toLocaleString();
-                    
-                    row.innerHTML = `
-                        <td>${user.name}</td>
-                        <td>${user.email}</td>
-                        <td>${user.phone || 'N/A'}</td>
-                        <td>${user.designation || 'N/A'}</td>
-                        <td>${formattedDate}</td>
-                    `;
-                    
-                    tableBody.appendChild(row);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching registered users:', error);
-                document.getElementById('registered-users-table-body').innerHTML = 
-                    '<tr><td colspan="5" style="text-align: center;">Error loading registered users</td></tr>';
+                tableBody.appendChild(row);
             });
-    }
+            // Reset select all checkbox
+            document.getElementById('select-all').checked = false;
+            
+            // Hide unregister button after refresh
+            document.getElementById('unregister-selected').style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Error fetching registered users:', error);
+            document.getElementById('registered-users-table-body').innerHTML = 
+                '<tr><td colspan="6" style="text-align: center;">Error loading registered users: ' + error.message + '</td></tr>';
+        });
+}
 
+// Set up select all checkbox
+document.getElementById('select-all').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
+
+// Show/hide unregister button based on checkbox selection
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial setup for select-all checkbox
+    const selectAllCheckbox = document.getElementById('select-all');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            toggleUnregisterButton();
+        });
+    }
+    
+    // Add event delegation for individual checkboxes
+    document.getElementById('registered-users-table-body').addEventListener('change', function(e) {
+        if (e.target.classList.contains('user-checkbox')) {
+            toggleUnregisterButton();
+            
+            // Update select-all checkbox based on individual selections
+            const checkboxes = document.querySelectorAll('.user-checkbox');
+            const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = checkboxes.length === checkedBoxes.length;
+            }
+        }
+    });
+    
+    // Function to toggle the unregister button visibility
+    function toggleUnregisterButton() {
+        const hasChecked = document.querySelector('.user-checkbox:checked');
+        const unregisterBtn = document.getElementById('unregister-selected');
+        
+        if (unregisterBtn) {
+            // First, ensure the button doesn't have display:none from elsewhere
+            unregisterBtn.style.display = 'flex';
+            
+            if (hasChecked) {
+                unregisterBtn.classList.add('visible');
+            } else {
+                unregisterBtn.classList.remove('visible');
+            }
+        }
+    }
+});
+
+// Update the unregister button click handler to check for empty user list
+document.getElementById('unregister-selected').addEventListener('click', function() {
+    // First check if there are any users in the table
+    const tableBody = document.getElementById('registered-users-table-body');
+    
+    // Check if the table has the "no users" message
+    const tableRows = tableBody.querySelectorAll('tr');
+    let hasNoUsersMessage = false;
+    
+    if (tableRows.length === 1) {
+        const firstRowCell = tableRows[0].querySelector('td[colspan="6"]');
+        if (firstRowCell && firstRowCell.textContent.includes('No registered users found')) {
+            hasNoUsersMessage = true;
+        }
+    }
+    
+    if (hasNoUsersMessage) {
+        alert('Unregister is unavailable, no registered users');
+        return;
+    }
+    
+    const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+    
+    if (selectedCheckboxes.length === 0) {
+        alert('Please select at least one user to unregister');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to unregister ${selectedCheckboxes.length} user(s)?`)) {
+        return;
+    }
+    
+    const registrationIds = Array.from(selectedCheckboxes).map(checkbox => 
+        checkbox.getAttribute('data-registration-id')
+    );
+    
+    unregisterUsers(registrationIds);
+});
+
+// Function to unregister selected users
+// Function to unregister selected users
+function unregisterUsers(registrationIds) {
+    // Show loading indicator
+    document.getElementById('registered-users-table-body').innerHTML = '<tr><td colspan="6" style="text-align: center;">Processing unregistration...</td></tr>';
+    
+    fetch('unregister_users.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ registrationIds: registrationIds })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Server returned status: ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert(`Successfully unregistered ${registrationIds.length} user(s)`);
+            
+            // Show a temporary message
+            document.getElementById('registered-users-table-body').innerHTML = 
+                '<tr><td colspan="6" style="text-align: center;">Refreshing user list...</td></tr>';
+                
+            // Simply reload the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 500);
+        } else {
+            alert('Error: ' + (data.message || 'Unknown error occurred'));
+            window.location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error unregistering users:', error);
+        alert('An error occurred while trying to unregister users: ' + error.message);
+        window.location.reload();
+    });
+}
+
+// Recursive function to attempt multiple refreshes if needed
+function refreshRegisteredUsers(eventId, attempt, maxAttempts = 3) {
+    console.log(`Refresh attempt ${attempt} of ${maxAttempts}`);
+    
+    // Add cache-busting parameter with attempt number
+    const cacheBuster = `&_nocache=${new Date().getTime()}_${attempt}`;
+    
+    fetch(`get_registered_users.php?event_id=${eventId}${cacheBuster}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Server returned status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(`Attempt ${attempt} received data:`, data);
+            
+            // Check if we got valid data
+            if (Array.isArray(data)) {
+                // Update the table with this data
+                updateTable(data);
+                console.log(`Refresh successful on attempt ${attempt}`);
+            } else {
+                throw new Error('Invalid data format received');
+            }
+        })
+        .catch(error => {
+            console.error(`Error on refresh attempt ${attempt}:`, error);
+            
+            // Try again if we haven't reached max attempts
+            if (attempt < maxAttempts) {
+                // Exponential backoff - wait longer between each attempt
+                const delay = Math.pow(2, attempt) * 500;
+                console.log(`Will retry in ${delay}ms`);
+                
+                setTimeout(() => {
+                    refreshRegisteredUsers(eventId, attempt + 1, maxAttempts);
+                }, delay);
+            } else {
+                // If all attempts failed, show error and do a regular fetch
+                console.error('All refresh attempts failed, falling back to normal fetch');
+                fetchRegisteredUsers(eventId);
+            }
+        });
+}
+
+// Helper function to update the table with data
+function updateTable(data) {
+  const tableBody = document.getElementById('registered-users-table-body');
+  const selectAllCheckbox = document.getElementById('select-all');
+  const unregisterButton = document.getElementById('unregister-selected');
+  const checkboxHeaderCell = document.querySelector('th.checkbox-column');
+     
+  // Clear any existing content
+  tableBody.innerHTML = '';
+  
+  // Check if there are any users
+  if (!Array.isArray(data) || data.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No registered users found</td></tr>';
+    
+    // Direct approach - set inline style with !important
+    if (checkboxHeaderCell) {
+      checkboxHeaderCell.setAttribute('style', 'display: none !important');
+    }
+    
+    // Hide unregister button
+    if (unregisterButton) {
+      unregisterButton.style.display = 'none';
+    }
+    return;
+  }
+  
+  // If we have users, make everything visible again
+  if (checkboxHeaderCell) {
+    checkboxHeaderCell.removeAttribute('style');
+  }
+  
+  // Rest of your code remains the same...
+  data.forEach(user => {
+    const row = document.createElement('tr');
+    // Format the registration date
+    const regDate = new Date(user.registration_date);
+    const formattedDate = regDate.toLocaleString();
+    row.innerHTML = `
+      <td><input type="checkbox" class="user-checkbox" data-registration-id="${user.id}"></td>
+      <td>${user.name}</td>
+      <td>${user.email}</td>
+      <td>${user.phone || 'N/A'}</td>
+      <td>${user.designation || 'N/A'}</td>
+      <td>${formattedDate}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+  
+  // Reset select all checkbox
+  if (selectAllCheckbox) {
+    selectAllCheckbox.checked = false;
+  }
+  
+  // Hide unregister button
+  if (unregisterButton) {
+    unregisterButton.style.display = 'none';
+  }
+}
     function toggleRegisteredUsersTable() {
         const tableContainer = document.getElementById('registered-users-table-container');
         const toggleButton = document.getElementById('toggle-users-table-btn');

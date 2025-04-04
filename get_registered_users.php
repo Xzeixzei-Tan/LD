@@ -2,6 +2,8 @@
 // Include database configuration
 require_once 'config.php';
 
+error_log("get_registered_users.php START - Query params: " . json_encode($_GET));
+
 // Check if event_id is provided
 if (!isset($_GET['event_id']) || empty($_GET['event_id'])) {
     http_response_code(400);
@@ -72,6 +74,8 @@ $stmt->close();
 
 // Set the response content type to JSON
 header('Content-Type: application/json');
+
+error_log("get_registered_users.php END - Found users: " . count($users));
 
 // Output the JSON data
 echo json_encode($users);
