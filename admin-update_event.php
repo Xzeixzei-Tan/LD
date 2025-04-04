@@ -1,8 +1,6 @@
 <?php
 require_once 'config.php'; // Include your database connection file
 
-
-
 // Check if event ID is provided
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: admin-events.php');
@@ -304,9 +302,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Set success message
         $successMessage = "Event updated successfully!";
-        
-        // Redirect to the events page with success parameter
-        header("Location: admin-events.php?success=update");
+
+        // Redirect to the same page with success parameter
+        header("Location: " . $_SERVER['PHP_SELF'] . "?id=" . $eventId . "&success=update");
         exit();
     } catch (Exception $e) {
         // Roll back the transaction if something failed
@@ -324,6 +322,236 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/admin-update-events.css" rel="stylesheet">
     <title>Update Event</title>
+
+    <style>
+/* Modal Styles */
+/* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.4s;
+        }
+
+        .modal h2 {
+            margin-top: 0;
+            color: #333;
+            font-family: Arial, sans-serif;
+        }
+
+        .modal p {
+            color: #666;
+            margin-bottom: 25px;
+            font-family: Arial, sans-serif;
+        }
+
+        #close-modal-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            font-family: Arial, sans-serif;
+        }
+
+        #close-modal-btn:hover {
+            background-color: #45a049;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        @keyframes slideIn {
+            from {transform: translateY(-50px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+
+        /* Check Mark Animation */
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+        .modal-content h2 {
+            font-family: Montserrat;
+        }
+        .modal-content p {
+            font-family: Montserrat;
+        }
+
+        .check-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            border-radius: 50%;
+            box-sizing: content-box;
+            border: 4px solid #4CAF50;
+        }
+
+        .check-icon::before {
+            top: 3px;
+            left: -2px;
+            width: 30px;
+            transform-origin: 100% 50%;
+            border-radius: 100px 0 0 100px;
+        }
+
+        .check-icon::after {
+            top: 0;
+            left: 30px;
+            width: 60px;
+            transform-origin: 0 50%;
+            border-radius: 0 100px 100px 0;
+            animation: rotate-circle 4.25s ease-in;
+        }
+
+        .check-icon::before, .check-icon::after {
+            content: '';
+            height: 100px;
+            position: absolute;
+            background: #FFFFFF;
+            transform: rotate(-45deg);
+        }
+
+        .icon-line {
+            height: 5px;
+            background-color: #4CAF50;
+            display: block;
+            border-radius: 2px;
+            position: absolute;
+            z-index: 10;
+        }
+
+        .icon-line.line-tip {
+            top: 46px;
+            left: 14px;
+            width: 25px;
+            transform: rotate(45deg);
+            animation: icon-line-tip 1s;
+        }
+
+        .icon-line.line-long {
+            top: 38px;
+            right: 8px;
+            width: 47px;
+            transform: rotate(-45deg);
+            animation: icon-line-long 1s;
+        }
+
+        .icon-circle {
+            top: -4px;
+            left: -4px;
+            z-index: 10;
+            width: 80px;
+            height: 80px;
+            border-radius: 60%;
+            position: absolute;
+            box-sizing: content-box;
+            border: 4px solid rgba(76, 175, 80, 0.5);
+        }
+
+        .icon-fix {
+            top: 8px;
+            width: 5px;
+            left: 26px;
+            z-index: 1;
+            height: 85px;
+            position: absolute;
+            transform: rotate(-45deg);
+            background-color: #FFFFFF;
+        }
+
+        @keyframes rotate-circle {
+            0% {
+                transform: rotate(-45deg);
+            }
+            5% {
+                transform: rotate(-45deg);
+            }
+            12% {
+                transform: rotate(-405deg);
+            }
+            100% {
+                transform: rotate(-405deg);
+            }
+        }
+
+        @keyframes icon-line-tip {
+            0% {
+                width: 0;
+                left: 1px;
+                top: 19px;
+            }
+            54% {
+                width: 0;
+                left: 1px;
+                top: 19px;
+            }
+            70% {
+                width: 50px;
+                left: -8px;
+                top: 37px;
+            }
+            84% {
+                width: 17px;
+                left: 21px;
+                top: 48px;
+            }
+            100% {
+                width: 25px;
+                left: 14px;
+                top: 46px;
+            }
+        }
+
+        @keyframes icon-line-long {
+            0% {
+                width: 0;
+                right: 46px;
+                top: 54px;
+            }
+            65% {
+                width: 0;
+                right: 46px;
+                top: 54px;
+            }
+            84% {
+                width: 55px;
+                right: 0px;
+                top: 35px;
+            }
+            100% {
+                width: 47px;
+                right: 8px;
+                top: 38px;
+            }
+        }
+
+       
+</style>
 
     
 </head>
@@ -368,7 +596,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="success-message" style="display: block;"><?php echo $successMessage; ?></div>
         <?php endif; ?>
 
-        <form method="post" action="">
+        <form method="post" action="<?php echo $_SERVER['PHP_SELF'] . '?id=' . $eventId; ?>">
             <!-- General Information -->
             <div class="form-group-1">
                 <div class="section-title">Event Details</div>
@@ -600,6 +828,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 </div>
 
+    <div id="success-modal" class="modal">
+            <div class="modal-content">
+                <div class="success-checkmark">
+                    <div class="check-icon">
+                        <span class="icon-line line-tip"></span>
+                        <span class="icon-line line-long"></span>
+                        <div class="icon-circle"></div>
+                        <div class="icon-fix"></div>
+                    </div>
+                </div>
+                <h2>Success!</h2>
+                <p>Event has been updated successfully.</p>
+                <button id="close-modal-btn">OK</button>
+            </div>
+    </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const phpMealPlans = <?php echo json_encode($mealPlansForJS); ?>;
@@ -692,6 +936,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
+
+    
 
     // ================= SPEAKERS MANAGEMENT =================
     const speakersContainer = document.getElementById('speakers-container');
@@ -1017,6 +1263,47 @@ document.addEventListener('DOMContentLoaded', function() {
         generateDayFields();
     }
 });
+
+// Modal Functionality
+document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('success-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const demoButton = document.getElementById('demo-button');
+            
+            // Check URL parameters for success message
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'update') {
+                console.log("Success parameter detected, showing modal");
+                showModal();
+                // Remove the parameter from URL to prevent showing modal on refresh
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            function showModal() {
+                modal.style.display = 'block';
+            }
+            
+            function closeModal() {
+                modal.style.display = 'none';
+            }
+
+            
+                    // Close modal when clicking the close button
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', function() {
+                    closeModal();
+                    // Redirect to admin-events.php
+                    window.location.href = 'admin-events.php';
+                });
+            }
+                    
+             // Close modal when clicking outside the modal content
+                window.addEventListener('click', function(event) {
+                    if (event.target === modal) {
+                        closeModal();
+                    }
+                });
+            });
 </script>
 
 </div>
