@@ -62,11 +62,17 @@ $notif_query = "SELECT n.id, n.message, n.created_at, n.is_read, n.notification_
                 FROM notifications n
                 LEFT JOIN registered_users er ON n.event_id = er.event_id AND er.user_id = ?
                 WHERE n.notification_type = 'user' 
-                AND (n.notification_subtype != 'update_event' AND n.notification_subtype != 'certificate' OR er.id IS NOT NULL)
+                AND (n.notification_subtype != 'update_event' AND n.notification_subtype != 'certificate' 
+                     AND n.notification_subtype != 'evaluation' OR er.id IS NOT NULL)
                 AND (n.notification_subtype != 'certificate' OR 
                      n.id = (SELECT MAX(id) FROM notifications 
                              WHERE notification_type = 'user' 
                              AND notification_subtype = 'certificate' 
+                             AND event_id = n.event_id))
+                AND (n.notification_subtype != 'evaluation' OR 
+                     n.id = (SELECT MAX(id) FROM notifications 
+                             WHERE notification_type = 'user' 
+                             AND notification_subtype = 'evaluation' 
                              AND event_id = n.event_id))
                 ORDER BY n.created_at DESC";
 $stmt = $conn->prepare($notif_query);
@@ -200,6 +206,30 @@ if (!$notif_result) {
                                 <small><?php echo $row['created_at']; ?></small>
                             </a>
                             <?php 
+                        } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'evaluation') {
+                            // Special handling for evaluation notifications
+                            $notification_id = $row['id'];
+                            
+                            // Extract the evaluation link from the message
+                            // The message format is: "Please complete the evaluation for the event: {event_title}. Click the link to proceed: {evaluation_link}"
+                            preg_match('/Click the link to proceed: (https?:\/\/\S+)/', $row['message'], $matches);
+                            $evaluation_link = !empty($matches[1]) ? $matches[1] : '';
+                            
+                            if (!empty($evaluation_link)) {
+                                $redirect_url = $evaluation_link;
+                            } else {
+                                // Fallback if no link is found in the message
+                                $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                            }
+                        ?>
+                            <a class="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" 
+                            href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                <div class="events-btn">
+                                    <p><?php echo htmlspecialchars($row['message']); ?></p>
+                                    <br><small><?php echo $row['created_at']; ?></small>
+                                </div>
+                            </a>
+                        <?php
                         } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'new_event') {
                             $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
                             ?>

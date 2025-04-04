@@ -118,24 +118,53 @@ if (isset($_GET['event_id'])) {
     }
 }
 
-
 // Fetch notifications for user
-$notif_query = "SELECT n.id, n.message, n.created_at, n.is_read, n.notification_subtype, n.event_id 
-                FROM notifications n
-                WHERE n.user_id = ? 
-                AND n.notification_type = 'user' 
+// Fetch notifications for user
+$notif_query = "SELECT 
+                n.id, 
+                n.message, 
+                n.created_at, 
+                n.is_read, 
+                n.notification_subtype, 
+                n.event_id,
+                DATE(n.created_at) as notification_date 
+            FROM 
+                notifications n
+            LEFT JOIN 
+                registered_users er ON n.event_id = er.event_id AND er.user_id = ?
+            WHERE 
+                n.notification_type = 'user' 
                 AND (
-                    n.notification_subtype = 'evaluation'
-                    OR (n.notification_subtype NOT IN ('update_event') 
-                        AND EXISTS (
-                            SELECT 1 FROM registered_users ru 
-                            WHERE ru.event_id = n.event_id AND ru.user_id = ?
+                    /* Show update_event notifications only for events the user is registered for */
+                    (n.notification_subtype = 'update_event' AND er.id IS NOT NULL)
+                    
+                    OR
+                    
+                    /* Show other notifications only if user is the owner OR registered */
+                    (
+                        (n.user_id = ? OR er.id IS NOT NULL)
+                        AND n.notification_subtype != 'update_event'
+                        AND (
+                            /* For certificate notifications, show only the latest one per event */
+                            n.notification_subtype != 'certificate' 
+                            OR n.id = (SELECT MAX(id) FROM notifications 
+                                     WHERE notification_type = 'user' 
+                                     AND notification_subtype = 'certificate' 
+                                     AND event_id = n.event_id)
+                        )
+                        AND (
+                            /* For evaluation notifications, show only the latest one per event */
+                            n.notification_subtype != 'evaluation' 
+                            OR n.id = (SELECT MAX(id) FROM notifications 
+                                     WHERE notification_type = 'user' 
+                                     AND notification_subtype = 'evaluation' 
+                                     AND event_id = n.event_id)
                         )
                     )
                 )
-                ORDER BY n.created_at DESC";
+            ORDER BY n.created_at DESC";
 $stmt = $conn->prepare($notif_query);
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("ii", $user_id, $user_id);
 $stmt->execute();
 $notif_result = $stmt->get_result();
 
@@ -1014,6 +1043,9 @@ body, html {
                             </a>
                         </div>
                     <?php endwhile; ?>
+                    <?php if ($result->num_rows == 0): ?>
+                            <p style="color: gray; font-family: Montserrat;">No available events yet.</p>
+                        <?php endif; ?>
                     </div>
                     <div class="notifications-section">
                         <h2>Notifications</h2>
@@ -1034,6 +1066,30 @@ body, html {
                                         </div>
                                     </a>
                                     <?php
+                                } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'evaluation') {
+                                    // Special handling for evaluation notifications
+                                    $notification_id = $notif['id'];
+                                    
+                                    // Extract the evaluation link from the message
+                                    // The message format is: "Please complete the evaluation for the event: {event_title}. Click the link to proceed: {evaluation_link}"
+                                    preg_match('/Click the link to proceed: (https?:\/\/\S+)/', $notif['message'], $matches);
+                                    $evaluation_link = !empty($matches[1]) ? $matches[1] : '';
+                                    
+                                    if (!empty($evaluation_link)) {
+                                        $redirect_url = $evaluation_link;
+                                    } else {
+                                        // Fallback if no link is found in the message
+                                        $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
+                                    }
+                                ?>
+                                    <a id="events-btn" class="<?php echo $notif['is_read'] ? 'read' : 'unread'; ?>" 
+                                    href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                        <div class="notification-content">
+                                            <p><?php echo htmlspecialchars($notif['message']); ?></p>
+                                            <br><small><?php echo $notif['created_at']; ?></small>
+                                        </div>
+                                    </a>
+                                <?php
                                 } else {
                                     // For all other notification types
                                     if (!empty($notif['event_id']) && $notif['notification_subtype'] == 'new_event') {
@@ -1043,8 +1099,6 @@ body, html {
                                     } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'update_event') {
                                         $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
                                     } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'event_registration') {
-                                        $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
-                                    } elseif (!empty($notif['event_id']) && $notif['notification_subtype'] == 'evaluation') {
                                         $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
                                     } else {
                                         $redirect_url = "user-notif.php?event_id=" . urlencode($notif['event_id']);
@@ -1063,6 +1117,9 @@ body, html {
                                 <?php } ?>
                             </div>
                         <?php endwhile; ?>
+                        <?php if ($notif_result->num_rows == 0): ?>
+                            <p style="color: gray;">No available notifications yet.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
                 </div>

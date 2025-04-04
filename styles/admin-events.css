@@ -969,6 +969,66 @@ li{
     color: #2b3a8f;
 }
 
+    .unregister-btn {
+        background-color: #ff3b30;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        font-family: 'Montserrat', sans-serif;
+        box-shadow: 0 2px 4px rgba(255, 59, 48, 0.2);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        display: flex; /* Always keep as flex */
+        align-items: center;
+        margin-bottom: 15px;
+        
+        /* Hidden state */
+        opacity: 0;
+        transform: translateY(-10px);
+        pointer-events: none; /* Prevents interaction when invisible */
+    }
+
+    .unregister-btn.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto; /* Allows interaction when visible */
+    }
+
+    .unregister-btn i {
+      margin-right: 8px;
+    }
+
+    input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #cbd5e0;
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+        position: relative;
+        vertical-align: middle;
+        transition: all 0.2s ease;
+    }
+    input[type="checkbox"]:checked {
+        background-color: #2b3a8f;
+        border-color: #2b3a8f;
+    }
+    input[type="checkbox"]:checked::after {
+        content: '✓';
+        position: absolute;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
 .registered-users{
     display: flex;
 }
