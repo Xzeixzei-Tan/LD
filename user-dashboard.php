@@ -126,7 +126,7 @@ $notif_query = "SELECT n.id, n.message, n.created_at, n.is_read, n.notification_
                 AND n.notification_type = 'user' 
                 AND (
                     n.notification_subtype = 'evaluation'
-                    OR (n.notification_subtype NOT IN ('update_event', 'certificate') 
+                    OR (n.notification_subtype NOT IN ('update_event') 
                         AND EXISTS (
                             SELECT 1 FROM registered_users ru 
                             WHERE ru.event_id = n.event_id AND ru.user_id = ?
