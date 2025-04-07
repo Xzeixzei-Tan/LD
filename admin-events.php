@@ -600,6 +600,85 @@ foreach ($eventsData as $event) {
 <script>
     let currentEvent = null;
 
+    // Function to sort events purely by date in descending order (newest first)
+function sortEventsByDate() {
+    const eventsContainer = document.querySelector('.events-section');
+    if (!eventsContainer) {
+        console.error('Events section not found!');
+        return;
+    }
+    
+    // Get all event buttons
+    const eventButtons = Array.from(eventsContainer.querySelectorAll('.events-btn'));
+    
+    // Sort the events: ongoing first, then sort by date in descending order
+    eventButtons.sort((a, b) => {
+        try {
+            // Extract event data from onclick attribute
+            const aOnClick = a.getAttribute('onclick') || '';
+            const bOnClick = b.getAttribute('onclick') || '';
+            
+            const aMatch = aOnClick.match(/showDetails\((.*)\)/);
+            const bMatch = bOnClick.match(/showDetails\((.*)\)/);
+            
+            if (!aMatch || !bMatch) {
+                console.error('Failed to extract event data from onclick attributes');
+                return 0;
+            }
+            
+            // Parse the event data
+            const aData = JSON.parse(aMatch[1]);
+            const bData = JSON.parse(bMatch[1]);
+            
+            // Check if either is "ongoing"
+            const aIsOngoing = aData.status.toLowerCase() === "ongoing";
+            const bIsOngoing = bData.status.toLowerCase() === "ongoing";
+            
+            // If one is ongoing and the other isn't, prioritize the ongoing one
+            if (aIsOngoing && !bIsOngoing) return -1;
+            if (!aIsOngoing && bIsOngoing) return 1;
+            
+            // If both have the same status (both ongoing or both not), sort by date
+            const aDate = new Date(aData.start_date);
+            const bDate = new Date(bData.start_date);
+            
+            // Date-based descending sort (newer dates first)
+            return bDate - aDate;
+        } catch (error) {
+            console.error('Error sorting events:', error);
+            return 0;
+        }
+    });
+    
+    // Clear existing events and reappend in sorted order
+    const fragment = document.createDocumentFragment();
+    eventButtons.forEach(button => {
+        fragment.appendChild(button.cloneNode(true));
+    });
+    
+    // Remove all existing events
+    eventButtons.forEach(button => button.remove());
+    
+    // Add sorted events
+    eventsContainer.appendChild(fragment);
+    
+    console.log('Events sorted: ongoing first, then by date in descending order');
+}
+
+// Make sure to call this function on page load
+document.addEventListener('DOMContentLoaded', function() {
+    sortEventsByDate();
+    
+    // Re-sort when search is performed to maintain the order
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            // Let the filter function finish first
+            setTimeout(sortEventsByDate, 10);
+        });
+    }
+});
+
     // Function to toggle sidebar
     document.addEventListener('DOMContentLoaded', function() {
         const sidebar = document.getElementById('sidebar');
@@ -974,8 +1053,11 @@ foreach ($eventsData as $event) {
         // Show/hide update button based on event status
         const updateBtn = document.getElementById('update-btn');
         if (updateBtn) {
+
+            const status = eventData.status.toLowerCase();
+
             // Only show update button if the event is not "ongoing"
-            if (eventData.status !== 'Ongoing') {
+            if (status !== 'ongoing' && status !== 'past') {
                 updateBtn.style.display = 'block';
                 updateBtn.setAttribute('data-id', eventData.id);
             } else {
