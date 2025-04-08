@@ -62,11 +62,15 @@ while ($participant = $participantsResult->fetch_assoc()) {
         error_log("Connection failed: " . $conn->connect_error);
         die("Connection failed: " . $conn->connect_error);
     }
+
+    if (preg_match('/Click the link to proceed: (https?:\/\/[^\s]+)/', $message, $matches)) {
+        $evaluation_link = $matches[1];
+    }
     
     // Insert notification for the user
     $notificationMessage = "Please complete the evaluation for the event: {$event_title}. Click the link to proceed: {$evaluation_link}";
-    $notificationSQL = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype, event_id) 
-                        VALUES (?, ?, NOW(), 0, 'user', 'evaluation', ?)";
+    $notificationSQL = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype, event_id, evaluation_link) 
+                        VALUES (?, ?, NOW(), 0, 'user', 'evaluation', ?, ?)";
     $notifStmt = $conn->prepare($notificationSQL);
 
     // Check if preparation was successful
@@ -77,7 +81,7 @@ while ($participant = $participantsResult->fetch_assoc()) {
     }
 
     // Bind parameters
-    $bind_result = $notifStmt->bind_param("isi", $user_id, $notificationMessage, $event_id);
+    $bind_result = $notifStmt->bind_param("isis", $user_id, $notificationMessage, $event_id, $evaluation_link);
 
     // Check if binding was successful
     if ($bind_result === false) {

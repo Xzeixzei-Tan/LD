@@ -57,26 +57,25 @@ if (isset($_GET['event_id'])) {
 }
 
 // Fetch notifications for user and group them by date
-$notif_query = "SELECT n.id, n.message, n.created_at, n.is_read, n.notification_subtype, n.event_id,
-                DATE(n.created_at) as notification_date 
+$notif_query = "SELECT n.id, n.message, n.created_at, n.is_read, n.notification_subtype, n.event_id, DATE(n.created_at) as notification_date, n.evaluation_link
                 FROM notifications n
-                LEFT JOIN registered_users er ON n.event_id = er.event_id AND er.user_id = ?
-                WHERE n.notification_type = 'user' 
-                AND (n.notification_subtype != 'update_event' AND n.notification_subtype != 'certificate' 
-                     AND n.notification_subtype != 'evaluation' OR er.id IS NOT NULL)
-                AND (n.notification_subtype != 'certificate' OR 
+                WHERE n.user_id = ? 
+                AND n.notification_type = 'user'
+                AND (
+                    (n.notification_subtype NOT IN ('update_event', 'certificate'))
+                    OR 
+                    (n.notification_subtype = 'certificate' AND 
                      n.id = (SELECT MAX(id) FROM notifications 
-                             WHERE notification_type = 'user' 
+                             WHERE user_id = ? 
+                             AND notification_type = 'user' 
                              AND notification_subtype = 'certificate' 
                              AND event_id = n.event_id))
-                AND (n.notification_subtype != 'evaluation' OR 
-                     n.id = (SELECT MAX(id) FROM notifications 
-                             WHERE notification_type = 'user' 
-                             AND notification_subtype = 'evaluation' 
-                             AND event_id = n.event_id))
+                    OR
+                    (n.notification_subtype = 'evaluation')
+                )
                 ORDER BY n.created_at DESC";
 $stmt = $conn->prepare($notif_query);
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("ii", $user_id, $user_id);
 $stmt->execute();
 $notif_result = $stmt->get_result();
 

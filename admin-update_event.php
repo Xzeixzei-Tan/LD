@@ -291,17 +291,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Commit the transaction
         $conn->commit();
 
-        // Create a notification for the update
-        $notification_message = "Event updated: " . $title;
-        $notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype, event_id) VALUES (?, ?, NOW(), 0, 'user', 'update_event', ?)";
-        $notification_stmt = $conn->prepare($notification_sql);
-        $user_id = $_SESSION['user_id'] ?? 1; // Default to admin if session not set
-        $notification_stmt->bind_param("isi", $user_id, $notification_message, $eventId);
-        $notification_stmt->execute();
-        $notification_stmt->close();
+        // Get all registered participants
+$participantsSQL = "SELECT 
+                    ru.id AS registration_id,
+                    ru.user_id,
+                    CONCAT(u.first_name, ' ', 
+                        CASE WHEN u.middle_name IS NOT NULL AND u.middle_name != '' 
+                             THEN CONCAT(UPPER(SUBSTRING(u.middle_name, 1, 1)), '. ') 
+                             ELSE '' END,
+                        u.last_name,
+                        CASE WHEN u.suffix IS NOT NULL AND u.suffix != '' THEN CONCAT(' ', u.suffix) ELSE '' END
+                    ) AS name,
+                    u.email
+                FROM registered_users ru
+                JOIN users u ON ru.user_id = u.id
+                WHERE ru.event_id = ?";
+$stmt = $conn->prepare($participantsSQL);
+$stmt->bind_param("i", $eventId); // Make sure this variable name matches your event ID variable
+$stmt->execute();
+$participantsResult = $stmt->get_result();
 
-        // Set success message
-        $successMessage = "Event updated successfully!";
+// Create notification message
+$notification_message = "Event updated: " . $title;
+
+// Loop through each registered user and create a notification
+while ($participant = $participantsResult->fetch_assoc()) {
+    $participant_user_id = $participant['user_id'];
+    
+    // Insert notification for this specific user
+    $notification_sql = "INSERT INTO notifications (user_id, message, created_at, is_read, notification_type, notification_subtype, event_id) VALUES (?, ?, NOW(), 0, 'user', 'update_event', ?)";
+    $notification_stmt = $conn->prepare($notification_sql);
+    $notification_stmt->bind_param("isi", $participant_user_id, $notification_message, $eventId);
+    $notification_stmt->execute();
+    $notification_stmt->close();
+}
+
+// Close the participant query statement
+$stmt->close();
+
+// Set success message
+$successMessage = "Event updated successfully!";
 
         // Redirect to the same page with success parameter
         header("Location: " . $_SERVER['PHP_SELF'] . "?id=" . $eventId . "&success=update");
