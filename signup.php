@@ -2,6 +2,10 @@
 require_once 'config.php';
 session_start();
 
+// Fetch affiliations
+$affiliationQuery = "SELECT id, name FROM affiliation";
+$affiliationResult = $conn->query($affiliationQuery);
+
 // Fetch positions with their corresponding classifications
 $positionQuery = "SELECT cp.id, cp.name, c.name AS classification_name 
                   FROM class_position cp
@@ -346,8 +350,14 @@ $positionResult = $conn->query($positionQuery);
                         <label>Password:</label>
                         <input type="password" name="password" placeholder="Enter Password" required>
 
-                        <!-- Hidden input for affiliation with default value of 1 -->
-                        <input type="hidden" name="affiliation" value="1">
+                        <!-- Affiliation Dropdown -->
+                        <label>Affiliation:</label>
+                        <select name="affiliation" required>
+                            <option value="">Select Affiliation</option>
+                            <?php while ($row = $affiliationResult->fetch_assoc()) : ?>
+                                <option value="<?= $row['id']; ?>"><?= $row['name']; ?></option>
+                            <?php endwhile; ?>
+                        </select>
 
                         <!-- Position Dropdown -->
                         <label>Position/Designation:</label>
