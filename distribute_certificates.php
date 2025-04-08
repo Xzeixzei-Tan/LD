@@ -61,7 +61,7 @@ if ($event_start_date == $event_end_date) {
             height: 100vh;
             text-align: center;
             background-color: rgba(255, 255, 255, 0.9);
-        }
+        } 
         .spinner {
             border: 6px solid #f3f3f3;
             border-top: 6px solid #3498db;
