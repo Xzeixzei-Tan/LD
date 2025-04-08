@@ -651,7 +651,7 @@ $successMessage = "Event updated successfully!";
                 </select>
                 
                 <div id="venue-field">
-                                <h4>Venue:</h4>
+                                <h4>Venue/Platform:</h4>
                                 <input type="text" name="venue" placeholder="Enter venue" required value="<?php echo htmlspecialchars($eventData['venue']); ?>">
                             </div>
                 
