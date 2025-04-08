@@ -278,7 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </select>
 
                             <div id="venue-field">
-                                <h4>Venue/Platform:</h4>
+                                <h4>Venue:</h4>
                                 <input type="text" name="venue" placeholder="Enter venue" required>
                             </div>
 
@@ -471,13 +471,12 @@ function toggleMealPlanVisibility() {
     const mealPlanSection = document.getElementById('meal-plan-section');
     const mealPlanContainer = document.getElementById('meal-plan-container');
     
-    // Changed condition to show meal plan when online
     if (deliverySelect.value === 'online') {
-        if (mealPlanSection) mealPlanSection.style.display = 'block';
-        if (mealPlanContainer) mealPlanContainer.style.display = 'block';
-    } else {
         if (mealPlanSection) mealPlanSection.style.display = 'none';
         if (mealPlanContainer) mealPlanContainer.style.display = 'none';
+    } else {
+        if (mealPlanSection) mealPlanSection.style.display = 'block';
+        if (mealPlanContainer) mealPlanContainer.style.display = 'block';
     }
 }
 
@@ -522,7 +521,6 @@ function selectAllDivision() {
 }
 
 // Function to generate day fields based on start and end dates
-// Function to generate day fields based on start and end dates
 function generateDayFields() {
     const startDate = new Date(document.getElementById('start-date').value);
     const endDate = new Date(document.getElementById('end-date').value);
@@ -541,7 +539,7 @@ function generateDayFields() {
         eventDaysContainer.innerHTML = dateNotice;
         if (mealPlanContainer) mealPlanContainer.innerHTML = dateNotice;
         return;
-    }   
+    }
     
     // Calculate the difference in days
     const dayDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
@@ -579,9 +577,10 @@ function generateDayFields() {
         `;
         eventDaysContainer.appendChild(dayDiv);
         
-        // Create meal plan fields for all delivery modes
-        // Removed the condition that prevented meal plans for online events
-        if (mealPlanContainer) {
+        // Only create meal plan fields if not online delivery
+        const deliverySelect = document.getElementById('event-mode');
+        if (mealPlanContainer && (!deliverySelect || deliverySelect.value !== 'online')) {
+            // Create meal plan field for this day
             const mealDiv = document.createElement('div');
             mealDiv.className = 'meal-day';
             mealDiv.innerHTML = `
@@ -598,7 +597,7 @@ function generateDayFields() {
         }
     }
     
-    // After generating days, check if we should hide meal plan section based on delivery mode
+    // After generating days, check if we should hide meal plan section
     toggleMealPlanVisibility();
 }
 
@@ -689,13 +688,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (deliverySelect) {
         deliverySelect.addEventListener('change', function() {
             const venueField = document.getElementById('venue-field');
-            // Changed condition to show venue when online
             if (this.value === 'online') {
-                venueField.style.display = 'block';
-                venueField.querySelector('input').required = true;
-            } else {
                 venueField.style.display = 'none';
                 venueField.querySelector('input').required = false;
+            } else {
+                venueField.style.display = 'block';
+                venueField.querySelector('input').required = true;
             }
             
             // Added meal plan visibility logic
@@ -703,12 +701,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Initialize venue field based on current delivery selection
-        // Changed condition to show venue when online
         if (deliverySelect.value === 'online') {
             const venueField = document.getElementById('venue-field');
             if (venueField) {
-                venueField.style.display = 'block';
-                venueField.querySelector('input').required = true;
+                venueField.style.display = 'none';
+                venueField.querySelector('input').required = false;
             }
             
             // Initialize meal plan visibility
