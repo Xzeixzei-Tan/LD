@@ -541,7 +541,7 @@ function generateDayFields() {
         eventDaysContainer.innerHTML = dateNotice;
         if (mealPlanContainer) mealPlanContainer.innerHTML = dateNotice;
         return;
-    }
+    }   
     
     // Calculate the difference in days
     const dayDiff = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;

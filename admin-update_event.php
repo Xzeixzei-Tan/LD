@@ -1256,7 +1256,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Always show meal plan sections
         if (mealPlanContainer) mealPlanContainer.style.display = 'block';
         if (mealPlanSection) mealPlanSection.style.display = 'block';
-    };
+    }; 
 
     // If both dates are already set, generate the day fields
     const startDateInput = document.getElementById('start-date');
