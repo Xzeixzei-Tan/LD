@@ -1249,7 +1249,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mealPlanContainer.appendChild(mealDiv);
             }
         }
-        
+    
         // Restore previously checked meal selections
         restoreMealSelections();
         
