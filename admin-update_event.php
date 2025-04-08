@@ -1025,35 +1025,19 @@ document.addEventListener('DOMContentLoaded', function() {
         function updateVenueVisibility() {
             const venueInput = venueField.querySelector('input[name="venue"]');
             
-            if (deliverySelect.value === 'online') {
-                venueField.style.display = 'none';
-                if (venueInput) {
-                    venueInput.value = '';
-                    venueInput.removeAttribute('required');
-                }
-                
-                // Hide both meal plan container and section title when delivery is online
-                if (mealPlanContainer) {
-                    mealPlanContainer.style.display = 'none';
-                }
-                // Also hide the section title
-                if (mealPlanSection) {
-                    mealPlanSection.style.display = 'none';
-                }
-            } else {
-                venueField.style.display = 'block';
-                if (venueInput) {
-                    venueInput.setAttribute('required', '');
-                }
-                
-                // Show both meal plan container and section title when delivery is not online
-                if (mealPlanContainer) {
-                    mealPlanContainer.style.display = 'block';
-                }
-                // Also show the section title
-                if (mealPlanSection) {
-                    mealPlanSection.style.display = 'block';
-                }
+            // Always show venue field and keep it required regardless of delivery method
+            venueField.style.display = 'block';
+            if (venueInput) {
+                venueInput.setAttribute('required', '');
+            }
+            
+            // Always show meal plan container and section title
+            if (mealPlanContainer) {
+                mealPlanContainer.style.display = 'block';
+            }
+            // Also show the section title
+            if (mealPlanSection) {
+                mealPlanSection.style.display = 'block';
             }
         }
         
@@ -1166,24 +1150,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // ================= EVENT DAYS FUNCTIONALITY =================
     // Define generateDayFields function in global scope
     window.generateDayFields = function() {
-    const startDate = document.getElementById('start-date')?.value;
-    const endDate = document.getElementById('end-date')?.value;
-    const eventDaysContainer = document.getElementById('event-days-container');
-    const mealPlanContainer = document.getElementById('meal-plan-container');
-    const deliverySelect = document.getElementById('delivery');
+        const startDate = document.getElementById('start-date')?.value;
+        const endDate = document.getElementById('end-date')?.value;
+        const eventDaysContainer = document.getElementById('event-days-container');
+        const mealPlanContainer = document.getElementById('meal-plan-container');
 
-    if (!startDate || !endDate || !eventDaysContainer) {
-        return;
-    }
+        if (!startDate || !endDate || !eventDaysContainer) {
+            return;
+        }
 
         // Save meal selections before clearing containers
         saveMealSelections();
 
         // Clear existing fields
         eventDaysContainer.innerHTML = '';
-    if (mealPlanContainer) {
-        mealPlanContainer.innerHTML = '';
-    }
+        if (mealPlanContainer) {
+            mealPlanContainer.innerHTML = '';
+        }
 
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -1198,92 +1181,82 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-
         // Create event days for scheduling
         for (let i = 1; i <= dayDiff; i++) {
-        const currentDate = new Date(start);
-        currentDate.setDate(start.getDate() + i - 1);
-        const formattedDate = currentDate.toISOString().split('T')[0];
-        
-        // Check if we have existing data for this day
-        let startTime = "08:00";
-        let endTime = "17:00";
+            const currentDate = new Date(start);
+            currentDate.setDate(start.getDate() + i - 1);
+            const formattedDate = currentDate.toISOString().split('T')[0];
+            
+            // Check if we have existing data for this day
+            let startTime = "08:00";
+            let endTime = "17:00";
 
-         // Look for matching day in eventDays PHP array
-         if (typeof eventDays !== 'undefined' && eventDays.length > 0) {
-            for (let j = 0; j < eventDays.length; j++) {
-                if (eventDays[j].day_date === formattedDate) {
-                    startTime = eventDays[j].start_time;
-                    endTime = eventDays[j].end_time;
-                    break;
+            // Look for matching day in eventDays PHP array
+            if (typeof eventDays !== 'undefined' && eventDays.length > 0) {
+                for (let j = 0; j < eventDays.length; j++) {
+                    if (eventDays[j].day_date === formattedDate) {
+                        startTime = eventDays[j].start_time;
+                        endTime = eventDays[j].end_time;
+                        break;
+                    }
                 }
             }
-        }
 
-             // Event Days Section
-        const dayDiv = document.createElement('div');
-        dayDiv.className = 'event-day';
-        dayDiv.innerHTML = `
-            <h4>Day ${i} - ${formattedDate}</h4>
-            <input type="hidden" name="event_days[${i}][date]" value="${formattedDate}">
-            <div class="time-inputs">
-                <label>Start Time:
-                    <input type="time" name="event_days[${i}][start_time]" value="${startTime}">
-                </label>
-                <label>End Time:
-                    <input type="time" name="event_days[${i}][end_time]" value="${endTime}">
-                </label>
-            </div>
-        `;
-        eventDaysContainer.appendChild(dayDiv);
-
-                // Only create meal plan sections if delivery is not online
-                if (mealPlanContainer && (!deliverySelect || deliverySelect.value !== 'online')) {
-            const mealDiv = document.createElement('div');
-            mealDiv.className = 'meal-day';
-            
-            // Create meal plan checkboxes with proper checked state
-            const mealTypes = ['Breakfast', 'AM Snack', 'Lunch', 'PM Snack', 'Dinner'];
-            let checkboxesHtml = '';
-            
-            mealTypes.forEach(mealType => {
-                // Check if this meal type was previously selected for this date
-                const isChecked = phpMealPlans[formattedDate] && 
-                                phpMealPlans[formattedDate].includes(mealType);
-                
-                checkboxesHtml += `
-                    <label>
-                        <input type="checkbox" name="meal_plan[${i}][]" value="${mealType}" ${isChecked ? 'checked' : ''}> ${mealType}
+            // Event Days Section
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'event-day';
+            dayDiv.innerHTML = `
+                <h4>Day ${i} - ${formattedDate}</h4>
+                <input type="hidden" name="event_days[${i}][date]" value="${formattedDate}">
+                <div class="time-inputs">
+                    <label>Start Time:
+                        <input type="time" name="event_days[${i}][start_time]" value="${startTime}">
                     </label>
-                `;
-            });
-                
-            mealDiv.innerHTML = `
-                <h4>Meals for Day ${i} - ${formattedDate}</h4>
-                <div class="checkbox-subgroup">
-                    ${checkboxesHtml}
+                    <label>End Time:
+                        <input type="time" name="event_days[${i}][end_time]" value="${endTime}">
+                    </label>
                 </div>
             `;
-            mealPlanContainer.appendChild(mealDiv);
+            eventDaysContainer.appendChild(dayDiv);
+
+            // Always create meal plan sections regardless of delivery method
+            if (mealPlanContainer) {
+                const mealDiv = document.createElement('div');
+                mealDiv.className = 'meal-day';
+                
+                // Create meal plan checkboxes with proper checked state
+                const mealTypes = ['Breakfast', 'AM Snack', 'Lunch', 'PM Snack', 'Dinner'];
+                let checkboxesHtml = '';
+                
+                mealTypes.forEach(mealType => {
+                    // Check if this meal type was previously selected for this date
+                    const isChecked = phpMealPlans[formattedDate] && 
+                                    phpMealPlans[formattedDate].includes(mealType);
+                    
+                    checkboxesHtml += `
+                        <label>
+                            <input type="checkbox" name="meal_plan[${i}][]" value="${mealType}" ${isChecked ? 'checked' : ''}> ${mealType}
+                        </label>
+                    `;
+                });
+                    
+                mealDiv.innerHTML = `
+                    <h4>Meals for Day ${i} - ${formattedDate}</h4>
+                    <div class="checkbox-subgroup">
+                        ${checkboxesHtml}
+                    </div>
+                `;
+                mealPlanContainer.appendChild(mealDiv);
+            }
         }
-    }
         
         // Restore previously checked meal selections
         restoreMealSelections();
         
-         // Update meal plan visibility based on delivery method
-         if (deliverySelect) {
-        const mealPlanSection = document.getElementById('meal-plan-section');
-        
-        if (deliverySelect.value === 'online') {
-            if (mealPlanContainer) mealPlanContainer.style.display = 'none';
-            if (mealPlanSection) mealPlanSection.style.display = 'none';
-        } else {
-            if (mealPlanContainer) mealPlanContainer.style.display = 'block';
-            if (mealPlanSection) mealPlanSection.style.display = 'block';
-        }
-    }
-};
+        // Always show meal plan sections
+        if (mealPlanContainer) mealPlanContainer.style.display = 'block';
+        if (mealPlanSection) mealPlanSection.style.display = 'block';
+    };
 
     // If both dates are already set, generate the day fields
     const startDateInput = document.getElementById('start-date');
@@ -1295,44 +1268,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Modal Functionality
 document.addEventListener('DOMContentLoaded', function() {
-            const modal = document.getElementById('success-modal');
-            const closeModalBtn = document.getElementById('close-modal-btn');
-            const demoButton = document.getElementById('demo-button');
+    const modal = document.getElementById('success-modal');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const demoButton = document.getElementById('demo-button');
+    
+    // Check URL parameters for success message
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'update') {
+        console.log("Success parameter detected, showing modal");
+        showModal();
+        // Remove the parameter from URL to prevent showing modal on refresh
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    function showModal() {
+        modal.style.display = 'block';
+    }
+    
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+    
+    // Close modal when clicking the close button
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+            closeModal();
+            // Redirect to admin-events.php
+            window.location.href = 'admin-events.php';
+        });
+    }
             
-            // Check URL parameters for success message
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('success') === 'update') {
-                console.log("Success parameter detected, showing modal");
-                showModal();
-                // Remove the parameter from URL to prevent showing modal on refresh
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-            
-            function showModal() {
-                modal.style.display = 'block';
-            }
-            
-            function closeModal() {
-                modal.style.display = 'none';
-            }
-
-            
-                    // Close modal when clicking the close button
-            if (closeModalBtn) {
-                closeModalBtn.addEventListener('click', function() {
-                    closeModal();
-                    // Redirect to admin-events.php
-                    window.location.href = 'admin-events.php';
-                });
-            }
-                    
-             // Close modal when clicking outside the modal content
-                window.addEventListener('click', function(event) {
-                    if (event.target === modal) {
-                        closeModal();
-                    }
-                });
-            });
+    // Close modal when clicking outside the modal content
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+});
 </script>
 
 </div>
