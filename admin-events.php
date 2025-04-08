@@ -827,24 +827,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('detail-delivery').textContent = eventData.delivery;
     
-        // Add this code to check if the event is online and disable meal plan button accordingly
-        const mealBtn = document.getElementById('meal-btn');
-    if (eventData.delivery && eventData.delivery.toLowerCase() === 'online') {
-        mealBtn.disabled = true;
-        
-        // Remove any existing classes that might conflict with tooltip display
-        mealBtn.classList.remove('disabled-btn'); // Remove if you're using a different class
-        mealBtn.classList.add('tooltip-disabled'); // Use the consistent tooltip class
-        
-        // Set a clear tooltip message
-        mealBtn.setAttribute('data-tooltip', 'Meal plan not available for online events');
-    } else {
-        mealBtn.disabled = false;
-        
-        // Remove tooltip classes and attributes when not needed
-        mealBtn.classList.remove('tooltip-disabled');
-        mealBtn.removeAttribute('data-tooltip');
-    }
+// Always enable the meal plan button regardless of event delivery type
+const mealBtn = document.getElementById('meal-btn');
+mealBtn.disabled = false;
+mealBtn.classList.remove('tooltip-disabled');
+mealBtn.removeAttribute('data-tooltip');
 
     try {
         if (eventData.processed_eligible_data) {
