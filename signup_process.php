@@ -11,8 +11,10 @@ $sex = isset($_POST['sex']) ? $_POST['sex'] : '';
 $contact_no = isset($_POST['contact_no']) ? trim($_POST['contact_no']) : '';
 $email = isset($_POST['email']) ? trim($_POST['email']) : '';
 $password = isset($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : '';
-$affiliationId = isset($_POST['affiliation']) ? $_POST['affiliation'] : '';
 $positionId = isset($_POST['position']) ? $_POST['position'] : '';
+
+// Always set affiliation ID to 1
+$affiliationId = 1;
 
 // Validate that required fields are not empty
 if (empty($firstName) || empty($lastName) || empty($email) || empty($password)) {
@@ -77,11 +79,11 @@ if ($stmt->execute()) {
     // Get the newly inserted user ID
     $userId = $stmt->insert_id;
 
-    // Insert into users_lnd table
+    // Insert into users_lnd table with affiliation_id always set to 1
     $lndSql = "INSERT INTO users_lnd (user_id, position_id, classification_id, affiliation_id) 
                VALUES (?, ?, ?, ?)";
     $lndStmt = $conn->prepare($lndSql);
-    $lndStmt->bind_param("iisi", $userId, $positionId, $classification, $affiliationId);
+    $lndStmt->bind_param("iiii", $userId, $positionId, $classification, $affiliationId);
 
     if ($lndStmt->execute()) {
         // Create notifications
