@@ -239,318 +239,333 @@ exit();
 }
 
 function generateCertificatePDF($templatePath, $outputFile, $replacements) {
-    // Create a temporary HTML file
-    $tempHtml = 'temp_' . uniqid() . '.html';
-
-    // Get the logo and encode it to base64
-    $logoPath = 'styles/photos/DEPED-LOGO.png';
-    if (file_exists($logoPath)) {
-        $logoData = base64_encode(file_get_contents($logoPath));
-        $logoSrc = 'data:image/png;base64,' . $logoData;
-    } else {
-        error_log("Logo file not found: $logoPath");
-        $logoSrc = '';
+    // Check if mPDF is available
+    if (!class_exists('\Mpdf\Mpdf')) {
+        error_log("mPDF not found. Please install via Composer: composer require mpdf/mpdf");
+        return false;
     }
 
-    // HTML Template with enhanced responsive CSS
-    $html = '<!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Certificate of Participation</title>
-        <style>
-            @page {
-                size: landscape;
-                margin: 0;
-            }
-            body {
-                font-family: Bookman Old Style;
-                text-align: center;
-                margin: auto;
-                padding: 0;
-                width: 1100px; /* Landscape A4 width */
-                height: 800px; /* Landscape A4 height */
-                position: relative;
-                background-image: url("certificate_bg.jpg");
-                background-size: cover;
-                background-repeat: no-repeat;
-            }
-            .certificate {
-                width: 100%;
-                height: 100%;
-                padding: 20px;
-                box-sizing: border-box;
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-            .header {
-                font-size: 16px;
-                line-height: 1.4;
-                margin-bottom: 10px;
-            }
-
-            .header-1 {
-                margin-top: 10px;
-                font-size: 20px;
-                font-family: Old English Text MT;
-                line-height: 1.4;
-            }
-
-            .header-2 {
-                font-size: 31px;
-                font-family: Old English Text MT;
-                line-height: 1.4;
-            }
-
-            .header-3 {
-                font-size: 16px;
-                font-family: Cambria;
-                font-weight: bold;
-                line-height: 1.4;
-            }
-
-            .certificate {
-                width: 100%;
-                height: 100%;
-                padding: 20px;
-                box-sizing: border-box;
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .title {
-                font-family: Old English Text MT;
-                font-size: 62px;
-                color: black;
-                margin: 10px 0;
-            }
-
-            .awarded-to {
-                font-family: Times New Roman;
-                font-size: 23px;
-                margin: 10px 0;
-            }
-
-            .recipient {
-                font-family: Bookman Old Style;
-                font-weight: Bold;
-                font-size: 55px; /* Base font size */
-                max-width: 900px; /* Limit width */
-                line-height: 1.1; /* Tighter line height */
-                margin: 10px 0;
-                word-break: break-word;
-                hyphens: auto;
-                text-transform: uppercase;
-                display: inline-block;
-                white-space: normal;
-            }
-            .recipient.extra-long {
-                font-size: 45px;
-            }
-            .recipient.super-long {
-                font-size: 35px;
-            }
-
-            .event-title {
-                font-size: 26px;
-                font-weight: 2000;
-                max-width: 900px;
-                word-break: break-word;
-                hyphens: auto;
-            }
-            .event-title.long {
-                font-size: 25px;
-                font-weight: 3000;
-            }
-            .event-title.extra-long {
-                font-size: 23px;
-                font-weight: 3000;
-            }
-
-            strong {
-                font-weight: 1000;
-            }
-
-            .description {
-                font-family: Bookman Old Style;
-                font-size: 24px;
-                line-height: 1.5;
-                max-width: 900px;
-                margin: 10px 0;
-                word-break: break-word;
-                hyphens: auto;
-            }
-            .description.long {
-                font-size: 23px;
-            }
-            .description.extra-long {
-                font-size: 21px;
-                line-height: 1.3;
-            }
-
-            .venue {
-                font-size: 26px;
-                max-width: 900px;
-                word-break: break-word;
-                hyphens: auto;
-            }
-            .venue.long {
-                font-size: 25px;
-            }
-            .venue.extra-long {
-                font-size: 23px;
-            }
-
-            .date {
-                margin-top: 40px;
-                font-size: 24px;
-                margin-bottom: -23px;
-            }
-            .signature {
-                margin-top: 20px;
-            }
-            .superintendent {
-                letter-spacing: 1px;
-                font-weight: bolder;
-                font-size: 28px;
-                margin-bottom: 5px;
-            }
-            .position {
-                font-size: 21px;
-                line-height: 1.4;
-            }
-
-            .logo {
-                margin: auto;
-                top: 10px;
-                left: 20px;
-                width: 130px; 
-                height: 130px;
-            }
-
-            
-        </style>
-    </head>
-    <body>
-    <center>
-        <div class="certificate">';
-    
-    // Determine name length and apply appropriate class
-    $participant_name = $replacements['participant_name'];
-    $name_class = 'recipient';
-    if (strlen($participant_name) > 30) {
-        $name_class .= ' extra-long';
-    }
-    if (strlen($participant_name) > 40) {
-        $name_class .= ' super-long';
-    }
-
-    // Determine event title length and apply appropriate class
-    $event_title = $replacements['event_title'];
-    $event_title_class = 'event-title';
-    if (strlen($event_title) > 30) {
-        $event_title_class .= ' long';
-    }
-    if (strlen($event_title) > 40) {
-        $event_title_class .= ' extra-long';
-    }
-
-    // Handle venue display based on content
-    $venue = $replacements['venue'];
-    $venue_part = '';
-    
-    // Check if venue is empty or contains only whitespace
-    if (empty(trim($venue))) {
-        // For empty venue, assume it's an online event
-        $venue_part = "held online";
-    } else {
-        // For non-empty venue, check if it contains "online"
-        if (stripos($venue, 'online') !== false) {
-            // If "online" is in the venue text, format accordingly
-            $venue_class = 'venue';
-            if (strlen($venue) > 30) $venue_class .= ' long';
-            if (strlen($venue) > 40) $venue_class .= ' extra-long';
-            
-            $venue_part = "held online via <span class=\"$venue_class\">" . $venue . "</span>";
+    try {
+        // Get the logo and encode it to base64
+        $logoPath = 'styles/photos/DEPED-LOGO.png';
+        if (file_exists($logoPath)) {
+            $logoData = base64_encode(file_get_contents($logoPath));
+            $logoSrc = 'data:image/png;base64,' . $logoData;
         } else {
-            // For physical venues
-            $venue_class = 'venue';
-            if (strlen($venue) > 30) $venue_class .= ' long';
-            if (strlen($venue) > 40) $venue_class .= ' extra-long';
-            
-            $venue_part = "at the <span class=\"$venue_class\">" . $venue . "</span>";
+            error_log("Logo file not found: $logoPath");
+            $logoSrc = '';
         }
-    }
 
-    // Determine description length and apply appropriate class
-    $description = "for the meaningful engagement as <strong>PARTICIPANT</strong> during the<br>
-        <strong class=\"{$event_title_class}\">\"" . $event_title . "\" </strong> conducted by the Department of Education-Schools Division Office of General Trias City
-        On " . $replacements['date_month'] . ' ' . $replacements['event_start_date and end_date'] . ', ' . $venue_part;
-    $description_class = 'description';
-    if (strlen(strip_tags($description)) > 150) {
-        $description_class .= ' long';
-    }
-    if (strlen(strip_tags($description)) > 200) {
-        $description_class .= ' extra-long';
-    }
+        // Determine name length and apply appropriate class
+        $participant_name = $replacements['participant_name'];
+        $name_class = 'recipient';
+        if (strlen($participant_name) > 30) {
+            $name_class .= ' extra-long';
+        }
+        if (strlen($participant_name) > 40) {
+            $name_class .= ' super-long';
+        }
 
-    $html .= '
-            <div class="header">
-                <img src="' . $logoSrc . '" class="logo" alt="DEPED Logo"><br>
-                <div class="header-1">
-                Republic of the Philippines</div>
-                <div class="header-2">Department of Education</div>
-                <div class="header-3">REGION IV-A CALABARZON<br>
-                SCHOOLS DIVISION OF GENERAL TRIAS CITY</div>
-            </div>
-            
-            <div class="title">Certificate of Participation</div>
-            
-            <div class="awarded-to">is awarded to</div>
-            
-            <div class="' . $name_class . '">' . $participant_name . '</div>
-            
-            <div class="' . $description_class . '">
-                ' . $description . '
-            </div>
-            
-            <div class="date">
-                Given this ' . $replacements['end_date'] . '<sup>th</sup> day of ' . $replacements['date_month'] . ' ' . $replacements['event_year'] . '
-            </div>
-            
-            <div class="signature">
-                <div class="superintendent">IVAN BRIAN L. INDUCTIVO, CESO VI</div>
-                <div class="position">
-                    Assistant Schools Division Superintendent<br>
-                    Officer-in-Charge<br>
-                    Office of the Schools Division Superintendent
-                </div>  
-            </div>
-        </div>
-    </center>    
-    </body>
-    </html>';
+        // Determine event title length and apply appropriate class
+        $event_title = $replacements['event_title'];
+        $event_title_class = 'event-title';
+        if (strlen($event_title) > 30) {
+            $event_title_class .= ' long';
+        }
+        if (strlen($event_title) > 40) {
+            $event_title_class .= ' extra-long';
+        }
 
-    // Write HTML to file
-    file_put_contents($tempHtml, $html);
-    
-    // Convert HTML to PDF using command-line tool (wkhtmltopdf)
-    $command = "\"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe\" --page-size A4 --orientation Landscape $tempHtml $outputFile";
-    exec($command);
-    
-    // Alternative: If wkhtmltopdf isn't available, copy the template and use it as is
-    if (!file_exists($outputFile)) {
-        copy($templatePath, $outputFile);
+        // Handle venue display based on content
+        $venue = $replacements['venue'];
+        $venue_part = '';
+        
+        // Check if venue is empty or contains only whitespace
+        if (empty(trim($venue))) {
+            // For empty venue, assume it's an online event
+            $venue_part = "held online";
+        } else {
+            // For non-empty venue, check if it contains "online"
+            if (stripos($venue, 'online') !== false) {
+                // If "online" is in the venue text, format accordingly
+                $venue_class = 'venue';
+                if (strlen($venue) > 30) $venue_class .= ' long';
+                if (strlen($venue) > 40) $venue_class .= ' extra-long';
+                
+                $venue_part = "held online via <span class=\"$venue_class\">" . $venue . "</span>";
+            } else {
+                // For physical venues
+                $venue_class = 'venue';
+                if (strlen($venue) > 30) $venue_class .= ' long';
+                if (strlen($venue) > 40) $venue_class .= ' extra-long';
+                
+                $venue_part = "at the <span class=\"$venue_class\">" . $venue . "</span>";
+            }
+        }
+
+        // Determine description length and apply appropriate class
+        $description = "for the meaningful engagement as <strong>PARTICIPANT</strong> during the<br>
+            <strong class=\"{$event_title_class}\">\"" . $event_title . "\" </strong> conducted by the Department of Education-Schools Division Office of General Trias City
+            On " . $replacements['date_month'] . ' ' . $replacements['event_start_date and end_date'] . ', ' . $venue_part;
+        $description_class = 'description';
+        if (strlen(strip_tags($description)) > 150) {
+            $description_class .= ' long';
+        }
+        if (strlen(strip_tags($description)) > 200) {
+            $description_class .= ' extra-long';
+        }
+
+        // HTML content for the certificate
+        $html = '<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Certificate of Participation</title>
+            <style>
+                @page {
+                    size: landscape;
+                    margin: 0;
+                }
+                body {
+                    font-family: "Bookman Old Style";
+                    text-align: center;
+                    margin: auto;
+                    padding: 0;
+                    width: 100%;
+                    height: 100%;
+                    position: relative;
+                    background-image: url("certificate_bg.jpg");
+                    background-size: cover;
+                    background-repeat: no-repeat;
+                }
+                .certificate {
+                    width: 100%;
+                    height: 100%;
+                    padding: 20px;
+                    box-sizing: border-box;
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .header {
+                    font-size: 16px;
+                    line-height: 1.4;
+                    margin-bottom: 10px;
+                }
+
+                .header-1 {
+                    margin-top: 10px;
+                    font-size: 20px;
+                    font-family: "Old English Text MT";
+                    line-height: 1.4;
+                }
+
+                .header-2 {
+                    font-size: 31px;
+                    font-family: "Old English Text MT";
+                    line-height: 1.4;
+                }
+
+                .header-3 {
+                    font-size: 16px;
+                    font-family: Cambria;
+                    font-weight: bold;
+                    line-height: 1.4;
+                }
+
+                .certificate {
+                    width: 100%;
+                    height: 100%;
+                    padding: 20px;
+                    box-sizing: border-box;
+                    position: relative;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .title {
+                    font-family: "Old English Text MT";
+                    font-size: 62px;
+                    color: black;
+                    margin: 10px 0;
+                }
+
+                .awarded-to {
+                    font-family: "Times New Roman";
+                    font-size: 23px;
+                    margin: 10px 0;
+                }
+
+                .recipient {
+                    font-family: "Bookman Old Style";
+                    font-weight: Bold;
+                    font-size: 55px;
+                    max-width: 900px;
+                    line-height: 1.1;
+                    margin: 10px 0;
+                    word-break: break-word;
+                    text-transform: uppercase;
+                    display: inline-block;
+                    white-space: normal;
+                }
+                .recipient.extra-long {
+                    font-size: 45px;
+                }
+                .recipient.super-long {
+                    font-size: 35px;
+                }
+
+                .event-title {
+                    font-size: 26px;
+                    font-weight: 2000;
+                    max-width: 900px;
+                    word-break: break-word;
+                }
+                .event-title.long {
+                    font-size: 25px;
+                    font-weight: 3000;
+                }
+                .event-title.extra-long {
+                    font-size: 23px;
+                    font-weight: 3000;
+                }
+
+                strong {
+                    font-weight: 1000;
+                }
+
+                .description {
+                    font-family: "Bookman Old Style";
+                    font-size: 24px;
+                    line-height: 1.5;
+                    max-width: 900px;
+                    margin: 10px 0;
+                    word-break: break-word;
+                }
+                .description.long {
+                    font-size: 23px;
+                }
+                .description.extra-long {
+                    font-size: 21px;
+                    line-height: 1.3;
+                }
+
+                .venue {
+                    font-size: 26px;
+                    max-width: 900px;
+                    word-break: break-word;
+                }
+                .venue.long {
+                    font-size: 25px;
+                }
+                .venue.extra-long {
+                    font-size: 23px;
+                }
+
+                .date {
+                    margin-top: 40px;
+                    font-size: 24px;
+                    margin-bottom: -23px;
+                }
+                .signature {
+                    margin-top: 20px;
+                }
+                .superintendent {
+                    letter-spacing: 1px;
+                    font-weight: bolder;
+                    font-size: 28px;
+                    margin-bottom: 5px;
+                }
+                .position {
+                    font-size: 21px;
+                    line-height: 1.4;
+                }
+
+                .logo {
+                    margin: auto;
+                    top: 10px;
+                    left: 20px;
+                    width: 130px; 
+                    height: 130px;
+                }
+            </style>
+        </head>
+        <body>
+        <center>
+            <div class="certificate">
+                <div class="header">
+                    <img src="' . $logoSrc . '" class="logo" alt="DEPED Logo"><br>
+                    <div class="header-1">
+                    Republic of the Philippines</div>
+                    <div class="header-2">Department of Education</div>
+                    <div class="header-3">REGION IV-A CALABARZON<br>
+                    SCHOOLS DIVISION OF GENERAL TRIAS CITY</div>
+                </div>
+                
+                <div class="title">Certificate of Participation</div>
+                
+                <div class="awarded-to">is awarded to</div>
+                
+                <div class="' . $name_class . '">' . $participant_name . '</div>
+                
+                <div class="' . $description_class . '">
+                    ' . $description . '
+                </div>
+                
+                <div class="date">
+                    Given this ' . $replacements['end_date'] . '<sup>th</sup> day of ' . $replacements['date_month'] . ' ' . $replacements['event_year'] . '
+                </div>
+                
+                <div class="signature">
+                    <div class="superintendent">IVAN BRIAN L. INDUCTIVO, CESO VI</div>
+                    <div class="position">
+                        Assistant Schools Division Superintendent<br>
+                        Officer-in-Charge<br>
+                        Office of the Schools Division Superintendent
+                    </div>  
+                </div>
+            </div>
+        </center>    
+        </body>
+        </html>';
+
+        // Create mPDF instance with custom configuration
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L', // Landscape A4
+            'margin_left' => 0,
+            'margin_right' => 0,
+            'margin_top' => 0,
+            'margin_bottom' => 0,
+            'tempDir' => sys_get_temp_dir(), // Important for shared hosting
+        ]);
+
+        // Add custom fonts if needed
+        $mpdf->fontdata['bookmanoldstyle'] = [
+            'R' => 'bookman-old-style.ttf',
+            'B' => 'bookman-old-style-bold.ttf',
+        ];
+        $mpdf->fontdata['oldenglish'] = [
+            'R' => 'oldengl.ttf',
+        ];
+
+        // Background image handling
+        $backgroundPath = 'certificate_bg.jpg';
+        if (file_exists($backgroundPath)) {
+            $mpdf->SetDocTemplate($backgroundPath, true);
+        }
+
+        // Write the HTML to PDF
+        $mpdf->WriteHTML($html);
+
+        // Output to file
+        $mpdf->Output($outputFile, 'F');
+
+        return file_exists($outputFile);
+    } catch (Exception $e) {
+        error_log("mPDF error: " . $e->getMessage());
+        return false;
     }
-    
-    // Clean up temp file
-    if (file_exists($tempHtml)) {
-        unlink($tempHtml);
-    }
-    
-    return true;
 }
