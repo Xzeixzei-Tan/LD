@@ -41,6 +41,121 @@ if ($event_start_date == $event_end_date) {
     $date_range = $event_start_date . "-" . $event_end_date;
 }
 
+// Display loading screen
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributing Certificates</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <!-- Add Font Awesome for the check icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+            margin-bottom: 20px;
+        }
+        .success-icon {
+            display: none;
+            color: #28a745;
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        .success-icon i {
+            animation: scaleUp 0.5s ease;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes scaleUp {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .event-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .processing-text {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .status-text {
+            font-size: 16px;
+            margin-top: 10px;
+            color: #666;
+        }
+        #certificate-count, #email-count {
+            font-weight: bold;
+            color: #3498db;
+        }
+    </style>
+    <script>
+        // Will update the progress during certificate generation
+        let certCount = 0;
+        let emailCount = 0;
+        
+        function updateProgress(certificates, emails) {
+            document.getElementById('certificate-count').innerText = certificates;
+            document.getElementById('email-count').innerText = emails;
+        }
+        
+        function showSuccess() {
+            document.querySelector('.spinner').style.display = 'none';
+            document.querySelector('.success-icon').style.display = 'block';
+            document.querySelector('.processing-text').innerText = 'Certificate distribution complete!';
+            document.querySelector('.status-text').style.color = '#28a745';
+            document.body.style.cursor = 'default';
+        }
+    </script>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="spinner"></div>
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="event-title"><?php echo htmlspecialchars($event_title); ?></div>
+        <div class="processing-text">Distributing certificates to participants...</div>
+        <div class="status-text">
+            Generated <span id="certificate-count">0</span> certificates
+            <br>
+            Sent <span id="email-count">0</span> emails
+        </div>
+    </div>
+
+    <script>
+        // Flush the output buffer to show the loading screen
+        window.onload = function() {
+            document.body.style.cursor = 'wait';
+        };
+    </script>
+</body>
+</html>
+<?php
+// Flush the output buffer to ensure the loading screen is displayed
+ob_flush();
+flush();
+
+
 // Get all registered participants
 $participantsSQL = "SELECT 
                     ru.id AS registration_id,
@@ -121,6 +236,11 @@ try {
             }
             
             $certificateCount++;
+            
+            // Update the progress on screen
+            echo "<script>updateProgress($certificateCount, $emailsSent);</script>";
+            ob_flush();
+            flush();
         } else {
             $errors[] = "Failed to generate certificate for {$participant_name}";
         }
@@ -146,6 +266,18 @@ try {
         'event_id' => $event_id
     ];
 }
+
+// Add a small delay to ensure the progress is seen and show success icon
+echo "<script>
+    updateProgress($certificateCount, $emailsSent);
+    showSuccess();
+    setTimeout(function() {
+        window.location.href = 'admin-events.php?event_id=$event_id';
+    }, 2000);
+</script>";
+ob_flush();
+flush();
+exit();
 
 // Redirect back to the event page
 header("Location: admin-events.php?event_id=$event_id");
