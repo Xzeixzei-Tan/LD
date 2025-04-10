@@ -41,6 +41,120 @@ if ($event_start_date == $event_end_date) {
     $date_range = $event_start_date . "-" . $event_end_date;
 }
 
+// Display loading screen
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributing Certificates</title>
+    <link rel="stylesheet" href="styles/styles.css">
+    <!-- Add Font Awesome for the check icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+            margin-bottom: 20px;
+        }
+        .success-icon {
+            display: none;
+            color: #28a745;
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        .success-icon i {
+            animation: scaleUp 0.5s ease;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes scaleUp {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .event-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .processing-text {
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .status-text {
+            font-size: 16px;
+            margin-top: 10px;
+            color: #666;
+        }
+        #certificate-count, #email-count {
+            font-weight: bold;
+            color: #3498db;
+        }
+    </style>
+    <script>
+        // Will update the progress during certificate generation
+        let certCount = 0;
+        let emailCount = 0;
+        
+        function updateProgress(certificates, emails) {
+            document.getElementById('certificate-count').innerText = certificates;
+            document.getElementById('email-count').innerText = emails;
+        }
+        
+        function showSuccess() {
+            document.querySelector('.spinner').style.display = 'none';
+            document.querySelector('.success-icon').style.display = 'block';
+            document.querySelector('.processing-text').innerText = 'Certificate distribution complete!';
+            document.querySelector('.status-text').style.color = '#28a745';
+            document.body.style.cursor = 'default';
+        }
+    </script>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="spinner"></div>
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="event-title"><?php echo htmlspecialchars($event_title); ?></div>
+        <div class="processing-text">Distributing certificates to participants...</div>
+        <div class="status-text">
+            Generated <span id="certificate-count">0</span> certificates
+            <br>
+            Sent <span id="email-count">0</span> emails
+        </div>
+    </div>
+
+    <script>
+        // Flush the output buffer to show the loading screen
+        window.onload = function() {
+            document.body.style.cursor = 'wait';
+        };
+    </script>
+</body>
+</html>
+<?php
+// Flush the output buffer to ensure the loading screen is displayed
+ob_flush();
+flush();
+
 // Get all registered participants
 $participantsSQL = "SELECT 
                     ru.id AS registration_id,
@@ -121,6 +235,11 @@ try {
             }
             
             $certificateCount++;
+            
+            // Update the progress on screen
+            echo "<script>updateProgress($certificateCount, $emailsSent);</script>";
+            ob_flush();
+            flush();
         } else {
             $errors[] = "Failed to generate certificate for {$participant_name}";
         }
@@ -147,11 +266,19 @@ try {
     ];
 }
 
-// Redirect back to the event page
-header("Location: admin-events.php?event_id=$event_id");
+// Add a small delay to ensure the progress is seen and show success icon
+echo "<script>
+    updateProgress($certificateCount, $emailsSent);
+    showSuccess();
+    setTimeout(function() {
+        window.location.href = 'admin-events.php?event_id=$event_id';
+    }, 2000);
+</script>";
+ob_flush();
+flush();
 exit();
 
- /* Generates a PDF certificate for a participant
+/* Generates a PDF certificate for a participant
  * 
  * @param string $templatePath Path to the certificate template
  * @param string $outputFile Path where the generated certificate will be saved
@@ -159,7 +286,7 @@ exit();
  * @return bool Whether the certificate was generated successfully
  */
 
- function sendCertificateEmail($email, $participant_name, $event_title, $certificatePath) {
+function sendCertificateEmail($email, $participant_name, $event_title, $certificatePath) {
     // Prevent sending to invalid email addresses
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         error_log("Invalid email address: $email");
@@ -246,6 +373,39 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
     }
 
     try {
+        // Set up font configuration
+        $fontDirs = [
+            __DIR__ . '/fonts',
+        ];
+
+        $fontData = [
+            'oldenglish' => [
+                'R' => 'OLDENGL.TTF',
+            ],
+            'bookmanold' => [
+                'R' => 'BOOKOS.TTF',
+                'B' => 'BOOKOSB.TTF',
+            ], 
+            'cambria' => [
+                'R' => 'CAMBRIA.TTF',
+                'B' => 'CAMBRIAB.TTF',
+            ],  
+        ];
+
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'margin_left' => 0,
+            'margin_right' => 0,
+            'margin_top' => 0,
+            'margin_bottom' => 0,
+            'tempDir' => sys_get_temp_dir(),
+            'fontDir' => $fontDirs,
+            'fontdata' => $fontData,
+            'default_font' => 'times',
+            'debug' => true
+        ]);
+
         // Get the logo and encode it to base64
         $logoPath = 'styles/photos/DEPED-LOGO.png';
         if (file_exists($logoPath)) {
@@ -256,316 +416,177 @@ function generateCertificatePDF($templatePath, $outputFile, $replacements) {
             $logoSrc = '';
         }
 
-        // Determine name length and apply appropriate class
+        // Determine name and title lengths for responsive sizing
         $participant_name = $replacements['participant_name'];
-        $name_class = 'recipient';
-        if (strlen($participant_name) > 30) {
-            $name_class .= ' extra-long';
-        }
-        if (strlen($participant_name) > 40) {
-            $name_class .= ' super-long';
-        }
-
-        // Determine event title length and apply appropriate class
         $event_title = $replacements['event_title'];
-        $event_title_class = 'event-title';
-        if (strlen($event_title) > 30) {
-            $event_title_class .= ' long';
-        }
-        if (strlen($event_title) > 40) {
-            $event_title_class .= ' extra-long';
-        }
-
-        // Handle venue display based on content
         $venue = $replacements['venue'];
-        $venue_part = '';
-        
-        // Check if venue is empty or contains only whitespace
-        if (empty(trim($venue))) {
-            // For empty venue, assume it's an online event
-            $venue_part = "held online";
-        } else {
-            // For non-empty venue, check if it contains "online"
-            if (stripos($venue, 'online') !== false) {
-                // If "online" is in the venue text, format accordingly
-                $venue_class = 'venue';
-                if (strlen($venue) > 30) $venue_class .= ' long';
-                if (strlen($venue) > 40) $venue_class .= ' extra-long';
-                
-                $venue_part = "held online via <span class=\"$venue_class\">" . $venue . "</span>";
-            } else {
-                // For physical venues
-                $venue_class = 'venue';
-                if (strlen($venue) > 30) $venue_class .= ' long';
-                if (strlen($venue) > 40) $venue_class .= ' extra-long';
-                
-                $venue_part = "at the <span class=\"$venue_class\">" . $venue . "</span>";
+
+    // HTML Template with enhanced responsive CSS
+    // Build HTML content with correct font matching the image
+    $html = '<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Certificate of Participation</title>
+        <style>
+            @page {
+                size: landscape;
+                margin: 0;
+                padding: 0;
             }
-        }
-
-        // Determine description length and apply appropriate class
-        $description = "for the meaningful engagement as <strong>PARTICIPANT</strong> during the<br>
-            <strong class=\"{$event_title_class}\">\"" . $event_title . "\" </strong> conducted by the Department of Education-Schools Division Office of General Trias City
-            On " . $replacements['date_month'] . ' ' . $replacements['event_start_date and end_date'] . ', ' . $venue_part;
-        $description_class = 'description';
-        if (strlen(strip_tags($description)) > 150) {
-            $description_class .= ' long';
-        }
-        if (strlen(strip_tags($description)) > 200) {
-            $description_class .= ' extra-long';
-        }
-
-        // HTML content for the certificate
-        $html = '<!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Certificate of Participation</title>
-            <style>
-                @page {
-                    size: landscape;
-                    margin: 0;
-                }
-                body {
-                    font-family: "Bookman Old Style";
-                    text-align: center;
-                    margin: auto;
-                    padding: 0;
-                    width: 100%;
-                    height: 100%;
-                    position: relative;
-                    background-image: url("certificate_bg.jpg");
-                    background-size: cover;
-                    background-repeat: no-repeat;
-                }
-                .certificate {
-                    width: 100%;
-                    height: 100%;
-                    padding: 20px;
-                    box-sizing: border-box;
-                    position: relative;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                }
-                .header {
-                    font-size: 16px;
-                    line-height: 1.4;
-                    margin-bottom: 10px;
-                }
-
-                .header-1 {
-                    margin-top: 10px;
-                    font-size: 20px;
-                    font-family: "Old English Text MT";
-                    line-height: 1.4;
-                }
-
-                .header-2 {
-                    font-size: 31px;
-                    font-family: "Old English Text MT";
-                    line-height: 1.4;
-                }
-
-                .header-3 {
-                    font-size: 16px;
-                    font-family: Cambria;
-                    font-weight: bold;
-                    line-height: 1.4;
-                }
-
-                .certificate {
-                    width: 100%;
-                    height: 100%;
-                    padding: 20px;
-                    box-sizing: border-box;
-                    position: relative;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                }
-
-                .title {
-                    font-family: "Old English Text MT";
-                    font-size: 62px;
-                    color: black;
-                    margin: 10px 0;
-                }
-
-                .awarded-to {
-                    font-family: "Times New Roman";
-                    font-size: 23px;
-                    margin: 10px 0;
-                }
-
-                .recipient {
-                    font-family: "Bookman Old Style";
-                    font-weight: Bold;
-                    font-size: 55px;
-                    max-width: 900px;
-                    line-height: 1.1;
-                    margin: 10px 0;
-                    word-break: break-word;
-                    text-transform: uppercase;
-                    display: inline-block;
-                    white-space: normal;
-                }
-                .recipient.extra-long {
-                    font-size: 45px;
-                }
-                .recipient.super-long {
-                    font-size: 35px;
-                }
-
-                .event-title {
-                    font-size: 26px;
-                    font-weight: 2000;
-                    max-width: 900px;
-                    word-break: break-word;
-                }
-                .event-title.long {
-                    font-size: 25px;
-                    font-weight: 3000;
-                }
-                .event-title.extra-long {
-                    font-size: 23px;
-                    font-weight: 3000;
-                }
-
-                strong {
-                    font-weight: 1000;
-                }
-
-                .description {
-                    font-family: "Bookman Old Style";
-                    font-size: 24px;
-                    line-height: 1.5;
-                    max-width: 900px;
-                    margin: 10px 0;
-                    word-break: break-word;
-                }
-                .description.long {
-                    font-size: 23px;
-                }
-                .description.extra-long {
-                    font-size: 21px;
-                    line-height: 1.3;
-                }
-
-                .venue {
-                    font-size: 26px;
-                    max-width: 900px;
-                    word-break: break-word;
-                }
-                .venue.long {
-                    font-size: 25px;
-                }
-                .venue.extra-long {
-                    font-size: 23px;
-                }
-
-                .date {
-                    margin-top: 40px;
-                    font-size: 24px;
-                    margin-bottom: -23px;
-                }
-                .signature {
-                    margin-top: 20px;
-                }
-                .superintendent {
-                    letter-spacing: 1px;
-                    font-weight: bolder;
-                    font-size: 28px;
-                    margin-bottom: 5px;
-                }
-                .position {
-                    font-size: 21px;
-                    line-height: 1.4;
-                }
-
-                .logo {
-                    margin: auto;
-                    top: 10px;
-                    left: 20px;
-                    width: 130px; 
-                    height: 130px;
-                }
-            </style>
-        </head>
-        <body>
-        <center>
-            <div class="certificate">
-                <div class="header">
-                    <img src="' . $logoSrc . '" class="logo" alt="DEPED Logo"><br>
-                    <div class="header-1">
-                    Republic of the Philippines</div>
-                    <div class="header-2">Department of Education</div>
-                    <div class="header-3">REGION IV-A CALABARZON<br>
-                    SCHOOLS DIVISION OF GENERAL TRIAS CITY</div>
+            body {
+                font-family: "Bookman Old Style", bookmanold, serif;
+                text-align: center;
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                position: relative;
+            }
+            .certificate {
+                width: 100%;
+                padding: 30px;
+                box-sizing: border-box;
+                position: relative;
+            }
+            .certificate:after {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 5px;
+                background-color: black;
+            }
+            .logo {
+                width: 100px;
+                height: auto;
+                margin-top: 30px;
+                margin-bottom: 15px;
+            }
+            .republic {
+                font-family: "Old English Text MT", oldenglish, serif;
+                font-size: 16px;
+                margin-bottom: -6px;
+            }
+            .department {
+                font-family: "Old English Text MT", oldenglish, serif;
+                font-size: 25px;
+            }
+            .region {
+                font-family: "Cambria Bold", cambria;
+                font-weight: bold;
+                font-size: 13px;
+                line-height: 1.4;
+                text-transform: uppercase;
+                margin-bottom: -5px;
+            }
+            .title {
+                font-family: "Old English Text MT", oldenglish, serif;
+                font-size: 50px;
+                margin: 0 0 15px 0;
+            }
+            .awarded-to {
+                font-family: "Cambria", cambria, serif;
+                font-size: 18px;
+                margin: 15px 0;
+            }
+            .recipient {
+                font-family: "Bookman Old Style", bookmanold, serif;
+                font-size: ' . (strlen($participant_name) > 40 ? '32px' : (strlen($participant_name) > 30 ? '38px' : '46px')) . ';
+                font-weight: bold;
+                text-transform: uppercase;
+                margin: 15px 0;
+                line-height: 1.1;
+            }
+            .description {
+                font-family: "Bookman Old Style", bookmanold, serif;
+                font-size: ' . (strlen($event_title) > 40 ? '18px' : (strlen($event_title) > 30 ? '19px' : '20px')) . ';
+                line-height: 1.5;
+                margin: 15px auto;
+                width: 95%;
+                max-width: 90%;
+            }
+            .participant-text {
+                font-family: "Bookman Old Style", bookmanold, serif;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+            .event-title {
+                font-family: "Bookman Old Style", bookmanold, serif;
+                font-weight: bold;
+            }
+            .date-text {
+                font-family: "Bookman Old Style", bookmanold, serif;
+                margin-top: 30px;
+                font-size: 20px;
+            }
+            .signature {
+                margin-top: 40px;
+            }
+            .superintendent {
+                font-family: "Bookman Old Style", bookmanold, serif;
+                font-weight: bold;
+                font-size: 24px;
+                margin-bottom: 5px;
+                text-transform: uppercase;
+            }
+            .position {
+                font-family: "Bookman Old Style", bookmanold, serif;
+                font-size: 18px;
+                line-height: 1.4;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="certificate">
+            <img src="' . $logoSrc . '" class="logo" alt="DEPED Logo">
+            
+            <div class="republic">Republic of the Philippines</div>
+            <div class="department">Department of Education</div>
+            <div class="region">REGION IV-A CALABARZON<br>SCHOOLS DIVISION OF GENERAL TRIAS CITY</div>
+            
+            <div class="title">Certificate of Participation</div>
+            
+            <div class="awarded-to">is awarded to</div>
+            
+            <div class="recipient">
+                ' . $participant_name . '
+            </div>
+            
+            <div class="description">
+                for the meaningful engagement as <span class="participant-text">PARTICIPANT</span> during the<br>
+                <span class="event-title">"' . $event_title . '"</span> conducted by the Department of Education-Schools Division Office of General Trias City
+                On ' . $replacements['date_month'] . ' ' . $replacements['event_start_date and end_date'] . ', ' . $venue . '
+            </div>
+            
+            <div class="date-text">
+                Given this ' . $replacements['end_date'] . '<sup>th</sup> day of ' . $replacements['date_month'] . ' ' . $replacements['event_year'] . '
+            </div>
+            
+            <div class="signature">
+                <div class="superintendent">
+                    IVAN BRIAN L. INDUCTIVO, CESO VI
                 </div>
-                
-                <div class="title">Certificate of Participation</div>
-                
-                <div class="awarded-to">is awarded to</div>
-                
-                <div class="' . $name_class . '">' . $participant_name . '</div>
-                
-                <div class="' . $description_class . '">
-                    ' . $description . '
-                </div>
-                
-                <div class="date">
-                    Given this ' . $replacements['end_date'] . '<sup>th</sup> day of ' . $replacements['date_month'] . ' ' . $replacements['event_year'] . '
-                </div>
-                
-                <div class="signature">
-                    <div class="superintendent">IVAN BRIAN L. INDUCTIVO, CESO VI</div>
-                    <div class="position">
-                        Assistant Schools Division Superintendent<br>
-                        Officer-in-Charge<br>
-                        Office of the Schools Division Superintendent
-                    </div>  
+                <div class="position">
+                    Assistant Schools Division Superintendent<br>
+                    Officer-in-Charge
+                    Office of the Schools Division Superintendent
                 </div>
             </div>
-        </center>    
-        </body>
-        </html>';
+        </div>
+    </body>
+    </html>';
 
-        // Create mPDF instance with custom configuration
-        $mpdf = new \Mpdf\Mpdf([
-            'mode' => 'utf-8',
-            'format' => 'A4-L', // Landscape A4
-            'margin_left' => 0,
-            'margin_right' => 0,
-            'margin_top' => 0,
-            'margin_bottom' => 0,
-            'tempDir' => sys_get_temp_dir(), // Important for shared hosting
-        ]);
-
-        // Add custom fonts if needed
-        $mpdf->fontdata['bookmanoldstyle'] = [
-            'R' => 'bookman-old-style.ttf',
-            'B' => 'bookman-old-style-bold.ttf',
-        ];
-        $mpdf->fontdata['oldenglish'] = [
-            'R' => 'oldengl.ttf',
-        ];
-
-        // Background image handling
-        $backgroundPath = 'certificate_bg.jpg';
-        if (file_exists($backgroundPath)) {
-            $mpdf->SetDocTemplate($backgroundPath, true);
-        }
-
-        // Write the HTML to PDF
-        $mpdf->WriteHTML($html);
-
-        // Output to file
-        $mpdf->Output($outputFile, 'F');
-
-        return file_exists($outputFile);
-    } catch (Exception $e) {
-        error_log("mPDF error: " . $e->getMessage());
-        return false;
-    }
+   // Write HTML to PDF
+   $mpdf->WriteHTML($html);
+        
+   // Output to file
+   $mpdf->Output($outputFile, 'F');
+   
+   return file_exists($outputFile);
+} catch (Exception $e) {
+   error_log("mPDF error: " . $e->getMessage());
+   return false;
+}
 }
