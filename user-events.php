@@ -314,12 +314,10 @@ function capitalizeFirstLetters($text) {
                                 <p id="detail-mode"><?php echo htmlspecialchars(formatTitle($selected_event["delivery"])); ?></p>
                             </div>
 
-                            <?php if (strtolower($selected_event["delivery"]) !== "online"): ?>
                             <div class="detail-item">
                                 <h4>Venue:</h4>
                                 <p id="detail-venue"><?php echo htmlspecialchars(formatTitle($selected_event["venue"] ?? "Not specified")); ?></p>
                             </div>
-                            <?php endif; ?>
 
                             <div class="detail-item">
                                 <h4>Event Specification:</h4>
