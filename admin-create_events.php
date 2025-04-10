@@ -464,21 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-// Function to toggle meal plan visibility based on delivery mode
-function toggleMealPlanVisibility() {
-    const deliverySelect = document.getElementById('event-mode');
-    const mealPlanSection = document.getElementById('meal-plan-section');
-    const mealPlanContainer = document.getElementById('meal-plan-container');
-    
-    // Changed condition to show meal plan when online
-    if (deliverySelect.value === 'online') {
-        if (mealPlanSection) mealPlanSection.style.display = 'block';
-        if (mealPlanContainer) mealPlanContainer.style.display = 'block';
-    } else {
-        if (mealPlanSection) mealPlanSection.style.display = 'none';
-        if (mealPlanContainer) mealPlanContainer.style.display = 'none';
-    }
-}
+
 
 // Function to toggle amount field visibility
 function toggleAmountField(source) {
@@ -577,8 +563,7 @@ function generateDayFields() {
         `;
         eventDaysContainer.appendChild(dayDiv);
         
-        // Create meal plan fields for all delivery modes
-        // Removed the condition that prevented meal plans for online events
+        // Create meal plan fields
         if (mealPlanContainer) {
             const mealDiv = document.createElement('div');
             mealDiv.className = 'meal-day';
@@ -682,37 +667,7 @@ document.addEventListener('DOMContentLoaded', function() {
         endDateInput.addEventListener('change', generateDayFields);
     }
     
-    // Event listeners for delivery mode and target personnel
-    const deliverySelect = document.getElementById('event-mode');
-    if (deliverySelect) {
-        deliverySelect.addEventListener('change', function() {
-            const venueField = document.getElementById('venue-field');
-            // Changed condition to show venue when online
-            if (this.value === 'online') {
-                venueField.style.display = 'block';
-                venueField.querySelector('input').required = true;
-            } else {
-                venueField.style.display = 'none';
-                venueField.querySelector('input').required = false;
-            }
-            
-            // Added meal plan visibility logic
-            toggleMealPlanVisibility();
-        });
-        
-        // Initialize venue field based on current delivery selection
-        // Changed condition to show venue when online
-        if (deliverySelect.value === 'online') {
-            const venueField = document.getElementById('venue-field');
-            if (venueField) {
-                venueField.style.display = 'block';
-                venueField.querySelector('input').required = true;
-            }
-            
-            // Initialize meal plan visibility
-            toggleMealPlanVisibility();
-        }
-    }
+    
     
     const targetSelect = document.getElementById('target-personnel');
     if (targetSelect) {
