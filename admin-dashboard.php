@@ -40,7 +40,7 @@ if (!$notif_result) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/admin-dashboard.css" rel="stylesheet">
-    <title>Dashboard</title>
+    <title>Dashboard-Event Management System</title>
 </head>
 <body>
 
@@ -72,7 +72,7 @@ if (!$notif_result) {
         <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
         <p>Learning and Development</p>
         <h1>EVENT MANAGEMENT SYSTEM</h1>
-    </div><br><br><br>
+    </div><br>
 
 
     <div class="content-body">
