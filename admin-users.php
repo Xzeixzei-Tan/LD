@@ -31,6 +31,13 @@ $divCount = $conn->prepare("
         FROM users_lnd WHERE affiliation_id = '2'");
 $divCount->execute();
 $divResult = $divCount->get_result();
+
+// Count total users
+$totalCount = $conn->prepare("
+    SELECT COUNT(*) as count
+        FROM users_lnd");
+$totalCount->execute();
+$totalResult = $totalCount->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -42,7 +49,9 @@ $divResult = $divCount->get_result();
     <link href="styles/admin-dashboard.css" rel="stylesheet"> <!-- Include the admin-dashboard.css file -->
     <link href="styles/admin-user.css" rel="stylesheet">
     <title>Users</title>
-  
+    <style>
+       
+    </style>
 </head>
 <body>
 <div class="sidebar" id="sidebar">
@@ -78,25 +87,7 @@ $divResult = $divCount->get_result();
         <div class="content-body">
             <h1>Users</h1><br>
 
-            <div class="personnel">
-                <?php
-                if ($schoolResult) {
-                    $row = $schoolResult->fetch_assoc();
-                }
-                ?>
-                <div class="school">
-                    <p>School personnel: <?php echo $row['count']; ?></p>
-                </div>
-
-                <?php
-                if ($divResult) {
-                    $row = $divResult->fetch_assoc();
-                }
-                ?>
-                <div class="division">
-                    <p>Division personnel: <?php echo $row['count']; ?></p>
-                </div>
-            </div>
+           
     
             <div class="filter-bar">
                 <div class="filter-container">
@@ -114,6 +105,30 @@ $divResult = $divCount->get_result();
                     <input type="text" class="search-input" placeholder="Search for users...">
                 </div>
             </div>
+
+            <div class="personnel">
+                <?php if ($totalResult) {
+                    $row = $totalResult->fetch_assoc();
+                } ?>
+                <div class="all-personnel" id="all-personnel">
+                    <p>All personnel: <?php echo $row['count']; ?></p>
+                </div>
+                
+                <?php if ($schoolResult) {
+                    $row = $schoolResult->fetch_assoc();
+                } ?>
+                <div class="school" id="school-filter">
+                    <p>School personnel: <?php echo $row['count']; ?></p>
+                </div>
+
+                <?php if ($divResult) {
+                    $row = $divResult->fetch_assoc();
+                } ?>
+                <div class="division" id="division-filter">
+                    <p>Division personnel: <?php echo $row['count']; ?></p>
+                </div>
+            </div>
+
             <div class="bulk-actions" id="bulk-actions">
                 <button class="delete-selected-btn" id="delete-selected"><i class="fa fa-trash" aria-hidden="true"></i> Delete Selected</button>
             </div>
@@ -142,7 +157,7 @@ $divResult = $divCount->get_result();
                             $suffix = !empty($row["suffix"]) ? " " . $row["suffix"] : "";
                             $full_name = $row["first_name"] . $middle_initial . " " . $row["last_name"] . $suffix;
 
-                            echo "<tr>";
+                            echo "<tr data-affiliation='" . $row["affiliation_id"] . "'>";
                             echo "<td class='checkbox-cell'><input type='checkbox' class='user-checkbox' data-id='" . $row["id"] . "'></td>";
                             echo "<td>" . $count . "</td>";
                             echo "<td>" . $full_name . "</td>";
@@ -225,26 +240,29 @@ $divResult = $divCount->get_result();
             }
 
             // Function to delete a single user
-            function deleteUser(userId, row) {
-                // Send AJAX request to delete user
-                fetch('delete_user.php?id=' + userId, {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Remove row from table
+        function deleteUser(userId, row) {
+            // Send AJAX request to delete user
+            fetch('delete_user.php?id=' + userId, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Check if this was a self-delete
+                    
+                        // Admin deleted someone else's account
                         row.remove();
                         alert('User deleted successfully.');
-                    } else {
-                        alert('Error deleting user: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while trying to delete the user.');
-                });
-            }
+                    
+                } else {
+                    alert('Error deleting user: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while trying to delete the user.');
+            });
+        }
 
             // Handle bulk delete button click
             document.getElementById('delete-selected').addEventListener('click', function() {
@@ -296,6 +314,7 @@ $divResult = $divCount->get_result();
             // Store the current active filter
             let currentFilter = 'All';
             let currentPosition = '';
+            let currentAffiliation = '';
 
             // Call setupDeleteButtons when the page loads
             checkSelectedCheckboxes(); // Check if any checkboxes are already selected
@@ -308,6 +327,11 @@ $divResult = $divCount->get_result();
             const dropdown = document.querySelector('.filter-dropdown');
             const searchInput = document.querySelector('.search-input');
             const tableBody = document.querySelector('table tbody');
+            
+            // Get personnel filter buttons
+            const schoolFilter = document.getElementById('school-filter');
+            const divisionFilter = document.getElementById('division-filter');
+            const allPersonnelFilter = document.getElementById('all-personnel');
 
             // Toggle dropdown when filter container is clicked
             filterContainer.addEventListener('click', function() {
@@ -324,6 +348,55 @@ $divResult = $divCount->get_result();
                         positionsDropdown.remove();
                     }
                 }
+            });
+
+            // Personnel filter functionality
+            function filterByAffiliation(affiliationId) {
+                // Remove active class from all personnel buttons
+                schoolFilter.classList.remove('active');
+                divisionFilter.classList.remove('active');
+                allPersonnelFilter.classList.remove('active');
+                
+                // Set current affiliation filter
+                currentAffiliation = affiliationId;
+                
+                // Add active class to the clicked button
+                if (affiliationId === '1') {
+                    schoolFilter.classList.add('active');
+                } else if (affiliationId === '2') {
+                    divisionFilter.classList.add('active');
+                } else {
+                    allPersonnelFilter.classList.add('active');
+                }
+                
+                // Filter the table rows
+                const rows = document.querySelectorAll('table tbody tr');
+                rows.forEach(row => {
+                    if (!affiliationId) {
+                        // Show all rows if no affiliation filter
+                        row.style.display = '';
+                    } else {
+                        const rowAffiliation = row.getAttribute('data-affiliation');
+                        if (rowAffiliation === affiliationId) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            }
+            
+            // Add event listeners to personnel filter buttons
+            schoolFilter.addEventListener('click', function() {
+                filterByAffiliation('1');
+            });
+            
+            divisionFilter.addEventListener('click', function() {
+                filterByAffiliation('2');
+            });
+            
+            allPersonnelFilter.addEventListener('click', function() {
+                filterByAffiliation('');
             });
 
             // Handle filter item clicks
@@ -490,6 +563,11 @@ $divResult = $divCount->get_result();
             // Function to filter table by classification (Teaching/Non-Teaching)
             function filterTableByClassification(classification) {
                 document.querySelectorAll('table tbody tr').forEach(row => {
+                    // Skip rows that are already hidden by affiliation filter
+                    if (currentAffiliation && row.getAttribute('data-affiliation') !== currentAffiliation) {
+                        return;
+                    }
+                    
                     const classificationCell = row.cells[5]; // Classification is in the 6th column (index 5)
                     if (classificationCell) {
                         const cellValue = classificationCell.textContent.trim().toLowerCase();
@@ -507,6 +585,11 @@ $divResult = $divCount->get_result();
             // Function to filter table by position
             function filterTableByPosition(position) {
                 document.querySelectorAll('table tbody tr').forEach(row => {
+                    // Skip rows that are already hidden by affiliation filter
+                    if (currentAffiliation && row.getAttribute('data-affiliation') !== currentAffiliation) {
+                        return;
+                    }
+                    
                     const positionCell = row.cells[6]; // Position is in the 7th column (index 6)
                     if (positionCell) {
                         const cellValue = positionCell.textContent.trim();
@@ -543,6 +626,11 @@ $divResult = $divCount->get_result();
                     searchUrl += '&position=' + encodeURIComponent(currentPosition);
                 }
                 
+                // Add affiliation filter if set
+                if (currentAffiliation) {
+                    searchUrl += '&affiliation=' + encodeURIComponent(currentAffiliation);
+                }
+                
                 // Send AJAX request to search users
                 fetch(searchUrl)
                     .then(response => response.json())
@@ -554,6 +642,7 @@ $divResult = $divCount->get_result();
                                 
                                 data.data.forEach(user => {
                                     const row = document.createElement('tr');
+                                    row.setAttribute('data-affiliation', user.affiliation_id);
                                     
                                     // Create checkbox cell
                                     const checkboxCell = document.createElement('td');
@@ -607,6 +696,7 @@ $divResult = $divCount->get_result();
                     }, wait);
                 };
             }
+            
 
             // Handle search input with server-side search
             searchInput.addEventListener('input', debounce(function() {
@@ -620,29 +710,157 @@ $divResult = $divCount->get_result();
                 }
             }, 500)); // 500ms debounce
 
-             // Handle clear button (x) in search input
-    searchInput.addEventListener('search', function() {
-        // This event is triggered when the search input is cleared
-        const searchTerm = this.value.toLowerCase().trim();
-        filterEvents(searchTerm);
-    });
+            // Handle clear button (x) in search input
+            searchInput.addEventListener('search', function() {
+                // This event is triggered when the search input is cleared
+                const searchTerm = this.value.toLowerCase().trim();
+                filterEvents(searchTerm);
+            });
 
-        // When clicking the X (clear) button
-        const searchContainer = document.querySelector('.search-container');
-    if (searchContainer) {
-        searchContainer.addEventListener('click', function(e) {
-            // Check if the click was on the after pseudo-element (approximated by position)
-            const rect = searchContainer.getBoundingClientRect();
+            // When clicking the X (clear) button
+            const searchContainer = document.querySelector('.search-container');
+            if (searchContainer) {
+                searchContainer.addEventListener('click', function(e) {
+                    // Check if the click was on the after pseudo-element (approximated by position)
+                    const rect = searchContainer.getBoundingClientRect();
+                    
+                    // If click is in the right 30px of the container (where the X appears)
+                    if (searchInput && e.clientX > rect.right - 30 && searchInput.value !== '') {
+                        searchInput.value = '';
+                        searchInput.dispatchEvent(new Event('input'));
+                        searchInput.focus();
+                    }
+                });
+            }
             
-            // If click is in the right 30px of the container (where the X appears)
-            if (searchInput && e.clientX > rect.right - 30 && searchInput.value !== '') {
-                searchInput.value = '';
-                searchInput.dispatchEvent(new Event('input'));
-                searchInput.focus();
+            // Set allPersonnelFilter as active by default
+            allPersonnelFilter.classList.add('active');
+        });
+
+// Function to check if any checkboxes are selected
+function checkSelectedCheckboxes() {
+    const checkboxes = document.querySelectorAll('.user-checkbox:checked');
+    const bulkActions = document.getElementById('bulk-actions');
+    
+    if (checkboxes.length > 0) {
+        bulkActions.classList.add('visible');
+    } else {
+        bulkActions.classList.remove('visible');
+    }
+}
+
+// Handle checkbox changes to show/hide bulk delete button
+document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', checkSelectedCheckboxes);
+});
+
+// Handle select all checkbox
+document.getElementById('select-all').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+    checkSelectedCheckboxes();
+});
+
+// Handle delete button clicks for individual users
+function setupDeleteButtons() {
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (confirm('Are you sure you want to delete this user?')) {
+                const userId = this.getAttribute('data-id');
+                deleteUser(userId, this.closest('tr'));
             }
         });
+    });
+}
+
+// Function to delete a single user
+function deleteUser(userId, row) {
+    // Send AJAX request to delete user
+    fetch('delete_user.php?id=' + userId, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Check if this was a self-delete
+            if (data.selfDelete) {
+                // User deleted their own account - redirect to signup page
+                alert('Your account has been deleted. You will be redirected to the signup page.');
+                window.location.href = 'signup.php';
+            } else {
+                // Admin deleted someone else's account
+                row.remove();
+                alert('User deleted successfully.');
+            }
+        } else {
+            alert('Error deleting user: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while trying to delete the user.');
+    });
+}
+
+// Handle bulk delete button click
+document.getElementById('delete-selected').addEventListener('click', function() {
+    const selectedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+    
+    if (selectedCheckboxes.length === 0) {
+        alert('Please select at least one user to delete.');
+        return;
     }
+    
+    if (confirm('Are you sure you want to delete ' + selectedCheckboxes.length + ' selected user(s)?')) {
+        // Collect all selected user IDs
+        const userIds = Array.from(selectedCheckboxes).map(checkbox => checkbox.getAttribute('data-id'));
+        
+        // Send AJAX request to delete multiple users
+        fetch('delete_multiple_users.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userIds: userIds })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Check if this included a self-delete
+                if (data.selfDelete) {
+                    // User deleted their own account - redirect to signup page
+                    alert('Your account has been deleted. You will be redirected to the signup page.');
+                    window.location.href = 'signup.php';
+                } else {
+                    // Just admin deleting other accounts
+                    // Remove rows from table
+                    selectedCheckboxes.forEach(checkbox => {
+                        checkbox.closest('tr').remove();
+                    });
+                    
+                    // Hide bulk actions button
+                    document.getElementById('bulk-actions').classList.remove('visible');
+                    
+                    // Uncheck select all
+                    document.getElementById('select-all').checked = false;
+                    
+                    alert('Selected users have been deleted successfully.');
+                }
+            } else {
+                alert('Error deleting users: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while trying to delete the selected users.');
         });
+    }
+});
+
+
     </script>
 </body>
 </html>

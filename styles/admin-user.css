@@ -194,10 +194,10 @@ body, html {
   display: flex;
   margin-bottom: 2rem;
   gap: 1rem;
-  float: right;
+  float: left;
 }
 
-.school, .division {
+.school, .division, .all-personnel {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -207,20 +207,69 @@ body, html {
   font-weight: 600;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .school {
-  background: linear-gradient(135deg, #19a155, #17935c);
-  color: white;
+  background: white;
+  color: #19a155;
+  border: 1px solid #19a155;
 }
 
 .division {
-  background: #e6f7ef;
+  background: white;
   color: #19a155;
-  border: 1px solid #bae6d3;
+  border: 1px solid #19a155;
 }
 
-.school p, .division p {
+.all-personnel {
+  background: white;
+  color: #19a155;
+  border: 1px solid #19a155;
+}
+
+/* Hover effects */
+.school:hover {
+  background: #d8f0e2;
+  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.division:hover {
+  background: #d8f0e2;
+  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.all-personnel:hover {
+  background: #d8f0e2;
+  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Active state (when clicking) */
+.school:active, .school.active {
+  background: #19a155;
+  color: white;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.division:active, .division.active {
+  background: #19a155;
+  color: white;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.all-personnel:active, .all-personnel.active {
+  background: #2b3a8f;
+  color: white;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.school p, .division p, .all-personnel p {
   margin: 0;
   font-weight: 600;
   font-family: 'Montserrat', sans-serif;
@@ -228,7 +277,7 @@ body, html {
   align-items: center;
 }
 
-.school p:before, .division p:before {
+.school p:before, .division p:before, .all-personnel p:before {
   font-family: 'Font Awesome 5 Free';
   margin-right: 8px;
   font-size: 16px;
@@ -242,12 +291,18 @@ body, html {
   content: "\f0b1"; /* Division/Briefcase Icon */
 }
 
+.all-personnel p:before {
+  content: "\f0c0"; /* Users Icon for All Personnel */
+}
+
+
 .filter-bar {
   display: flex;
   align-items: center;
   margin-bottom: 2rem;
   margin-right: 2%; 
   gap: 15px;
+  width: 100%;
 }
 
 /* Enhanced Filter Container */
@@ -360,7 +415,7 @@ body, html {
 .search-container {
   position: relative;
   flex-grow: 1;
-  max-width: fit-content;
+  max-width: 100%;
 }
 
 /* Search Input */
@@ -413,6 +468,7 @@ body, html {
   cursor: pointer;
   opacity: 0;
   transition: opacity 0.2s ease;
+
 }
 
 .search-container:has(.search-input:not(:placeholder-shown))::after {
