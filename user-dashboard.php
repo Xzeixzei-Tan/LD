@@ -320,88 +320,6 @@ body, html {
     font-size: 1.2rem;
 }
 
-.user-profile {
-    padding: 15px;
-    border-top: 1px solid white;
-    display: flex;
-    align-items: center;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #12753E;
-    cursor: pointer;
-}
-
-.sidebar.collapsed .user-profile {
-    justify-content: center;
-    padding: 15px 0;
-}
-
-.sidebar.collapsed .username {
-    display: none;
-}
-
-.user-avatar img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid white;
-    padding: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 10px;
-}
-
-.username {
-    font-family: 'Tilt Warp', sans-serif;
-    font-size: clamp(0.8rem, 1vw, 1rem);
-}
-
-.sidebar.collapsed .user-avatar img {
-    margin-right: 0;
-}
-
-.logout-menu {
-    position: absolute;
-    top: 0;
-    bottom: 100%;
-    border-radius: 5px;
-    padding: 10px;
-    display: none;
-    z-index: 10000;
-    width: 100px;
-}
-
-.sidebar.collapsed .logout-menu {
-    left: -50px;
-}
-
-.logout-menu.active {
-    display: block;
-}
-
-.logout-btn {
-    background-color: white;
-    border: 2px solid #12753E;
-    display: block;
-    width: 90%;
-    padding: 8px 10px;
-    color: #12753E;
-    border-radius: 4px;
-    font-family: 'Tilt Warp', sans-serif;
-    font-size: clamp(0.75rem, 0.9vw, 0.9rem);
-    text-align: center;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    position: absolute;
-    top: 80%;
-    left: 225%;
-    z-index: 10001;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
 /* Content area styling */
 .content {
     flex: 1;
@@ -940,6 +858,103 @@ body, html {
         margin-top: 10px;
     }
 }
+
+/* Logout section styling */
+.logout-section {
+    padding-bottom: 2rem;
+    width: 100%;
+    border-top: 1px solid white;
+    display: flex;
+    align-items: center;
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    right: 0;
+    background-color: #12753E;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.logout-btn {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    border-radius: 5px;
+    transition: background 0.3s;
+    font-family: 'Tilt Warp', sans-serif;
+    margin-bottom: -50px;
+    width: 100%;
+
+}
+
+.sidebar.collapsed .logout-btn {
+    justify-content: center;
+    padding: 10px;
+    width: 90%;
+}
+
+.logout-btn span {
+    margin-left: 0.5rem;
+    transition: opacity 0.2s;
+    font-family: 'Tilt Warp', sans-serif;
+    font-size: clamp(0.8rem, 1vw, 1rem);
+}
+
+.sidebar.collapsed .logout-btn span {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    display: none;
+}
+
+.logout-btn:hover {
+    background-color: #ffffff;
+    color: #12753E;
+}
+
+.logout-btn i {
+    margin-right: 0.5rem;
+    min-width: 20px;
+    text-align: center;
+    font-size: clamp(1rem, 1.2vw, 1.5rem);
+}
+
+.sidebar.collapsed .logout-btn i {
+    margin-right: 0;
+    font-size: 1.2rem;
+}
+
+/* Make sidebar a flex container with flex-direction column */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+}
+
+/* This ensures the menu takes up available space, pushing logout to bottom */
+.sidebar .menu {
+    flex: 1;
+}
+
+/* Responsive adjustments for logout button */
+@media (max-width: 992px) {
+    .logout-btn {
+        justify-content: center;
+        padding: 10px;
+    }
+    
+    .logout-btn i {
+        margin-right: 0;
+        font-size: 1.2rem;
+    }
+    
+    .logout-btn span {
+        display: none;
+    }
+}
 </style>
 <body>
         <!-- Sidebar -->
@@ -967,16 +982,14 @@ body, html {
         </a>
 
 </div>
- <!-- Modified user profile with logout menu -->
-        <div class="user-profile" id="userProfileToggle">
-            <div class="user-avatar"><img src="styles/photos/me.jpg"></div>
-            <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
-            <!-- Add logout menu -->
-            <div class="logout-menu" id="logoutMenu">
-                <a href="login.php" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            </div>
-        </div>
+         <!-- Logout button added at the bottom of sidebar with a separator line -->
+         <div class="logout-section">
+        <a href="login.php" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
     </div>
+</div>
 
 
     <div class="content">
@@ -1128,13 +1141,9 @@ body, html {
 <!-- Add JavaScript for the user profile toggle and logout menu -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // User profile toggle and logout menu
-    const userProfileToggle = document.getElementById('userProfileToggle');
-    const logoutMenu = document.getElementById('logoutMenu');
     const sidebar = document.getElementById('sidebar');
     const content = document.querySelector('.content');
     const toggleBtn = document.getElementById('toggleSidebar');
-    const userAvatar = document.querySelector('.user-avatar');
 
     // Check if sidebar state is saved in localStorage
     const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -1143,11 +1152,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isSidebarCollapsed) {
         sidebar.classList.add('collapsed');
         content.classList.add('expanded');
-        userAvatar.style.cursor = 'default'; // Make avatar non-clickable
-        userProfileToggle.style.pointerEvents = 'none'; // Disable click events
-    } else {
-        userAvatar.style.cursor = 'pointer'; // Make avatar clickable
-        userProfileToggle.style.pointerEvents = 'auto'; // Enable click events
     }
 
     // Toggle sidebar when button is clicked
@@ -1156,37 +1160,10 @@ document.addEventListener('DOMContentLoaded', function() {
             sidebar.classList.toggle('collapsed');
             content.classList.toggle('expanded');
             
-            // Update avatar clickability based on sidebar state
-            if (sidebar.classList.contains('collapsed')) {
-                userAvatar.style.cursor = 'default';
-                userProfileToggle.style.pointerEvents = 'none';
-            } else {
-                userAvatar.style.cursor = 'pointer';
-                userProfileToggle.style.pointerEvents = 'auto';
-            }
-            
             // Save state to localStorage
             localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
         });
     }
-
-    // Toggle logout menu when user profile is clicked
-    if (userProfileToggle) {
-        userProfileToggle.addEventListener('click', function(event) {
-             // Only toggle logout menu if sidebar is not collapsed
-             if (!sidebar.classList.contains('collapsed')) {
-                event.stopPropagation();
-                logoutMenu.classList.toggle('active');
-            }
-        });
-    }
-
-    // Close the logout menu when clicking outside
-    document.addEventListener('click', function(event) {
-        if (logoutMenu && userProfileToggle && !userProfileToggle.contains(event.target)) {
-            logoutMenu.classList.remove('active');
-        }
-    });
 
     // Sort events functionality
     const sortButton = document.getElementById('sortButton');
