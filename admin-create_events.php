@@ -694,6 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    
     // Apply to specific inputs
     const inputsToCapitalize = [
         document.querySelector('input[name="title"]'),
@@ -733,4 +734,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
     </script>
 </body>
-</html>
+</html> 
