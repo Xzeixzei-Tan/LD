@@ -1,10 +1,10 @@
 <?php
 require_once 'config.php';
-
-// Start the session
 session_start();
+
+
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: signup.php");
     exit();
 }
 
@@ -184,6 +184,7 @@ function formatEventDaysData($eventDaysData) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/user-dashboard.css" rel="stylesheet">
+    <script src="scripts/session-handler.js"></script>
     <title>Dashboard</title>
 </head>
 <body>
@@ -467,5 +468,7 @@ function formatEventDaysData($eventDaysData) {
     });
     <?php endif; ?>  
     </script>
+
+
 </body>
 </html>

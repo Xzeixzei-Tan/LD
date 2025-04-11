@@ -1,6 +1,6 @@
 <?php
 require_once 'config.php';
-session_start(); // Add session start
+session_start();
 
 // Check if user ID is provided
 if (!isset($_GET['id']) || empty($_GET['id'])) {
@@ -9,12 +9,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 }
 
 $userId = intval($_GET['id']);
-$isSelfDelete = false;
-
-// Check if the user is deleting their own account
-if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $userId) {
-    $isSelfDelete = true;
-}
+$targetUserId = $userId; // Store the ID of the user being deleted
 
 // Start transaction
 $conn->begin_transaction();
@@ -41,12 +36,7 @@ try {
     // Commit transaction
     $conn->commit();
     
-    // If self-delete, destroy the session
-    if ($isSelfDelete) {
-        session_destroy();
-    }
-    
-    echo json_encode(['success' => true, 'selfDelete' => $isSelfDelete]);
+    echo json_encode(['success' => true, 'deletedUserId' => $targetUserId]);
 } catch (Exception $e) {
     // Rollback transaction on error
     $conn->rollback();

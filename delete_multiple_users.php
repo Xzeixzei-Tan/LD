@@ -1,6 +1,6 @@
 <?php
 require_once 'config.php';
-session_start(); // Add session start
+session_start();
 
 // Get JSON data from the request
 $json = file_get_contents('php://input');
@@ -12,11 +12,8 @@ if (!isset($data['userIds']) || empty($data['userIds']) || !is_array($data['user
     exit;
 }
 
-// Check if the current user is in the deletion list
-$isSelfDelete = false;
-if (isset($_SESSION['user_id'])) {
-    $isSelfDelete = in_array($_SESSION['user_id'], array_map('intval', $data['userIds']));
-}
+// Convert all user IDs to integers
+$userIds = array_map('intval', $data['userIds']);
 
 // Start transaction
 $conn->begin_transaction();
@@ -36,9 +33,7 @@ try {
     $successCount = 0;
     
     // Process each user ID
-    foreach ($data['userIds'] as $userId) {
-        $userId = intval($userId);
-        
+    foreach ($userIds as $userId) {
         // 1. First delete from registered_users
         $stmtRegistrations->bind_param("i", $userId);
         $stmtRegistrations->execute();
@@ -57,15 +52,10 @@ try {
     // Commit transaction
     $conn->commit();
     
-    // If self-delete, destroy the session
-    if ($isSelfDelete) {
-        session_destroy();
-    }
-    
     echo json_encode([
         'success' => true, 
         'message' => "$successCount users have been deleted successfully.",
-        'selfDelete' => $isSelfDelete
+        'deletedUserIds' => $userIds
     ]);
 } catch (Exception $e) {
     // Rollback transaction on error
