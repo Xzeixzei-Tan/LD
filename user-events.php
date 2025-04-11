@@ -24,7 +24,7 @@ $selected_event_id = isset($_GET['event_id']) ? intval($_GET['event_id']) : null
 $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'unregistered';
 
 // Fetch all events from the database
-// FIXED: Modified the CASE statement to correctly handle events occurring on the current date
+// Changed the ORDER BY clause to prioritize Ongoing, then Upcoming, then Past events
 $sql = "SELECT e.id, e.title, e.start_date, e.end_date, e.venue, e.specification, e.delivery, e.proponent,
                (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered,
                CASE 
@@ -33,7 +33,13 @@ $sql = "SELECT e.id, e.title, e.start_date, e.end_date, e.venue, e.specification
                    ELSE 'Past'
                END AS status
         FROM events e  
-        ORDER BY e.start_date DESC";
+        ORDER BY 
+            CASE 
+                WHEN DATE(e.start_date) <= CURDATE() AND DATE(e.end_date) >= CURDATE() THEN 1 -- Ongoing first
+                WHEN DATE(e.start_date) > CURDATE() THEN 2 -- Upcoming second
+                ELSE 3 -- Past last
+            END,
+            e.start_date DESC"; // Then sort by start date (newest first in each group)
 $stmt = $conn->prepare($sql);
 
 // Check if the prepare statement was successful
@@ -91,7 +97,7 @@ $is_registered = false;
 
 if ($selected_event_id) {
     // Fetch event details
-    // FIXED: Modified the CASE statement in the detail query as well
+    // Updated CASE statement in the detail query for consistency
     $detail_sql = "SELECT e.*, 
                   (SELECT COUNT(*) FROM registered_users ru WHERE ru.event_id = e.id AND ru.user_id = ?) AS is_registered,
                   CASE 
@@ -179,35 +185,32 @@ function capitalizeFirstLetters($text) {
 </head>
 <body>
     <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-    <div class="logo">
-        <button id="toggleSidebar" class="toggle-btn">
-            <i class="fas fa-bars"></i>
-        </button>
-    </div>
-
-       <div class="menu">
-        <a href="user-dashboard.php" >
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </a>
-        <a href="user-events.php" class="active">
-            <i class="fas fa-calendar-alt"></i>
-            <span>Events</span>
-        </a>
-        <a href="user-notif.php">
-            <i class="fas fa-bell mr-3"></i>
-            <span>Notification</span>
-        </a>
+    <div class="sidebar" id="sidebar">
+        <div class="logo">
+            <button id="toggleSidebar" class="toggle-btn">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
- <!-- Modified user profile with logout menu -->
-        <div class="user-profile" id="userProfileToggle">
-            <div class="user-avatar"><img src="styles/photos/me.jpg"></div>
-            <div class="username"><?php echo htmlspecialchars($_SESSION['first_name']); ?> <?php echo isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['last_name']) : ''; ?></div>
-            <!-- Add logout menu -->
-            <div class="logout-menu" id="logoutMenu">
-                <a href="login.php" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            </div>
+
+        <div class="menu">
+            <a href="user-dashboard.php">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="user-events.php" class="active">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Events</span>
+            </a>
+            <a href="user-notif.php">
+                <i class="fas fa-bell mr-3"></i>
+                <span>Notification</span>
+            </a>
+        </div>
+        <div class="logout-section">
+            <a href="login.php" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
         </div>
     </div>
 
@@ -465,14 +468,11 @@ function toggleExpand() {
 
 // Document ready function
 document.addEventListener('DOMContentLoaded', function() {
-    // User profile toggle and logout menu
-    const userProfileToggle = document.getElementById('userProfileToggle');
-    const logoutMenu = document.getElementById('logoutMenu');
+    // Sidebar toggle functionality
     const sidebar = document.getElementById('sidebar');
     const content = document.querySelector('.content');
     const toggleBtn = document.getElementById('toggleSidebar');
-    const userAvatar = document.querySelector('.user-avatar');
-
+    
     // Check if sidebar state is saved in localStorage
     const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
     
@@ -480,11 +480,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isSidebarCollapsed) {
         sidebar.classList.add('collapsed');
         content.classList.add('expanded');
-        userAvatar.style.cursor = 'default'; // Make avatar non-clickable
-        userProfileToggle.style.pointerEvents = 'none'; // Disable click events
-    } else {
-        userAvatar.style.cursor = 'pointer'; // Make avatar clickable
-        userProfileToggle.style.pointerEvents = 'auto'; // Enable click events
     }
 
     // Toggle sidebar when button is clicked
@@ -492,38 +487,11 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleBtn.addEventListener('click', function() {
             sidebar.classList.toggle('collapsed');
             content.classList.toggle('expanded');
-
-            // Update avatar clickability based on sidebar state
-            if (sidebar.classList.contains('collapsed')) {
-                userAvatar.style.cursor = 'default';
-                userProfileToggle.style.pointerEvents = 'none';
-            } else {
-                userAvatar.style.cursor = 'pointer';
-                userProfileToggle.style.pointerEvents = 'auto';
-            }
             
             // Save state to localStorage
             localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
         });
     }
-
-    // Toggle logout menu when user profile is clicked
-    if (userProfileToggle) {
-        userProfileToggle.addEventListener('click', function(event) {
-            // Only toggle logout menu if sidebar is not collapsed
-            if (!sidebar.classList.contains('collapsed')) {
-                event.stopPropagation();
-                logoutMenu.classList.toggle('active');
-            }
-        });
-    }
-
-    // Close the logout menu when clicking outside
-    document.addEventListener('click', function(event) {
-        if (logoutMenu && userProfileToggle && !userProfileToggle.contains(event.target)) {
-            logoutMenu.classList.remove('active');
-        }
-    });
 
     // Sort events functionality
     const sortButton = document.getElementById('sortButton');
@@ -563,7 +531,6 @@ document.addEventListener('DOMContentLoaded', function() {
             block: 'center' // Centers the element in the viewport
         });
         
-        // Optional: Add a brief highlight effect
         setTimeout(function() {
             selectedEvent.style.transition = 'background-color 0.5s';
             const originalBackground = selectedEvent.style.backgroundColor;
@@ -578,7 +545,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Get the search input element
     const searchInput = document.querySelector('.search-input');
     
-    // Add event listener for input changes
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase().trim();
@@ -628,7 +594,6 @@ document.addEventListener('DOMContentLoaded', function() {
             displayNoResultsMessage('unregistered-tab', unregisteredCount);
         });
         
-        // Add clear button functionality
         searchInput.addEventListener('keyup', function(e) {
             // Check if Escape key was pressed or input is empty
             if (e.key === 'Escape' || this.value === '') {
@@ -657,7 +622,6 @@ document.addEventListener('DOMContentLoaded', function() {
             existingMessage.remove();
         }
         
-        // Add no-results message if no events were found
         if (count === 0) {
             const noResultsMessage = document.createElement('p');
             noResultsMessage.className = 'no-results-message';
@@ -673,8 +637,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-   // When clicking the X (clear) button
-   const searchContainer = document.querySelector('.search-container');
+    // When clicking the X (clear) button
+    const searchContainer = document.querySelector('.search-container');
     if (searchContainer) {
         searchContainer.addEventListener('click', function(e) {
             // Check if the click was on the after pseudo-element (approximated by position)
@@ -689,7 +653,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
 </script>
 
 </body>

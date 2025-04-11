@@ -115,16 +115,13 @@ if (!$notif_result) {
                 <i class="fas fa-bell mr-3"></i>
                 <span>Notification</span>
             </a>
-            <!-- Add more menu items as needed -->
         </div>
-        
-         <!-- Logout button added at the bottom of sidebar with a separator line -->
-    <div class="logout-section">
-        <a href="login.php" class="logout-btn">
-            <i class="fas fa-sign-out-alt"></i>
-            <span>Logout</span>
-        </a>
-    </div>
+        <div class="logout-section">
+            <a href="login.php" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
     </div>
 
     <div class="content">
@@ -140,138 +137,164 @@ if (!$notif_result) {
 
             <div class="notification-card">
                 <div class="notification-content">
-                <?php
-                if ($notif_result->num_rows > 0) {
-                    $current_date = '';
-                    $today = date('Y-m-d');
-                    $yesterday = date('Y-m-d', strtotime('-1 day'));
-                    
-                    while ($row = $notif_result->fetch_assoc()) { 
-                        $notification_id = $row['id'];
-                        $is_read = $row['is_read'] ? 'read' : 'unread';
-                        $is_important = $row['is_read'] ? 'read' : 'important';
-                        $notification_date = $row['notification_date'];
+                    <?php
+                    if ($notif_result->num_rows > 0) {
+                        $current_date = '';
+                        $today = date('Y-m-d');
+                        $yesterday = date('Y-m-d', strtotime('-1 day'));
                         
-                        // Display date header if this is a new date
-                        if ($notification_date != $current_date) {
-                            // Close previous section if it's not the first one
-                            if ($current_date != '') {
-                                echo '</div>'; // Close previous date section
+                        while ($row = $notif_result->fetch_assoc()) { 
+                            $notification_id = $row['id'];
+                            $is_read = $row['is_read'] ? 'read' : 'unread';
+                            $is_important = $row['is_read'] ? 'read' : 'important';
+                            $notification_date = $row['notification_date'];
+                            
+                            // Display date header if this is a new date
+                            if ($notification_date != $current_date) {
+                                // Close previous section if it's not the first one
+                                if ($current_date != '') {
+                                    echo '</div>'; // Close previous date section
+                                }
+                                
+                                // Format the date header
+                                if ($notification_date == $today) {
+                                    $date_header = "Today";
+                                } else if ($notification_date == $yesterday) {
+                                    $date_header = "Yesterday";
+                                } else {
+                                    $date_header = date('F j, Y', strtotime($notification_date));
+                                }
+                                
+                                echo '<div class="date-section">';
+                                echo '<h2 class="date-header">' . $date_header . '</h2>';
+                                
+                                $current_date = $notification_date;
                             }
-                            
-                            // Format the date header
-                            if ($notification_date == $today) {
-                                $date_header = "Today";
-                            } else if ($notification_date == $yesterday) {
-                                $date_header = "Yesterday";
-                            } else {
-                                $date_header = date('F j, Y', strtotime($notification_date));
-                            }
-                            
-                            echo '<div class="date-section">';
-                            echo '<h2 class="date-header">' . $date_header . '</h2>';
-                            
-                            $current_date = $notification_date;
-                        }
-                        ?>
-                        <div class="notifs <?php echo $is_important; ?>">
-                            <?php 
-                                    // Determine the redirect URL and action based on notification type
-                                    if (!empty($row['event_id']) && $row['notification_subtype'] == 'certificate') {
-                                        // For certificate notifications, create a visible button that triggers the modal
-                                        ?>
-                                        <a style="cursor: pointer;" class="events-btn <?php echo $is_read; ?>" 
-                                            onclick="showCertificateModal('<?php echo $row['event_id']; ?>', '<?php echo addslashes(htmlspecialchars($row['message'])); ?>', <?php echo $notification_id; ?>);">
-                                            <h3><?php 
-                                                $message = htmlspecialchars($row['message']);
-                                                // Find the position of "event:" in the message
-                                                $pos = strpos($message, "event:");
-                                                if ($pos !== false) {
-                                                    // Find the position of "is now available" or similar ending text
-                                                    $end_pos = strpos($message, "is now available");
-                                                    if ($end_pos !== false) {
-                                                        // Extract the event title
-                                                        $event_title = substr($message, $pos + 7, $end_pos - ($pos + 7) - 1);
-                                                        // Replace the original title with the bold version
-                                                        $message = str_replace("event: $event_title", "event: <strong>$event_title</strong>", $message);
-                                                    }
-                                                }
-                                                echo $message;
-                                            ?></h3>
-                                            <small><?php echo $row['created_at']; ?></small>
-                                        </a>
-                                        <?php 
-                                    } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'evaluation') {
-                                        // Special handling for evaluation notifications
-                                        $notification_id = $row['id'];
-                                        
-                                        // Extract the evaluation link from the message
-                                        // The message format is: "Please complete the evaluation for the event: {event_title}. Click the link to proceed: {evaluation_link}"
-                                        preg_match('/Click the link to proceed: (https?:\/\/\S+)/', $row['message'], $matches);
-                                        $evaluation_link = !empty($matches[1]) ? $matches[1] : '';
-                                        
-                                        if (!empty($evaluation_link)) {
-                                            $redirect_url = $evaluation_link;
-                                        } else {
-                                            // Fallback if no link is found in the message
-                                            $redirect_url = "user-events.php?event_id=" . urlencode($notif['event_id']);
-                                        }
+                            ?>
+                            <div class="notifs <?php echo $is_important; ?>">
+                                <?php 
+                                // Determine the redirect URL and action based on notification type
+                                if (!empty($row['event_id']) && $row['notification_subtype'] == 'certificate') {
+                                    // For certificate notifications, create a visible button that triggers the modal
                                     ?>
-                                        <a class="events-btn" class="<?php echo $is_read; ?>" 
-                                        href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
-                                            <div class="events-btn">
-                                                <p><?php echo htmlspecialchars($row['message']); ?></p>
-                                                <br><small><?php echo $row['created_at']; ?></small>
-                                            </div>
-                                        </a>  
-                                    <?php
-                                    } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'new_event') {
-                                        $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
-                                        ?>
-                                        <a class="events-btn <?php echo $is_read; ?>" 
-                                        href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
-                                            <h3><?php echo htmlspecialchars($row['message']); ?></h3>
-                                            <small><?php echo $row['created_at']; ?></small>
-                                        </a>
-                                        <?php
-                                    } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'event_reminder') {
-                                        $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
-                                        ?>
-                                        <a class="events-btn <?php echo $is_read; ?>" 
-                                        href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
-                                            <h3><?php echo htmlspecialchars($row['message']); ?></h3>
-                                            <small><?php echo $row['created_at']; ?></small>
-                                        </a>
-                                        <?php
-                                    }  elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'event_registration') {
-                                        $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
-                                        ?>
-                                        <a class="events-btn <?php echo $is_read; ?>" 
-                                        href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
-                                            <h3><?php echo htmlspecialchars($row['message']); ?></h3>
-                                            <small><?php echo $row['created_at']; ?></small>
-                                        </a>
-                                        <?php
+                                    <a style="cursor: pointer;" class="events-btn <?php echo $is_read; ?>" 
+                                       onclick="showCertificateModal('<?php echo $row['event_id']; ?>', '<?php echo addslashes(htmlspecialchars($row['message'])); ?>', <?php echo $notification_id; ?>);">
+                                        <h3><?php 
+                                            $message = htmlspecialchars($row['message']);
+                                            // Find the position of "event:" in the message
+                                            $pos = strpos($message, "event:");
+                                            if ($pos !== false) {
+                                                // Find the position of "is now available" or similar ending text
+                                                $end_pos = strpos($message, "is now available");
+                                                if ($end_pos !== false) {
+                                                    // Extract the event title
+                                                    $event_title = substr($message, $pos + 7, $end_pos - ($pos + 7) - 1);
+                                                    // Replace the original title with the bold version
+                                                    $message = str_replace("event: $event_title", "event: <strong>$event_title</strong>", $message);
+                                                }
+                                            }
+                                            echo $message;
+                                        ?></h3>
+                                        <small><?php echo $row['created_at']; ?></small>
+                                    </a>
+                                    <?php 
+                                } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'evaluation') {
+                                    // Special handling for evaluation notifications
+                                    $notification_id = $row['id'];
+                                    
+                                    // Extract the evaluation link from the message
+                                    // The message format is: "Please complete the evaluation for the event: {event_title}. Click the link to proceed: {evaluation_link}"
+                                    preg_match('/Click the link to proceed: (https?:\/\/\S+)/', $row['message'], $matches);
+                                    $evaluation_link = !empty($matches[1]) ? $matches[1] : '';
+                                    
+                                    if (!empty($evaluation_link)) {
+                                        $redirect_url = $evaluation_link;
                                     } else {
-                                        $redirect_url = "user-notif.php?event_id=" . urlencode($row['event_id']);
-                                        ?>
-                                        <a class="events-btn <?php echo $is_read; ?>" 
-                                        href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
-                                            <h3><?php echo htmlspecialchars($row['message']); ?></h3>
-                                            <small><?php echo $row['created_at']; ?></small>
-                                        </a>
-                                        <?php 
-                                        }
-                                        // Close the last date section
-                                        if ($current_date != '') {
-                                            echo '</div>';
-                                        } else { ?>
-                                        <p>No notifications found.</p>
-                                    <?php } ?>
-                                    <?php } ?>
-                                <?php } ?>
-                                </div>
+                                        // Fallback if no link is found in the message
+                                        $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
+                                    }
+                                    ?>
+                                    <a class="events-btn <?php echo $is_read; ?>" 
+                                       href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                        <div class="events-btn">
+                                            <p><?php echo htmlspecialchars($row['message']); ?></p>
+                                            <br><small><?php echo $row['created_at']; ?></small>
+                                        </div>
+                                    </a>  
+                                <?php
+                                } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'new_event') {
+                                    $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
+                                    ?>
+                                    <a class="events-btn <?php echo $is_read; ?>" 
+                                       href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                        <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                                        <small><?php echo $row['created_at']; ?></small>
+                                    </a>
+                                <?php
+                                } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'event_reminder') {
+                                    $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
+                                    ?>
+                                    <a class="events-btn <?php echo $is_read; ?>" 
+                                       href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                        <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                                        <small><?php echo $row['created_at']; ?></small>
+                                    </a>
+                                <?php
+                                } elseif (!empty($row['event_id']) && $row['notification_subtype'] == 'event_registration') {
+                                    $redirect_url = "user-events.php?event_id=" . urlencode($row['event_id']);
+                                    ?>
+                                    <a class="events-btn <?php echo $is_read; ?>" 
+                                       href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                        <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                                        <small><?php echo $row['created_at']; ?></small>
+                                    </a>
+                                <?php
+                                } else {
+                                    $redirect_url = "user-notif.php?event_id=" . urlencode($row['event_id']);
+                                    ?>
+                                    <a class="events-btn <?php echo $is_read; ?>" 
+                                       href="mark_notification_read.php?notification_id=<?php echo $notification_id; ?>&redirect=<?php echo urlencode($redirect_url); ?>">
+                                        <h3><?php echo htmlspecialchars($row['message']); ?></h3>
+                                        <small><?php echo $row['created_at']; ?></small>
+                                    </a>
+                                <?php 
+                                }
+                                ?>
                             </div>
+                        <?php 
+                        } // End of while loop
+                        
+                        // Close the last date section
+                        if ($current_date != '') {
+                            echo '</div>';
+                        }
+                    } else { 
+                        ?>
+                        <p>No notifications found.</p>
+                    <?php 
+                    } 
+                    ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Details Modal -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div class="modal-body">
+                <div class="detail-item">
+                    <p id="modal-message">Your certificate is now available to download.</p>
+                </div>
+
+                <div class="pdf-preview">
+                    <div class="pdf-icon"><br>
+                        <img src="styles/photos/PDF.png">
+                        <div class="pdf-filename">
+                            <a href="<?php echo isset($certificate_path) ? htmlspecialchars($certificate_path) : ''; ?>" download>
+                                Certificate of Participation
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -279,179 +302,150 @@ if (!$notif_result) {
         </div>
     </div>
 
-<!-- Event Details Modal -->
-<div id="eventModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        <div class="modal-body">
-            <div class="detail-item">
-                <p id="modal-message">Your certificate is now available to download.</div></p>
-            </div>
+    <script>
+    // Document ready function
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const content = document.querySelector('.content');
+        const toggleBtn = document.getElementById('toggleSidebar');
 
-            <div class="pdf-preview">
-                <div class="pdf-icon"><br>
-                        <img src="styles/photos/PDF.png">
-                    </a>
-                    <div class="pdf-filename">
-                        <a href="<?php echo isset($certificate_path) ? htmlspecialchars($certificate_path) : ''; ?>" download>
-                            Certificate of Participation
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+        // Check if sidebar state is saved in localStorage
+        const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        
+        // Set initial state based on localStorage
+        if (isSidebarCollapsed) {
+            sidebar.classList.add('collapsed');
+            content.classList.add('expanded');
+        }
 
-<script>
-// Document ready function
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('sidebar');
-    const content = document.querySelector('.content');
-    const toggleBtn = document.getElementById('toggleSidebar');
+        // Toggle sidebar when button is clicked
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                content.classList.toggle('expanded');
+                
+                // Save state to localStorage
+                localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+            });
+        }
+    });
 
-    // Check if sidebar state is saved in localStorage
-    const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    
-    // Set initial state based on localStorage
-    if (isSidebarCollapsed) {
-        sidebar.classList.add('collapsed');
-        content.classList.add('expanded');
+    // Modal functions (defined outside the DOMContentLoaded event for global access)
+    function showModal(eventId, message) {
+        // Update the modal message
+        document.getElementById('modal-message').textContent = message;
+        
+        // Redirect to the same page with event_id parameter to fetch certificate info
+        var currentUrl = window.location.href.split('?')[0]; // Get current URL without parameters
+        var newUrl = currentUrl + "?event_id=" + eventId + "&modal=true";
+        window.location.href = newUrl;
     }
 
-    // Toggle sidebar when button is clicked
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            content.classList.toggle('expanded');
-            
-            // Save state to localStorage
-            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+    function closeModal() {
+        var modal = document.getElementById("eventModal");
+        modal.style.display = "none";
+        
+        // Remove selected class from all events
+        document.querySelectorAll('.event').forEach(div => {
+            div.classList.remove('selected');
         });
     }
-});
 
-// Modal functions (defined outside the DOMContentLoaded event for global access)
-function showModal(eventId, message) {
-    // Update the modal message
-    document.getElementById('modal-message').textContent = message;
-    
-    // Redirect to the same page with event_id parameter to fetch certificate info
-    var currentUrl = window.location.href.split('?')[0]; // Get current URL without parameters
-    var newUrl = currentUrl + "?event_id=" + eventId + "&modal=true";
-    window.location.href = newUrl;
-}
-
-function closeModal() {
-    var modal = document.getElementById("eventModal");
-    modal.style.display = "none";
-    
-    // Remove selected class from all events
-    document.querySelectorAll('.event').forEach(div => {
-        div.classList.remove('selected');
-    });
-}
-
-// Close the modal if user clicks outside of it
-window.onclick = function(event) {
-    var modal = document.getElementById("eventModal");
-    if (event.target == modal) {
-        closeModal();
+    // Close the modal if user clicks outside of it
+    window.onclick = function(event) {
+        var modal = document.getElementById("eventModal");
+        if (event.target == modal) {
+            closeModal();
+        }
     }
-}
 
-function markAsRead(notificationId) {
-    // Redirect to mark as read script
-    window.location.href = "mark_notification_read.php?notification_id=" + notificationId + "&redirect=" + encodeURIComponent("user-notif.php");
-}
+    function markAsRead(notificationId) {
+        // Redirect to mark as read script
+        window.location.href = "mark_notification_read.php?notification_id=" + notificationId + "&redirect=" + encodeURIComponent("user-notif.php");
+    }
 
-function showCertificateModal(eventId, message, notificationId) {
-    // Update the modal message
-    document.getElementById('modal-message').innerHTML = message;
+    function showCertificateModal(eventId, message, notificationId) {
+        // Update the modal message
+        document.getElementById('modal-message').innerHTML = message;
 
-    const modalMessage = document.getElementById('modal-message');
-    
-    // Parse the message to identify and bold the event title
-    let formattedMessage = message;
-    const eventPrefix = "event:";
-    const availableSuffix = "is now available";
-    
-    const startPos = message.indexOf(eventPrefix);
-    const endPos = message.indexOf(availableSuffix);
-    
-    if (startPos !== -1 && endPos !== -1) {
-        // Extract event title
-        const beforeTitle = message.substring(0, startPos + eventPrefix.length);
-        const title = message.substring(startPos + eventPrefix.length, endPos);
-        const afterTitle = message.substring(endPos);
+        const modalMessage = document.getElementById('modal-message');
         
-        // Format with bold title
-        formattedMessage = beforeTitle + " <strong>" + title.trim() + "</strong> " + afterTitle;
-    }
-    
-    modalMessage.innerHTML = formattedMessage;
-    
-    // Mark notification as read via AJAX
-    fetch('mark_notification_read.php?notification_id=' + notificationId + '&ajax=true')
-        .then(response => response.json())
-        .then(data => {
-            if(data.success) {
-                // Update UI to show notification as read if needed
-                const notificationElement = document.querySelector(`[onclick*="${notificationId}"]`).closest('.notifs');
-                if(notificationElement) {
-                    notificationElement.classList.remove('important');
-                    notificationElement.classList.add('read');
-                    
-                    // Update the link class as well
-                    const linkElement = notificationElement.querySelector('.events-btn');
-                    if(linkElement) {
-                        linkElement.classList.add('read');
+        // Parse the message to identify and bold the event title
+        let formattedMessage = message;
+        const eventPrefix = "event:";
+        const availableSuffix = "is now available";
+        
+        const startPos = message.indexOf(eventPrefix);
+        const endPos = message.indexOf(availableSuffix);
+        
+        if (startPos !== -1 && endPos !== -1) {
+            // Extract event title
+            const beforeTitle = message.substring(0, startPos + eventPrefix.length);
+            const title = message.substring(startPos + eventPrefix.length, endPos);
+            const afterTitle = message.substring(endPos);
+            
+            // Format with bold title
+            formattedMessage = beforeTitle + " <strong>" + title.trim() + "</strong> " + afterTitle;
+        }
+        
+        modalMessage.innerHTML = formattedMessage;
+        
+        // Mark notification as read via AJAX
+        fetch('mark_notification_read.php?notification_id=' + notificationId + '&ajax=true')
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    // Update UI to show notification as read if needed
+                    const notificationElement = document.querySelector(`[onclick*="${notificationId}"]`).closest('.notifs');
+                    if(notificationElement) {
+                        notificationElement.classList.remove('important');
+                        notificationElement.classList.add('read');
+                        
+                        // Update the link class as well
+                        const linkElement = notificationElement.querySelector('.events-btn');
+                        if(linkElement) {
+                            linkElement.classList.add('read');
+                        }
                     }
                 }
-            }
-        })
-        .catch(error => console.error('Error marking notification as read:', error));
-    
-    // Show the modal
+            })
+            .catch(error => console.error('Error marking notification as read:', error));
+        
+        // Show the modal
+        var modal = document.getElementById("eventModal");
+        modal.style.display = "flex";
+        
+        // Update URL without reloading the page (for certificate info)
+        const url = new URL(window.location.href);
+        url.searchParams.set('event_id', eventId);
+        url.searchParams.set('modal', 'true');
+        window.history.pushState({}, '', url);
+        
+        // If needed, fetch certificate details via AJAX
+        fetchCertificateDetails(eventId);
+    }
+
+    function fetchCertificateDetails(eventId) {
+        // Optional: Only implement if you need to dynamically update certificate details
+        fetch('get_certificate_details.php?event_id=' + eventId)
+            .then(response => response.json())
+            .then(data => {
+                if(data.certificate_path) {
+                    document.querySelector('.pdf-filename a').href = data.certificate_path;
+                }
+            })
+            .catch(error => console.error('Error fetching certificate details:', error));
+    }
+
+    // Get the modal
     var modal = document.getElementById("eventModal");
-    modal.style.display = "flex";
-    
-    // Update URL without reloading the page (for certificate info)
-    const url = new URL(window.location.href);
-    url.searchParams.set('event_id', eventId);
-    url.searchParams.set('modal', 'true');
-    window.history.pushState({}, '', url);
-    
-    // If needed, fetch certificate details via AJAX
-    fetchCertificateDetails(eventId);
-}
 
-function fetchCertificateDetails(eventId) {
-    // Optional: Only implement if you need to dynamically update certificate details
-    fetch('get_certificate_details.php?event_id=' + eventId)
-        .then(response => response.json())
-        .then(data => {
-            if(data.certificate_path) {
-                document.querySelector('.pdf-filename a').href = data.certificate_path;
-            }
-        })
-        .catch(error => console.error('Error fetching certificate details:', error));
-}
-
-function markAsRead(notificationId) {
-    // Redirect to mark as read script
-    window.location.href = "mark_notification_read.php?notification_id=" + notificationId + "&redirect=" + encodeURIComponent("user-notif.php");
-}
-
-// Get the modal
-var modal = document.getElementById("eventModal");
-
-<?php if (isset($_GET['modal']) && $_GET['modal'] == 'true'): ?>
-// Automatically open modal if the page loaded with modal=true parameter
-document.addEventListener('DOMContentLoaded', function() {
-    modal.style.display = "flex";
-});
-<?php endif; ?>  
-</script>
+    <?php if (isset($_GET['modal']) && $_GET['modal'] == 'true'): ?>
+    // Automatically open modal if the page loaded with modal=true parameter
+    document.addEventListener('DOMContentLoaded', function() {
+        modal.style.display = "flex";
+    });
+    <?php endif; ?>  
+    </script>
 </body>
 </html>
