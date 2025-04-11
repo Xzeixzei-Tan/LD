@@ -367,7 +367,7 @@ foreach ($eventsData as $event) {
             <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
             <p>Learning and Development</p>
             <h1>EVENT MANAGEMENT SYSTEM</h1>
-        </div><br><br><br>
+        </div><br>
 
         <div class="content-body">
             <h1><?php echo $pageTitle; ?></h1>
@@ -521,10 +521,12 @@ foreach ($eventsData as $event) {
                                 <i class="fas fa-certificate"></i> Distribute Certificates
                             </button>
                         </div>
-                        <div class="registered-users-table">
-                            <div class="table-controls mb-3">
+
+                        <div class="table-controls mb-3">
                                 <button id="unregister-selected" class="unregister-btn"><i class="fa fa-trash" aria-hidden="true"></i>Unregister Selected Users</button>
                             </div>
+                        <div class="registered-users-table">
+                            
                         <table id="registered-users-table">
                             <thead>
                                 <tr>
@@ -667,16 +669,49 @@ function sortEventsByDate() {
 
 // Make sure to call this function on page load
 document.addEventListener('DOMContentLoaded', function() {
-    sortEventsByDate();
-    
-    // Re-sort when search is performed to maintain the order
     const searchInput = document.querySelector('.search-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            // Let the filter function finish first
-            setTimeout(sortEventsByDate, 10);
+    const eventButtons = document.querySelectorAll('.events-btn');
+    const eventsSection = document.querySelector('.events-section');
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        eventButtons.forEach(function(eventButton) {
+            const eventTitle = eventButton.querySelector('h3').textContent.toLowerCase();
+            const eventSpecification = eventButton.querySelector('p').textContent.toLowerCase();
+            const eventDate = eventButton.querySelector('.event-dates p').textContent.toLowerCase();
+            
+            // Check if the search term matches the title, specification, or date
+            if (
+                eventTitle.includes(searchTerm) || 
+                eventSpecification.includes(searchTerm) || 
+                eventDate.includes(searchTerm)
+            ) {
+                eventButton.style.display = 'block';
+            } else {
+                eventButton.style.display = 'none';
+            }
         });
-    }
+
+        // If no events match the search, show a "No results" message
+        const visibleEvents = Array.from(eventButtons).filter(btn => btn.style.display !== 'none');
+        
+        // Remove any existing "no results" message
+        const existingNoResultsMessage = document.querySelector('.no-results-message');
+        if (existingNoResultsMessage) {
+            existingNoResultsMessage.remove();
+        }
+
+        if (visibleEvents.length === 0 && searchTerm !== '') {
+            const noResultsMessage = document.createElement('div');
+            noResultsMessage.classList.add('no-results-message');
+            noResultsMessage.innerHTML = `
+                <p><i class="fas fa-search"></i> No events found matching "<strong>${searchTerm}</strong>"</p>
+            `;
+            
+            // Insert the message inside the events section
+            eventsSection.appendChild(noResultsMessage);
+        }
+    });
 });
 
     // Function to toggle sidebar
@@ -1213,52 +1248,51 @@ mealBtn.removeAttribute('data-tooltip');
     const eventButtons = document.querySelectorAll('.events-btn');
     const eventsSection = document.querySelector('.events-section');
 
-    // Function to filter events
-    function filterEvents(searchTerm) {
-        eventButtons.forEach(function(eventButton) {
-            const eventTitle = eventButton.querySelector('h3').textContent.toLowerCase();
-            const eventSpecification = eventButton.querySelector('p').textContent.toLowerCase();
-            const eventDate = eventButton.querySelector('.event-dates p').textContent.toLowerCase();
-            
-            // Check if the search term matches the title, specification, or date
-            if (
-                searchTerm === '' || 
-                eventTitle.includes(searchTerm) || 
-                eventSpecification.includes(searchTerm) || 
-                eventDate.includes(searchTerm)
-            ) {
-                eventButton.style.display = 'block';
-            } else {
-                eventButton.style.display = 'none';
-            }
-        });
+    // Function to filter events based on the search term
+function filterEvents(searchTerm) {
+    const eventButtons = document.querySelectorAll('.events-btn');
+    let hasResults = false;
 
-        // If no events match the search, show a "No results" message
-        const visibleEvents = Array.from(eventButtons).filter(btn => btn.style.display !== 'none');
-        
-        // Remove any existing "no results" message
-        const existingNoResultsMessage = document.querySelector('.no-results-message');
-        if (existingNoResultsMessage) {
-            existingNoResultsMessage.remove();
+    eventButtons.forEach(function(eventButton) {
+        const eventTitle = eventButton.querySelector('h3').textContent.toLowerCase();
+        const eventSpecification = eventButton.querySelector('p').textContent.toLowerCase();
+        const eventDate = eventButton.querySelector('.event-dates p').textContent.toLowerCase();
+
+        // Check if the search term matches the title, specification, or date
+        if (
+            searchTerm === '' ||
+            eventTitle.includes(searchTerm) ||
+            eventSpecification.includes(searchTerm) ||
+            eventDate.includes(searchTerm)
+        ) {
+            eventButton.style.display = 'block';
+            hasResults = true;
+        } else {
+            eventButton.style.display = 'none';
         }
-
-        if (visibleEvents.length === 0 && searchTerm !== '') {
-            const noResultsMessage = document.createElement('div');
-            noResultsMessage.classList.add('no-results-message');
-            noResultsMessage.innerHTML = `
-                <p><i class="fas fa-search"></i> No events found matching "<strong>${searchTerm}</strong>"</p>
-            `;
-            
-            // Insert the message inside the events section
-            eventsSection.appendChild(noResultsMessage);
-        }
-    }
-
-    // Event listener for input changes
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase().trim();
-        filterEvents(searchTerm);
     });
+
+    // Show a "No results" message if no events match the search term
+    const noResultsMessage = document.querySelector('.no-results-message');
+    if (!hasResults) {
+        if (!noResultsMessage) {
+            const message = document.createElement('div');
+            message.classList.add('no-results-message');
+            message.innerHTML = `<p><i class="fas fa-search"></i> No events found matching "<strong>${searchTerm}</strong>"</p>`;
+            document.querySelector('.events-section').appendChild(message);
+        }
+    } else if (noResultsMessage) {
+        noResultsMessage.remove();
+    }
+}
+
+// Event listener for the search input
+document.querySelector('.search-input').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase().trim();
+    filterEvents(searchTerm);
+});
+
+
 
     // Handle clear button (x) in search input
     searchInput.addEventListener('search', function() {
