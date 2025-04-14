@@ -1,26 +1,72 @@
 <?php 
 require_once 'config.php';
 
+// Initialize currentAffiliation
+$currentAffiliation = isset($_GET['affiliation']) ? $_GET['affiliation'] : '';
 
-// Initialize currentAffiliation - fixes undefined variable error
-$currentAffiliation = '';
+// Add pagination parameters
+$records_per_page = 50;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $records_per_page;
 
-// Improved query to fetch users with their LND details - explicitly ordering by ID in ascending order
-$sql = "SELECT u.id, u.first_name, u.middle_name, u.last_name, u.suffix, u.sex, 
+// Base SQL query components
+$select_sql = "SELECT u.id, u.first_name, u.middle_name, u.last_name, u.suffix, u.sex, 
         u.contact_no, u.email, c.name as classification_name, cp.name as position_name,
         ul.affiliation_id
         FROM users u 
         INNER JOIN users_lnd ul ON u.id = ul.user_id
         LEFT JOIN classification c ON ul.classification_id = c.id 
         LEFT JOIN class_position cp ON ul.position_id = cp.id 
-        WHERE u.deleted_at IS NULL 
-        ORDER BY u.id ASC"; // Added ASC for explicitness
-$result = $conn->query($sql);
+        WHERE u.deleted_at IS NULL";
+
+// Add affiliation filter if set
+if (!empty($currentAffiliation)) {
+    $select_sql .= " AND ul.affiliation_id = '$currentAffiliation'";
+}
+
+// Add search condition if provided
+$search_term = isset($_GET['search']) ? $_GET['search'] : '';
+if (!empty($search_term)) {
+    $search_term = $conn->real_escape_string($search_term);
+    $select_sql .= " AND (u.first_name LIKE '%$search_term%' OR 
+                          u.last_name LIKE '%$search_term%' OR 
+                          u.email LIKE '%$search_term%' OR 
+                          u.contact_no LIKE '%$search_term%')";
+}
+
+// Complete the query with ordering and pagination
+$select_sql .= " ORDER BY u.id ASC LIMIT $records_per_page OFFSET $offset";
+
+// Execute the query
+$result = $conn->query($select_sql);
 
 // Error handling for SQL query
 if ($result === false) {
     die("SQL Error: " . $conn->error);
 }
+
+// Count total number of users with the same filters (for pagination)
+$count_sql = "SELECT COUNT(*) as total 
+              FROM users u 
+              INNER JOIN users_lnd ul ON u.id = ul.user_id
+              WHERE u.deleted_at IS NULL";
+
+// Add the same filters to the count query
+if (!empty($currentAffiliation)) {
+    $count_sql .= " AND ul.affiliation_id = '$currentAffiliation'";
+}
+
+if (!empty($search_term)) {
+    $count_sql .= " AND (u.first_name LIKE '%$search_term%' OR 
+                          u.last_name LIKE '%$search_term%' OR 
+                          u.email LIKE '%$search_term%' OR 
+                          u.contact_no LIKE '%$search_term%')";
+}
+
+$count_result = $conn->query($count_sql);
+$count_row = $count_result->fetch_assoc();
+$total_users = $count_row['total'];
+$total_pages = ceil($total_users / $records_per_page);
 
 //Query to count the number of Users from Schools
 $schoolCount = $conn->prepare("
@@ -52,14 +98,7 @@ $totalResult = $totalCount->get_result();
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/admin-dashboard.css" rel="stylesheet">
     <link href="styles/admin-user.css" rel="stylesheet">
-    <title>Users</title>
-    <style>
-        /* Add CSS to hide checkboxes when needed */
-        .checkbox-column.hidden,
-        .checkbox-cell.hidden {
-            display: none !important;
-        }
-    </style>
+    <title>Users - Events Management System</title>
 </head>
 
 <body data-current-user-id="<?php echo isset($_SESSION['user_id']) ? $_SESSION['user_id'] : '0'; ?>">
@@ -91,16 +130,17 @@ $totalResult = $totalCount->get_result();
             <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
             <p>Learning and Development</p>
             <h1>EVENT MANAGEMENT SYSTEM</h1>
-        </div><br><br><br>
+        </div><br>
 
         <div class="content-body">
-            <h1>Users</h1><br>
+            <h1>Users</h1>
+            <hr><br>
 
             <!-- Search Bar Only -->
             <div class="filter-bar">
                 <div class="search-container">
                     <span class="search-icon"><i class="fa fa-search" aria-hidden="true"></i></span>
-                    <input type="text" class="search-input" placeholder="Search for users...">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search for users..." value="<?php echo htmlspecialchars($search_term); ?>">
                 </div>
             </div>
 
@@ -109,34 +149,33 @@ $totalResult = $totalCount->get_result();
                 <?php if ($totalResult) {
                     $row = $totalResult->fetch_assoc();
                 } ?>
-                <div class="all-personnel" id="all-personnel">
+                <div class="all-personnel <?php echo empty($currentAffiliation) ? 'active' : ''; ?>" id="all-personnel">
                     <p>All personnel: <?php echo $row['count']; ?></p>
                 </div>
                 
                 <?php if ($schoolResult) {
                     $row = $schoolResult->fetch_assoc();
                 } ?>
-                <div class="school" id="school-filter">
+                <div class="school <?php echo $currentAffiliation === '1' ? 'active' : ''; ?>" id="school-filter">
                     <p>School personnel: <?php echo $row['count']; ?></p>
                 </div>
 
                 <?php if ($divResult) {
                     $row = $divResult->fetch_assoc();
                 } ?>
-                <div class="division" id="division-filter">
+                <div class="division <?php echo $currentAffiliation === '2' ? 'active' : ''; ?>" id="division-filter">
                     <p>Division personnel: <?php echo $row['count']; ?></p>
                 </div>
             </div>
-
-            <br><br><br>
-            <div class="bulk-actions" id="bulk-actions">
+            
+            <div class="bulk-actions" id="bulk-actions" style="<?php echo $currentAffiliation === '1' ? '' : 'display: none;'; ?>">
                 <button class="delete-selected-btn" id="delete-selected"><i class="fa fa-trash" aria-hidden="true"></i> Delete Selected</button>
             </div>
     
             <table id="usersTable">
             <thead>
                 <tr>
-                    <th class="checkbox-column"><input type="checkbox" id="select-all"></th>
+                    <th class="checkbox-column <?php echo $currentAffiliation === '1' ? '' : 'hidden'; ?>"><input type="checkbox" id="select-all"></th>
                     <th>#</th>
                     <th>Name</th>
                     <th>Sex</th>
@@ -150,7 +189,8 @@ $totalResult = $totalCount->get_result();
                 <tbody>
                 <?php
                 if ($result->num_rows > 0) {
-                    $count = 1;
+                    // Calculate starting row number based on pagination
+                    $count = $offset + 1;
                     while ($row = $result->fetch_assoc()) {
                         // Format name with middle initial and suffix
                         $middle_initial = !empty($row["middle_name"]) ? " " . substr($row["middle_name"], 0, 1) . "." : "";
@@ -158,7 +198,7 @@ $totalResult = $totalCount->get_result();
                         $full_name = $row["first_name"] . $middle_initial . " " . $row["last_name"] . $suffix;
 
                         echo "<tr data-affiliation='" . $row["affiliation_id"] . "'>";
-                        echo "<td class='checkbox-cell'>";
+                        echo "<td class='checkbox-cell " . ($currentAffiliation === '1' ? '' : 'hidden') . "'>";
                         // Only show checkboxes for school personnel (affiliation_id = 1)
                         if ($row["affiliation_id"] == 1) {
                             echo "<input type='checkbox' class='user-checkbox' data-id='" . $row["id"] . "'>";
@@ -176,26 +216,72 @@ $totalResult = $totalCount->get_result();
                         $count++;
                     }
                 } else {
-                    echo "<tr><td colspan='10' style='text-align:center'>No users found</td></tr>";
+                    $colspan = $currentAffiliation === '1' ? 9 : 8;
+                    echo "<tr><td colspan='$colspan' style='text-align:center'>No users found</td></tr>";
                 }
                 ?>
                 </tbody>
             </table>
+
+            <!-- Pagination navigation -->
+            <div class="pagination" id="pagination">
+                <?php if ($total_pages > 1): ?>
+                    <?php if ($page > 1): ?>
+                        <a href="?page=1<?php echo !empty($currentAffiliation) ? '&affiliation='.$currentAffiliation : ''; ?><?php echo !empty($search_term) ? '&search='.urlencode($search_term) : ''; ?>" class="first-page"><i class="fas fa-angle-double-left"></i></a>
+                        <a href="?page=<?php echo $page-1; ?><?php echo !empty($currentAffiliation) ? '&affiliation='.$currentAffiliation : ''; ?><?php echo !empty($search_term) ? '&search='.urlencode($search_term) : ''; ?>" class="prev-page"><i class="fas fa-angle-left"></i></a>
+                    <?php else: ?>
+                        <span class="disabled"><i class="fas fa-angle-double-left"></i></span>
+                        <span class="disabled"><i class="fas fa-angle-left"></i></span>
+                    <?php endif; ?>
+                    
+                    <?php
+                    $start_page = max(1, $page - 2);
+                    $end_page = min($start_page + 4, $total_pages);
+                    
+                    if ($end_page - $start_page < 4) {
+                        $start_page = max(1, $end_page - 4);
+                    }
+                    
+                    for ($i = $start_page; $i <= $end_page; $i++): ?>
+                        <?php if ($i == $page): ?>
+                            <span class="active"><?php echo $i; ?></span>
+                        <?php else: ?>
+                            <a href="?page=<?php echo $i; ?><?php echo !empty($currentAffiliation) ? '&affiliation='.$currentAffiliation : ''; ?><?php echo !empty($search_term) ? '&search='.urlencode($search_term) : ''; ?>"><?php echo $i; ?></a>
+                        <?php endif; ?>
+                    <?php endfor; ?>
+                    
+                    <?php if ($page < $total_pages): ?>
+                        <a href="?page=<?php echo $page+1; ?><?php echo !empty($currentAffiliation) ? '&affiliation='.$currentAffiliation : ''; ?><?php echo !empty($search_term) ? '&search='.urlencode($search_term) : ''; ?>" class="next-page"><i class="fas fa-angle-right"></i></a>
+                        <a href="?page=<?php echo $total_pages; ?><?php echo !empty($currentAffiliation) ? '&affiliation='.$currentAffiliation : ''; ?><?php echo !empty($search_term) ? '&search='.urlencode($search_term) : ''; ?>" class="last-page"><i class="fas fa-angle-double-right"></i></a>
+                    <?php else: ?>
+                        <span class="disabled"><i class="fas fa-angle-right"></i></span>
+                        <span class="disabled"><i class="fas fa-angle-double-right"></i></span>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+            
+            <!-- Display pagination info -->
+            <div class="pagination-info">
+                Showing <?php echo min($total_users, 1 + $offset); ?> to <?php echo min($offset + $records_per_page, $total_users); ?> of <?php echo $total_users; ?> entries
+            </div>
         </div>
     </div>
 
     <script>
-// Sidebar toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.querySelector('.sidebar');
     const content = document.getElementById('content');
     const toggleBtn = document.getElementById('toggleSidebar');
     const tableBody = document.querySelector('table tbody');
-    const searchInput = document.querySelector('.search-input');
+    const searchInput = document.getElementById('searchInput');
     const usersTable = document.getElementById('usersTable');
     const bulkActions = document.getElementById('bulk-actions');
     
-    // Get current user ID from session (you'll need to add this to your PHP)
+    // Get current affiliation from URL or empty string if not set
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentAffiliation = urlParams.get('affiliation') || '';
+    
+    // Get current user ID from session
     const currentUserId = parseInt(document.body.getAttribute('data-current-user-id') || '0');
 
     // Check if sidebar state is saved in localStorage
@@ -214,14 +300,14 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
     });
 
-     // Function to check if any checkboxes are selected
-     function checkSelectedCheckboxes() {
+    // Function to check if any checkboxes are selected
+    function checkSelectedCheckboxes() {
         const checkboxes = document.querySelectorAll('.user-checkbox:checked');
         
         if (checkboxes.length > 0) {
             // Show bulk actions and add margin to table
             bulkActions.classList.add('visible');
-            usersTable.style.marginTop = '60px'; // Add space for the bulk actions bar
+            usersTable.style.marginTop = '20px'; // Add space for the bulk actions bar
             bulkActions.style.opacity = '1';
             bulkActions.style.transform = 'translateY(0)';
         } else {
@@ -246,59 +332,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         checkSelectedCheckboxes();
     });
-
-    // Handle delete button clicks for individual users
-    function setupDeleteButtons() {
-        document.querySelectorAll('.delete-btn').forEach(button => {
-            const row = button.closest('tr');
-            // Only enable delete buttons for school personnel (affiliation_id = 1)
-            if (row.getAttribute('data-affiliation') === '1') {
-                button.classList.remove('disabled');
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (confirm('Are you sure you want to delete this user?')) {
-                        const userId = this.getAttribute('data-id');
-                        deleteUser(userId, row);
-                    }
-                });
-            } else {
-                // Disable delete button for division personnel
-                button.classList.add('disabled');
-                // Remove existing event listeners by cloning and replacing
-                const newButton = button.cloneNode(true);
-                button.parentNode.replaceChild(newButton, button);
-            }
-        });
-    }
-
-    // Function to delete a single user
-    function deleteUser(userId, row) {
-        // Send AJAX request to delete user
-        fetch('delete_user.php?id=' + userId, {
-            method: 'POST'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Check if the deleted user is the currently logged-in user
-                if (currentUserId === parseInt(data.deletedUserId)) {
-                    // If admin deleted their own account or the account of the logged-in user
-                    alert('This account has been deleted. Redirecting to signup page.');
-                    window.location.href = 'signup.php?account_deleted=1';
-                } else {
-                    // Admin deleted someone else's account
-                    row.remove();
-                    alert('User deleted successfully.');
-                }
-            } else {
-                alert('Error deleting user: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while trying to delete the user.');
-        });
-    }
 
     // Initialize the UI state
     checkSelectedCheckboxes(); // Check if any checkboxes are already selected
@@ -358,96 +391,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Call setupDeleteButtons when the page loads
-    checkSelectedCheckboxes(); // Check if any checkboxes are already selected
-    setupDeleteButtons(); // Set up delete buttons
-
-    // Store original table rows for filtering (maintains ascending order)
-    const originalRows = Array.from(document.querySelectorAll('table tbody tr'));
-
-    // Personnel selector functionality (improved to maintain order)
+    // Personnel selector functionality
     const schoolFilter = document.getElementById('school-filter');
     const divisionFilter = document.getElementById('division-filter');
     const allPersonnelFilter = document.getElementById('all-personnel');
 
-    // Function to filter by affiliation while maintaining order
+    // Function to filter by affiliation
     function filterByAffiliation(affiliationId) {
-        // Remove active class from all personnel buttons
-        schoolFilter.classList.remove('active');
-        divisionFilter.classList.remove('active');
-        allPersonnelFilter.classList.remove('active');
-
-        // Add active class to the selected button
-        if (affiliationId === '1') {
-            schoolFilter.classList.add('active');
-        } else if (affiliationId === '2') {
-            divisionFilter.classList.add('active');
-        } else {
-            allPersonnelFilter.classList.add('active');
+        // Build filter URL with pagination reset
+        let filterUrl = window.location.pathname + '?page=1';
+        
+        // Add affiliation filter if set
+        if (affiliationId) {
+            filterUrl += '&affiliation=' + encodeURIComponent(affiliationId);
         }
 
-        // Handle checkbox column visibility
-        const checkboxColumn = document.querySelector('.checkbox-column');
-        const selectAllCheckbox = document.getElementById('select-all');
-        
-        // Show/hide checkbox column and bulk actions based on current affiliation
-        if (affiliationId === '1') {
-            // School personnel view - show checkboxes
-            checkboxColumn.classList.remove('hidden');
-            document.getElementById('bulk-actions').style.display = '';
-        } else {
-            // Division or All personnel view - hide checkboxes
-            checkboxColumn.classList.add('hidden');
-            document.getElementById('bulk-actions').style.display = 'none';
-        }
-        
-        // Clear table body
-        tableBody.innerHTML = '';
-        
-        // Filter and add rows in original order (preserves ascending order)
-        let count = 1;
-        originalRows.forEach(row => {
-            const rowClone = row.cloneNode(true);
-            const rowAffiliation = rowClone.getAttribute('data-affiliation');
-            
-            // Show row if it matches filter or if showing all
-            if (!affiliationId || rowAffiliation === affiliationId) {
-                // Update the row number to ensure consecutive numbers
-                const indexCell = rowClone.querySelector('td:nth-child(2)');
-                if (indexCell) {
-                    indexCell.textContent = count++;
-                }
-                
-                // Set visibility of checkbox cells based on current filter
-                const checkboxCell = rowClone.querySelector('.checkbox-cell');
-                if (checkboxCell) {
-                    if (affiliationId === '1') {
-                        checkboxCell.classList.remove('hidden');
-                    } else {
-                        checkboxCell.classList.add('hidden');
-                    }
-                }
-                
-                tableBody.appendChild(rowClone);
-            }
-        });
-
-        // If no rows match the filter
-        if (tableBody.children.length === 0) {
-            const colSpan = affiliationId === '1' ? 9 : 8; // Adjust colspan based on checkbox visibility
-            tableBody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center">No users found</td></tr>`;
+        // Keep any existing search parameter
+        const searchParam = urlParams.get('search');
+        if (searchParam) {
+            filterUrl += '&search=' + encodeURIComponent(searchParam);
         }
 
-        // Set up event handlers for new rows
-        setupDeleteButtons();
-        
-        // Add checkbox event listeners
-        document.querySelectorAll('.user-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', checkSelectedCheckboxes);
-        });
-        
-        // Check if we need to show/hide bulk actions
-        checkSelectedCheckboxes();
+        // Navigate to filtered view
+        window.location.href = filterUrl;
     }
     
     // Add event listeners to personnel filter buttons
@@ -463,99 +429,7 @@ document.addEventListener('DOMContentLoaded', function() {
         filterByAffiliation('');
     });
 
-    // Function to perform search
-    function performSearch(searchValue) {
-        // Show loading indicator
-        const colSpan = document.querySelector('.checkbox-column.hidden') ? 8 : 9;
-        tableBody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center">Searching...</td></tr>`;
-        
-        // Build the search URL
-        let searchUrl = 'search_users.php?term=' + encodeURIComponent(searchValue);
-        
-        // Get current affiliation filter if any is active
-        let currentAffiliation = '';
-        if (schoolFilter.classList.contains('active')) {
-            currentAffiliation = '1';
-        } else if (divisionFilter.classList.contains('active')) {
-            currentAffiliation = '2';
-        }
-        
-        // Add affiliation filter if set
-        if (currentAffiliation) {
-            searchUrl += '&affiliation=' + encodeURIComponent(currentAffiliation);
-        }
-        
-        // Also add ordering parameter to ensure ascending order
-        searchUrl += '&orderby=id&order=asc';
-        
-        // Send AJAX request to search users
-        fetch(searchUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    if (data.data.length > 0) {
-                        // Clear table and add new rows
-                        tableBody.innerHTML = '';
-                        
-                        data.data.forEach((user, index) => {
-                            const row = document.createElement('tr');
-                            row.setAttribute('data-affiliation', user.affiliation_id);
-                            
-                            // Create checkbox cell
-                            const checkboxCell = document.createElement('td');
-                            checkboxCell.className = 'checkbox-cell';
-                            
-                            // Only add checkbox for school personnel and if in school view
-                            if (user.affiliation_id === '1' && currentAffiliation === '1') {
-                                const checkbox = document.createElement('input');
-                                checkbox.type = 'checkbox';
-                                checkbox.className = 'user-checkbox';
-                                checkbox.setAttribute('data-id', user.id);
-                                checkbox.addEventListener('change', checkSelectedCheckboxes);
-                                checkboxCell.appendChild(checkbox);
-                            } else {
-                                // Hide checkbox cell if not school personnel or not in school view
-                                checkboxCell.classList.add('hidden');
-                            }
-                            
-                            row.appendChild(checkboxCell);
-                            
-                            // Add other cells with proper index (starting from 1)
-                            row.innerHTML += `
-                                <td>${index + 1}</td>
-                                <td>${user.name}</td>
-                                <td>${user.sex}</td>
-                                <td>${user.contact_no}</td>
-                                <td>${user.classification}</td>
-                                <td>${user.position}</td>
-                                <td>${user.email}</td>
-                                <td>*****</td>
-                            `;
-                            
-                            tableBody.appendChild(row);
-                        });
-                        
-                        // Set up delete buttons for new rows
-                        setupDeleteButtons();
-                        // Check if we need to show/hide bulk actions
-                        checkSelectedCheckboxes();
-                    } else {
-                        const colSpan = currentAffiliation === '1' ? 9 : 8;
-                        tableBody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center">No users found matching your search criteria</td></tr>`;
-                    }
-                } else {
-                    const colSpan = currentAffiliation === '1' ? 9 : 8;
-                    tableBody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center">Error: ${data.message}</td></tr>`;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                const colSpan = currentAffiliation === '1' ? 9 : 8;
-                tableBody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center">Error connecting to the server</td></tr>`;
-            });
-    }
-
-    // Add debounce function for search
+    // Search functionality with debounce
     function debounce(func, wait) {
         let timeout;
         return function() {
@@ -567,56 +441,43 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
-    // Handle search input with server-side search
-    searchInput.addEventListener('input', debounce(function() {
-        const searchValue = this.value.trim();
+    function performSearch() {
+        const searchValue = searchInput.value.trim();
         
-        if (searchValue.length >= 2) {
-            performSearch(searchValue);
-        } else if (searchValue.length === 0) {
-            // If search is cleared, refresh the current view instead of reloading
-            const currentAffiliation = schoolFilter.classList.contains('active') ? '1' : 
-                                      (divisionFilter.classList.contains('active') ? '2' : '');
-            filterByAffiliation(currentAffiliation);
+        if (searchValue.length >= 2 || searchValue.length === 0) {
+            // Build the search URL, resetting to page 1
+            let searchUrl = window.location.pathname + '?page=1';
+            
+            // Add search param if not empty
+            if (searchValue.length >= 2) {
+                searchUrl += '&search=' + encodeURIComponent(searchValue);
+            }
+            
+            // Add affiliation filter if set
+            if (currentAffiliation) {
+                searchUrl += '&affiliation=' + encodeURIComponent(currentAffiliation);
+            }
+            
+            // Navigate to search results page
+            window.location.href = searchUrl;
+        }
+    }
+    
+    // Add search input event listeners
+    searchInput.addEventListener('input', debounce(function() {
+        if (this.value.trim().length >= 2 || this.value.trim().length === 0) {
+            performSearch();
         }
     }, 500)); // 500ms debounce
 
-    // Handle clear button (x) in search input
-    searchInput.addEventListener('search', function() {
-        // This event is triggered when the search input is cleared
-        if (this.value === '') {
-            // Refresh the current view instead of reloading
-            const currentAffiliation = schoolFilter.classList.contains('active') ? '1' : 
-                                      (divisionFilter.classList.contains('active') ? '2' : '');
-            filterByAffiliation(currentAffiliation);
+    // Handle Enter key in search input
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
         }
     });
-
-    // When clicking the X (clear) button
-    const searchContainer = document.querySelector('.search-container');
-    if (searchContainer) {
-        searchContainer.addEventListener('click', function(e) {
-            // Check if the click was on the after pseudo-element (approximated by position)
-            const rect = searchContainer.getBoundingClientRect();
-            
-            // If click is in the right 30px of the container (where the X appears)
-            if (searchInput && e.clientX > rect.right - 30 && searchInput.value !== '') {
-                searchInput.value = '';
-                // Refresh the current view instead of reloading
-                const currentAffiliation = schoolFilter.classList.contains('active') ? '1' : 
-                                          (divisionFilter.classList.contains('active') ? '2' : '');
-                filterByAffiliation(currentAffiliation);
-                searchInput.focus();
-            }
-        });
-    }
-    
-    // Set allPersonnelFilter as active by default and apply filtering
-    allPersonnelFilter.classList.add('active');
-    filterByAffiliation(''); // Apply "All Personnel" filter on page load
 });
-
-
     </script>
 </body>
 </html>
