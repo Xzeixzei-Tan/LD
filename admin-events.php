@@ -669,6 +669,20 @@ function sortEventsByDate() {
 
 // Make sure to call this function on page load
 document.addEventListener('DOMContentLoaded', function() {
+    sortEventsByDate();
+    
+    // Re-sort when search is performed to maintain the order
+    const searchInput = document.querySelector('.search-input');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            // Let the filter function finish first
+            setTimeout(sortEventsByDate, 10);
+        });
+    }
+});
+
+// Make sure to call this function on page load
+document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.querySelector('.search-input');
     const eventButtons = document.querySelectorAll('.events-btn');
     const eventsSection = document.querySelector('.events-section');

@@ -1166,6 +1166,7 @@ li{
 }
 
 #link-btn{
+    float: right;
     margin-left: 10%;
     color: #3ca25e;
     background-color: #b2dec1;
