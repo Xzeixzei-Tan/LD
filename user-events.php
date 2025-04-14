@@ -1,10 +1,11 @@
 <?php
-require_once 'config.php';
+require_once 'session_manager.php';
+validateUserSession();
 
-// Start the session
-session_start();
+
+// User is already being redirected if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: signup.php");
     exit();
 }
 
@@ -181,6 +182,7 @@ function capitalizeFirstLetters($text) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/user-events.css" rel="stylesheet"> 
+    <script src="scripts/session-handler.js"></script>
     <title>Events</title>
 </head>
 <body>

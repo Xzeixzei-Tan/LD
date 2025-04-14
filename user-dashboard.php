@@ -1,8 +1,9 @@
 <?php
-require_once 'config.php';
-session_start();
+require_once 'session_manager.php';
+validateUserSession();
 
 
+// User is already being redirected if not logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: signup.php");
     exit();
@@ -460,15 +461,6 @@ function formatEventDaysData($eventDaysData) {
         var newUrl = currentUrl + "?event_id=" + eventId + "&modal=true";
         window.location.href = newUrl;
     }
-
-    <?php if (isset($_GET['modal']) && $_GET['modal'] == 'true'): ?>
-    // Automatically open modal if the page loaded with modal=true parameter
-    document.addEventListener('DOMContentLoaded', function() {
-        modal.style.display = "flex";
-    });
-    <?php endif; ?>  
     </script>
-
-
 </body>
 </html>

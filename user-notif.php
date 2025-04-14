@@ -1,8 +1,11 @@
 <?php
-require_once 'config.php';
-session_start();
+require_once 'session_manager.php';
+validateUserSession();
+
+
+// User is already being redirected if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: signup.php");
     exit();
 }
 
@@ -91,6 +94,7 @@ if (!$notif_result) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/user-notif.css" rel="stylesheet">
+    <script src="scripts/session-handler.js"></script>
     <title>Notifications - Event Management System</title>
 </head>
 <body>
