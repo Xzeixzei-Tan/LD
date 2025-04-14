@@ -2,10 +2,10 @@
 require_once 'config.php';
 session_start();
 
-// Fetch positions with their corresponding classifications
 $positionQuery = "SELECT cp.id, cp.name, c.name AS classification_name 
                   FROM class_position cp
-                  JOIN classification c ON cp.classification_id = c.id";
+                  JOIN classification c ON cp.classification_id = c.id
+                  WHERE c.name != 'Non-Teaching'"; 
 $positionResult = $conn->query($positionQuery);
 ?>
 <!DOCTYPE html>
@@ -15,7 +15,6 @@ $positionResult = $conn->query($positionQuery);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signup-Event Management System</title>
     <style>
-        /* Reset some default styling */
         * {
             margin: 0;
             padding: 0;
