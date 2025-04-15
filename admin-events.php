@@ -335,6 +335,156 @@ foreach ($eventsData as $event) {
         left: 50%;
         transform: translate(-50%, -50%);
     }
+
+    .certificate-modal {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 400px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        overflow: hidden;
+        z-index: 1000;
+        display: none;
+        transition: all 0.3s ease;
+        border: 1px solid #ddd;
+    }
+
+    .certificate-modal.minimized {
+        height: 40px;
+        width: 250px;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background-color: #3498db;
+        color: white;
+        padding: 10px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .modal-controls {
+        display: flex;
+        gap: 5px;
+    }
+
+    .minimize-btn, .close-btn {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 3px 5px;
+        font-size: 12px;
+        border-radius: 3px;
+    }
+
+    .minimize-btn:hover, .close-btn:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .modal-body {
+        padding: 15px;
+        max-height: 300px;
+        overflow: auto;
+    }
+
+    .event-title {
+        font-size: 16px;
+        margin-bottom: 10px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 2s linear infinite;
+        margin: 10px auto;
+    }
+
+    .success-icon {
+        display: none;
+        color: #28a745;
+        font-size: 30px;
+        text-align: center;
+        margin: 10px auto;
+    }
+
+    .processing-text {
+        font-size: 14px;
+        margin: 10px 0;
+        text-align: center;
+    }
+
+    .progress-bar-container {
+        width: 100%;
+        height: 10px;
+        background-color: #f3f3f3;
+        border-radius: 5px;
+        margin: 10px 0;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background-color: #3498db;
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+
+    .status-text {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .status-text > div {
+        margin: 3px 0;
+    }
+
+    #certificate-count, #email-count, #participant-progress {
+        font-weight: bold;
+        color: #3498db;
+    }
+
+    .error-count {
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    #error-details {
+        margin-top: 5px;
+        color: #dc3545;
+        font-size: 12px;
+        max-height: 60px;
+        overflow-y: auto;
+        text-align: left;
+    }
+
+    .error-details-item {
+        margin-bottom: 3px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes scaleUp {
+        0% { transform: scale(0); }
+        70% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
     </style>
 </head>
 <body>
@@ -596,6 +746,38 @@ foreach ($eventsData as $event) {
         </div>
         </form>
     </div>
+    </div>
+</div>
+
+<div id="certificate-modal" class="certificate-modal">
+    <div class="modal-header">
+        <span class="modal-title">Certificate Distribution</span>
+        <div class="modal-controls">
+            <button id="minimize-modal" class="minimize-btn"><i class="fas fa-minus"></i></button>
+            <button id="close-modal" class="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+    <div class="modal-body">
+        <!--<div class="event-title" id="modal-event-title">Loading event details...</div>-->
+        <div class="spinner"></div>
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="processing-text" id="processing-text">Initializing certificate distribution...</div>
+        
+        <div class="progress-bar-container">
+            <div class="progress-bar"></div>
+        </div>
+        
+        <div class="status-text">
+            <div>Participants: <span id="participant-progress">0/0</span></div>
+            <div>Certificates: <span id="certificate-count">0</span></div>
+            <div>Emails: <span id="email-count">0</span></div>
+            <div class="error-section" style="display: none;">
+                <span class="error-count">Errors: <span id="error-count">0</span></span>
+                <div id="error-details"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -1331,12 +1513,284 @@ document.querySelector('.search-input').addEventListener('input', function() {
         });
     }
 
-    function distributeCertificates() {
-        const eventId = document.getElementById('distribute-btn').getAttribute('data-id');
-        if (confirm('Are you sure you want to distribute certificates to all participants of this event?')) {
-            window.location.href = 'distribute_certificates.php?event_id=' + eventId;
-        }
+// Global variables to track certificate distribution
+let certDistribution = {
+    eventId: 0,
+    certCount: 0,
+    emailCount: 0,
+    processedCount: 0,
+    totalParticipants: 0,
+    errorCount: 0,
+    currentOffset: 0,
+    batchSize: 5,
+    isProcessing: false,
+    maxRetries: 3,
+    currentRetry: 0,
+    active: false,
+    //eventTitle: '',
+    timeoutId: null
+};
+
+function distributeCertificates() {
+    const eventId = document.getElementById('distribute-btn').getAttribute('data-id');
+    const eventTitle = document.getElementById('distribute-btn').getAttribute('data-title') || '';
+
+    console.log('Button clicked for event:', { eventId, eventTitle });
+    
+    if (confirm('Are you sure you want to distribute certificates to all participants of this event?')) {
+
+        // Initialize distribution
+        certDistribution = {
+            eventId: eventId,
+            certCount: 0,
+            emailCount: 0,
+            processedCount: 0,
+            totalParticipants: 0,
+            errorCount: 0,
+            currentOffset: 0,
+            batchSize: 5,
+            isProcessing: false,
+            maxRetries: 3,
+            currentRetry: 0,
+            active: true,
+            //eventTitle: eventTitle,
+            timeoutId: null
+        };
+
+        // Show the modal first
+        const modal = document.getElementById('certificate-modal');
+        modal.style.display = 'block';
+        
+        // Reset the UI
+        document.querySelector('.spinner').style.display = 'block';
+        document.querySelector('.success-icon').style.display = 'none';
+        document.getElementById('processing-text').textContent = 'Initializing certificate distribution...';
+        document.querySelector('.progress-bar').style.width = '0%';
+        document.getElementById('participant-progress').textContent = '0/0';
+        document.getElementById('certificate-count').textContent = '0';
+        document.getElementById('email-count').textContent = '0';
+        document.getElementById('error-count').textContent = '0';
+        document.getElementById('error-details').innerHTML = '';
+        document.querySelector('.error-section').style.display = 'none';
+        
+        // Setup modal controls
+        setupModalControls();
+        
+        // Start the distribution process
+        startDistribution();
     }
+}
+
+function selectEvent(eventId, eventTitle) {
+    // Update the distribute button attributes
+    const distributeBtn = document.getElementById('distribute-btn');
+    distributeBtn.setAttribute('data-id', eventId);
+    distributeBtn.setAttribute('data-title', eventTitle);
+    
+    console.log('Event selected:', { eventId, eventTitle });
+}
+
+// Setup modal controls (minimize, close)
+function setupModalControls() {
+    // Minimize button
+    document.getElementById('minimize-modal').addEventListener('click', function() {
+        const modal = document.getElementById('certificate-modal');
+        modal.classList.toggle('minimized');
+        
+        // Change button icon
+        const icon = this.querySelector('i');
+        if (modal.classList.contains('minimized')) {
+            icon.className = 'fas fa-plus';
+        } else {
+            icon.className = 'fas fa-minus';
+        }
+    });
+    
+    // Close button
+    document.getElementById('close-modal').addEventListener('click', function() {
+        if (certDistribution.active && !confirm('Certificate distribution is still in progress. Are you sure you want to close this window?')) {
+            return;
+        }
+        
+        // Clear any pending timeouts
+        if (certDistribution.timeoutId) {
+            clearTimeout(certDistribution.timeoutId);
+        }
+        
+        // Hide the modal
+        document.getElementById('certificate-modal').style.display = 'none';
+        
+        // Mark as inactive
+        certDistribution.active = false;
+    });
+}
+
+// Start the certificate distribution process
+function startDistribution() {
+    // First, get the total number of participants
+    fetch(`get_participant_count.php?event_id=${certDistribution.eventId}&reset=true`)
+        .then(response => response.json())
+        .then(data => {
+            certDistribution.totalParticipants = data.count;
+            
+            // Update the UI
+            document.getElementById('participant-progress').textContent = `0/${certDistribution.totalParticipants}`;
+            document.getElementById('processing-text').textContent = 'Distributing certificates...';
+            
+            // If there are no participants, show error
+            if (certDistribution.totalParticipants === 0) {
+                document.querySelector('.spinner').style.display = 'none';
+                document.getElementById('processing-text').textContent = 'No participants found for this event.';
+                certDistribution.active = false;
+                return;
+            }
+            
+            // Start processing the first batch
+            processBatch();
+        })
+        .catch(error => {
+            console.error('Error fetching participant count:', error);
+            document.getElementById('processing-text').textContent = 'Error: Could not fetch participant count.';
+            document.querySelector('.error-section').style.display = 'block';
+            document.getElementById('error-details').innerHTML = `<div class="error-details-item">• ${error.message}</div>`;
+            certDistribution.active = false;
+        });
+}
+
+console.log('Elements with ID modal-event-title:', document.querySelectorAll('#modal-event-title').length);
+
+// Process a batch of certificates
+function processBatch() {
+    if (!certDistribution.active) return;
+    
+    if (certDistribution.isProcessing) return;
+    certDistribution.isProcessing = true;
+    
+    fetch(`distribute_certificates.php?event_id=${certDistribution.eventId}&batch=true&offset=${certDistribution.currentOffset}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            certDistribution.isProcessing = false;
+            certDistribution.currentRetry = 0; // Reset retry counter on success
+            
+            if (data.status === 'error') {
+                throw new Error(data.message);
+            }
+            
+            // Update progress with latest data
+            certDistribution.certCount = data.certificates;
+            certDistribution.emailCount = data.emails;
+            certDistribution.processedCount = data.processed;
+            certDistribution.currentOffset = data.next_offset;
+            certDistribution.errorCount = data.errors;
+            
+            // Update UI
+            updateProgressUI();
+            
+            // Check for errors
+            if (data.errorDetails && data.errorDetails.length > 0) {
+                displayErrors(data.errorDetails);
+            }
+            
+            // Continue processing or finish
+            if (data.status === 'in_progress') {
+                document.getElementById('processing-text').textContent = 
+                    `Distributing certificates... (${certDistribution.processedCount}/${certDistribution.totalParticipants})`;
+                
+                // Schedule next batch with a small delay
+                certDistribution.timeoutId = setTimeout(processBatch, 1500);
+            } else if (data.status === 'complete') {
+                // Show completion status
+                showCompletionStatus();
+            }
+        })
+        .catch(error => {
+            certDistribution.isProcessing = false;
+            console.error('Fetch error:', error);
+            
+            // Add error to UI
+            document.getElementById('processing-text').textContent = 'Error: ' + error.message;
+            
+            // Display in error section
+            document.querySelector('.error-section').style.display = 'block';
+            const errorDetailsElement = document.getElementById('error-details');
+            const errorElement = document.createElement('div');
+            errorElement.className = 'error-details-item';
+            errorElement.textContent = '• ' + error.message;
+            errorDetailsElement.appendChild(errorElement);
+            
+            // Retry logic
+            if (certDistribution.currentRetry < certDistribution.maxRetries) {
+                certDistribution.currentRetry++;
+                console.log(`Retry attempt ${certDistribution.currentRetry} of ${certDistribution.maxRetries}...`);
+                document.getElementById('processing-text').textContent = 
+                    `Retrying... attempt ${certDistribution.currentRetry} of ${certDistribution.maxRetries}`;
+                
+                // Exponential backoff
+                certDistribution.timeoutId = setTimeout(processBatch, 1000 * certDistribution.currentRetry);
+            } else {
+                document.getElementById('processing-text').textContent = 
+                    `Failed after ${certDistribution.maxRetries} attempts. Please try again later.`;
+                certDistribution.active = false;
+            }
+        });
+}
+
+// Update the progress UI
+function updateProgressUI() {
+    document.getElementById('certificate-count').textContent = certDistribution.certCount;
+    document.getElementById('email-count').textContent = certDistribution.emailCount;
+    document.getElementById('participant-progress').textContent = 
+        `${certDistribution.processedCount}/${certDistribution.totalParticipants}`;
+    
+    // Update error count if there are errors
+    if (certDistribution.errorCount > 0) {
+        document.getElementById('error-count').textContent = certDistribution.errorCount;
+        document.querySelector('.error-section').style.display = 'block';
+    }
+    
+    // Update progress bar
+    const percentComplete = Math.min(100, Math.round((certDistribution.processedCount / certDistribution.totalParticipants) * 100));
+    document.querySelector('.progress-bar').style.width = percentComplete + '%';
+}
+
+// Display errors in the UI
+function displayErrors(errors) {
+    const errorContainer = document.getElementById('error-details');
+    errorContainer.innerHTML = '';
+    document.querySelector('.error-section').style.display = 'block';
+    
+    errors.forEach(error => {
+        const errorElement = document.createElement('div');
+        errorElement.className = 'error-details-item';
+        errorElement.textContent = '• ' + error;
+        errorContainer.appendChild(errorElement);
+    });
+}
+
+// Show completion status
+function showCompletionStatus() {
+    document.querySelector('.spinner').style.display = 'none';
+    
+    if (certDistribution.certCount > 0) {
+        if (certDistribution.errorCount > 0) {
+            document.getElementById('processing-text').textContent = 
+                `Completed with ${certDistribution.errorCount} errors`;
+        } else {
+            document.querySelector('.success-icon').style.display = 'block';
+            document.getElementById('processing-text').textContent = 'Certificate distribution complete!';
+        }
+    } else {
+        document.getElementById('processing-text').textContent = 'Certificates for this event have already been distributed.';
+    }
+    
+    // Mark as inactive
+    certDistribution.active = false;
+}
 
  function fetchRegisteredUsers(eventId, forceFresh = false) {
     // Show loading indicator
