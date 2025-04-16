@@ -273,6 +273,8 @@ foreach ($eventsData as $event) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <link href="styles/admin-events.css" rel="stylesheet">
+    <link href="styles/persistent-toast.css" rel="stylesheet">
+    <script src="scripts/persistent-toast.js" defer></script>
     <script src="scripts/admin-events.js" defer></script>
     <title>Event Management System</title>
     <style>
@@ -1391,54 +1393,104 @@ mealBtn.removeAttribute('data-tooltip');
         }
 
 
-        // Handle form submission
-        evalForm.onsubmit = function(e) {
-        e.preventDefault();
-        const eventId = this.getAttribute('data-event-id');
-        const evalLink = document.getElementById('eval-link').value;
+        evalForm.onsubmit = function (e) {
+    e.preventDefault();
+    const eventId = this.getAttribute('data-event-id');
+    const evalLink = document.getElementById('eval-link').value;
 
-         // Validate evaluation link
-        if (!isValidUrl(evalLink)) {
-            alert('Please enter a valid URL for the evaluation link.');
-            return;
-        }
+    // Validate evaluation link
+    if (!isValidUrl(evalLink)) {
+        alert('Please enter a valid URL for the evaluation link.');
+        return;
+    }
 
-        // Confirm before sending
-        if (!confirm('Are you sure you want to send the evaluation link to all participants?')) {
-            return;
-        }  
+    // Confirm before sending
+    if (!confirm('Are you sure you want to send the evaluation link to all participants?')) {
+        return;
+    }
 
-        // Show loading state
-        document.getElementById('send-eval').textContent = "Sending...";
-        document.getElementById('send-eval').disabled = true;
+    // Show loading state
+    const sendButton = document.getElementById('send-eval');
+    sendButton.textContent = "Sending...";
+    sendButton.disabled = true;
 
-        fetch(`send_eval_link.php?event_id=${eventId}&eval_link=${encodeURIComponent(evalLink)}`, {
-                method: 'GET'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.text(); // or response.json() depending on your PHP script
-            })
-            .then(data => {
-                // Parse the response or show a generic success message
-                alert('Evaluation link sent successfully to all participants!');
-                evalModal.style.display = "none";
-               
-                // Reset form
-                evalForm.reset();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to send evaluation link. Please try again.');
-            })
-            .finally(() => {
+    // Get total participants count
+    const totalParticipants = parseInt(document.getElementById('total-participants').textContent) || 0;
+
+    // Generate a unique ID for this evaluation send process
+    const processId = 'eval-send-' + Date.now();
+
+    // Show progress toast (using the persistent toast system)
+    PersistentToast.show('Sending Evaluation Links', 'Preparing to send emails...', 'info', processId);
+
+    // Close the modal
+    evalModal.style.display = "none";
+
+    // Start the request with progress tracking
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', `send_eval_link.php?event_id=${eventId}&eval_link=${encodeURIComponent(evalLink)}`, true);
+
+    // Set up progress tracking
+    let emailsSent = 0;
+    let progressInterval;
+
+    // Simulate progress updates since server doesn't provide real-time updates
+    if (totalParticipants > 0) {
+        progressInterval = setInterval(() => {
+            emailsSent++;
+            const progress = (emailsSent / totalParticipants) * 100;
+
+            if (emailsSent <= totalParticipants) {
+                PersistentToast.updateProgress(progress, emailsSent, processId);
+                PersistentToast.update(`Sending evaluation links... (${emailsSent}/${totalParticipants})`, 'info', processId);
+            }
+
+            if (emailsSent >= totalParticipants) {
+                clearInterval(progressInterval);
+            }
+        }, 500); // Adjust timing based on expected email sending speed
+    }
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            // Clear simulation interval
+            clearInterval(progressInterval);
+
+            if (xhr.status === 200) {
+                // Parse response (if any)
+                const response = xhr.responseText;
+
+                // Update progress to 100% and show success message
+                PersistentToast.updateProgress(100, totalParticipants, processId);
+                PersistentToast.update('All evaluation links sent successfully!', 'success', processId);
+                
+                // Force a small delay before allowing page navigation
+                // This ensures the localStorage is updated with the success state
+                setTimeout(() => {
+                    // Reset form
+                    evalForm.reset();
+                    
+                    // Restore button state
+                    sendButton.textContent = "Send Evaluation Link";
+                    sendButton.disabled = false;
+                    
+                    // Schedule auto-removal (but not immediately)
+                    // This way the success message will persist for a while across pages
+                    PersistentToast.autoRemove(processId, 30000); // 30 seconds
+                }, 300);
+            } else {
+                // Error handling
+                PersistentToast.update('Failed to send evaluation links. Please try again.', 'error', processId);
+                
                 // Restore button state
                 sendButton.textContent = "Send Evaluation Link";
                 sendButton.disabled = false;
-            });
+            }
         }
+    };
+
+    xhr.send();
+};
 
     const searchInput = document.querySelector('.search-input');
     const eventButtons = document.querySelectorAll('.events-btn');

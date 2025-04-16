@@ -1,0 +1,98 @@
+/* Toast notification styles */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 350px;
+    width: 100%;
+  }
+  .toast {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 10px;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.3s ease;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .toast-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+  }
+  .toast-header i {
+    margin-right: 8px;
+  }
+  .toast-header strong {
+    flex-grow: 1;
+  }
+  .toast-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.5;
+    padding: 0;
+    margin-left: 10px;
+  }
+  .toast-close:hover {
+    opacity: 1;
+  }
+  .toast-body {
+    padding: 15px;
+  }
+  .progress-container {
+    height: 20px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    margin: 10px 0;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background-color: #3498db;
+    color: white;
+    text-align: center;
+    line-height: 20px;
+    font-size: 0.8rem;
+    transition: width 0.3s ease;
+  }
+  .email-counter {
+    font-size: 0.85rem;
+    margin: 5px 0 0;
+    text-align: right;
+  }
+  .toast-info {
+    border-left: 4px solid #3498db;
+  }
+  .toast-success {
+    border-left: 4px solid #2ecc71;
+  }
+  .toast-error {
+    border-left: 4px solid #e74c3c;
+  }
+  .toast-info .toast-header i {
+    color: #3498db;
+  }
+  .toast-success .toast-header i {
+    color: #2ecc71;
+  }
+  .toast-error .toast-header i {
+    color: #e74c3c;
+  }
+  .toast-success .progress-bar {
+    background-color: #2ecc71;
+  }
+  .toast-error .progress-bar {
+    background-color: #e74c3c;
+  }
