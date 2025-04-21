@@ -87,7 +87,10 @@ while ($row = $result->fetch_assoc()) {
     if ($row['is_registered'] > 0) {
         $registered_events[] = $row;
     } else {
-        $unregistered_events[] = $row;
+        // Only add unregistered events with "Upcoming" status
+        if ($row['status'] === 'Upcoming') {
+            $unregistered_events[] = $row;
+        }
     }
 }
 
@@ -203,10 +206,6 @@ function capitalizeFirstLetters($text) {
                 <i class="fas fa-calendar-alt"></i>
                 <span>Events</span>
             </a>
-            <a href="user-notif.php">
-                <i class="fas fa-bell mr-3"></i>
-                <span>Notification</span>
-            </a>
         </div>
         <div class="logout-section">
             <a href="login.php" class="logout-btn">
@@ -217,11 +216,6 @@ function capitalizeFirstLetters($text) {
     </div>
 
     <div class="content">
-        <div class="content-header">
-            <img src="styles/photos/DO-LOGO.png" width="70px" height="70px">
-            <p>Learning and Development</p>
-            <h1>EVENT MANAGEMENT SYSTEM</h1>
-        </div><br><br><br>
 
         <div class="content-body">
             <h1>Events</h1>
@@ -276,7 +270,7 @@ function capitalizeFirstLetters($text) {
 
                     <!-- Unregistered Events Tab -->
                     <div id="unregistered-tab" class="tab-content <?php echo $active_tab == 'unregistered' ? 'active' : ''; ?>">
-                        <h2>Available Events</h2>
+                        <h2>Available Upcoming Events</h2>
                         <?php
                         if (count($unregistered_events) > 0) {
                             foreach ($unregistered_events as $row) {
@@ -300,7 +294,7 @@ function capitalizeFirstLetters($text) {
                                 echo '</div>';
                             }
                         } else {
-                            echo "<p>No available events found.</p>";
+                            echo "<p>No available upcoming events found.</p>";
                         }
                         ?>
                     </div>
